@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title>Icon Chooser - F+M Pulse Collection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .icon-card { @apply bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center gap-4 transition-all hover:-translate-y-1 hover:shadow-xl border border-slate-200; }
+        .icon-img { @apply w-32 h-32 object-contain rounded-xl shadow-inner border border-slate-100 bg-slate-50; }
+        .code-box { @apply text-[10px] font-mono bg-slate-100 text-slate-600 px-2 py-1 rounded select-all; }
+    </style>
+</head>
+<body class="bg-slate-50 p-8 font-sans text-slate-800">
+    <div class="max-w-7xl mx-auto">
+        <div className="text-center mb-12">
+            <h1 class="text-4xl font-black text-slate-900 mb-2">App Icon Collection</h1>
+            <p class="text-slate-500 text-lg">Serie: <strong>F + M + Pulse Integration</strong></p>
+            <p class="text-sm text-slate-400 mt-2">Kies een icoon, hernoem het naar <code>icon.svg</code> en plaats het in de hoofdmap.</p>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            
+            <!-- V1 -->
+            <div class="icon-card ring-2 ring-blue-500 ring-offset-4">
+                <img src="icon.svg" class="icon-img">
+                <div class="text-center">
+                    <h3 class="font-bold">1. Vital Link</h3>
+                    <div class="text-xs text-slate-500 mb-2">Connected Hexagon</div>
+                    <code class="code-box">icon.svg</code>
+                </div>
+            </div>
+
+            <!-- V2 -->
+            <div class="icon-card">
+                <img src="icon-v2.svg" class="icon-img">
+                <div class="text-center">
+                    <h3 class="font-bold">2. Monitor</h3>
+                    <div class="text-xs text-slate-500 mb-2">Screen & EKG</div>
+                    <code class="code-box">icon-v2.svg</code>
+                </div>
+            </div>
+
+            <!-- V3 -->
+            <div class="icon-card">
+                <img src="icon-v3.svg" class="icon-img">
+                <div class="text-center">
+                    <h3 class="font-bold">3. Circuit</h3>
+                    <div class="text-xs text-slate-500 mb-2">PCB Traces</div>
+                    <code class="code-box">icon-v3.svg</code>
+                </div>
+            </div>
+
+            <!-- V4 -->
+            <div class="icon-card">
+                <img src="icon-v4.svg" class="icon-img">
+                <div class="text-center">
+                    <h3 class="font-bold">4. Neon Wave</h3>
+                    <div class="text-xs text-slate-500 mb-2">Continuous Line</div>
+                    <code class="code-box">icon-v4.svg</code>
+                </div>
+            </div>
+
+            <!-- V5 -->
+            <div class="icon-card">
+                <img src="icon-v5.svg" class="icon-img">
+                <div class="text-center">
+                    <h3 class="font-bold">5. Shield</h3>
+                    <div class="text-xs text-slate-500 mb-2">Safety Badge</div>
+                    <code class="code-box">icon-v5.svg</code>
+                </div>
+            </div>
+
+            <!-- V6 -->
+            <div class="icon-card">
+                <img src="icon-v6.svg" class="icon-img">
+                <div class="text-center">
+                    <h3 class="font-bold">6. Blueprint</h3>
+                    <div class="text-xs text-slate-500 mb-2">Technical Grid</div>
+                    <code class="code-box">icon-v6.svg</code>
+                </div>
+            </div>
+
+            <!-- V7 -->
+            <div class="icon-card">
+                <img src="icon-v7.svg" class="icon-img">
+                <div class="text-center">
+                    <h3 class="font-bold">7. The Cube</h3>
+                    <div class="text-xs text-slate-500 mb-2">Isometric Box</div>
+                    <code class="code-box">icon-v7.svg</code>
+                </div>
+            </div>
+
+            <!-- V8 -->
+            <div class="icon-card">
+                <img src="icon-v8.svg" class="icon-img">
+                <div class="text-center">
+                    <h3 class="font-bold">8. Hazard</h3>
+                    <div class="text-xs text-slate-500 mb-2">Industrial Alert</div>
+                    <code class="code-box">icon-v8.svg</code>
+                </div>
+            </div>
+
+            <!-- V9 -->
+            <div class="icon-card">
+                <img src="icon-v9.svg" class="icon-img">
+                <div class="text-center">
+                    <h3 class="font-bold">9. Soft Minimal</h3>
+                    <div class="text-xs text-slate-500 mb-2">Clean Light</div>
+                    <code class="code-box">icon-v9.svg</code>
+                </div>
+            </div>
+
+            <!-- V10 -->
+            <div class="icon-card">
+                <img src="icon-v10.svg" class="icon-img">
+                <div class="text-center">
+                    <h3 class="font-bold">10. The Chip</h3>
+                    <div class="text-xs text-slate-500 mb-2">Processor Data</div>
+                    <code class="code-box">icon-v10.svg</code>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>

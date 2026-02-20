@@ -1,0 +1,151 @@
+
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asset Generator | Factory Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4 md:p-8 font-sans">
+    <div class="bg-white p-8 rounded-[2.5rem] shadow-2xl max-w-lg w-full text-center border border-slate-200">
+        <h1 class="text-3xl font-black text-slate-800 mb-2 uppercase tracking-tighter italic">Asset Generator</h1>
+        <p class="text-slate-500 mb-8 text-sm font-medium">
+            Genereer professionele <strong>PNG</strong> en <strong>ICO</strong> bestanden voor Windows installaties.
+        </p>
+
+        <!-- Preview & Selection Zone -->
+        <div class="mb-8 flex flex-col items-center">
+            <div id="dropZone" class="relative w-48 h-48 border-4 border-dashed border-slate-200 rounded-[2rem] bg-slate-50 flex items-center justify-center overflow-hidden mb-4 group transition-all hover:border-blue-400">
+                <img id="preview" src="../icon.svg" class="w-32 h-32 object-contain opacity-20 group-hover:opacity-100 transition-opacity" alt="Voorbeeld">
+                <div id="placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 font-bold uppercase text-[10px] tracking-widest pointer-events-none">
+                    <span>Geen bestand</span>
+                </div>
+            </div>
+            
+            <label class="cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-600 px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all">
+                Selecteer icon.svg
+                <input type="file" id="fileInput" accept=".svg" class="hidden">
+            </label>
+            <p class="text-[10px] text-slate-400 mt-2 italic">Selecteer 'icon.svg' uit de hoofdmap van je project</p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="space-y-3 opacity-50 pointer-events-none transition-opacity" id="actionButtons">
+            <button onclick="downloadPNG()" class="w-full py-4 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black shadow-xl shadow-blue-500/30 flex items-center justify-between transition-transform active:scale-95">
+                <span class="uppercase tracking-widest text-sm">1. Download icon.png</span>
+                <span class="text-[10px] bg-white/20 px-2 py-1 rounded font-mono">512x512</span>
+            </button>
+
+            <button onclick="downloadICO()" class="w-full py-4 px-6 bg-slate-900 hover:bg-black text-white rounded-2xl font-black shadow-xl shadow-slate-500/30 flex items-center justify-between transition-transform active:scale-95">
+                <span class="uppercase tracking-widest text-sm">2. Download favicon.ico</span>
+                <span class="text-[10px] bg-white/20 px-2 py-1 rounded font-mono">Multi-Size</span>
+            </button>
+        </div>
+
+        <div id="status" class="mt-6 text-[10px] font-bold uppercase tracking-widest text-orange-500 hidden">
+            Bezig met verwerken...
+        </div>
+
+        <div class="mt-8 text-[10px] text-slate-400 border-t border-slate-100 pt-6 leading-relaxed text-left px-4">
+            <h4 class="font-black text-slate-500 mb-1 uppercase tracking-widest">Instructies:</h4>
+            <ol class="list-decimal space-y-1 ml-4 font-medium">
+                <li>Selecteer je <strong>icon.svg</strong> via de knop hierboven.</li>
+                <li>Download beide bestanden naar je project-root.</li>
+                <li>Hernoem de PNG naar <code>icon.png</code> als dat nog niet zo is.</li>
+                <li>Draai nu <code>npm run release</code> in je terminal.</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Hidden Processing Engine -->
+    <canvas id="canvas" width="512" height="512" style="display:none"></canvas>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const preview = document.getElementById('preview');
+        const actionButtons = document.getElementById('actionButtons');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const status = document.getElementById('status');
+        const placeholder = document.getElementById('placeholder');
+
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                preview.src = event.target.result;
+                preview.classList.remove('opacity-20');
+                placeholder.classList.add('hidden');
+                actionButtons.classList.remove('opacity-50', 'pointer-events-none');
+                console.log("SVG Geladen en klaar voor conversie.");
+            };
+            reader.readAsDataURL(file);
+        });
+
+        function drawToCanvas(callback) {
+            status.classList.remove('hidden');
+            status.innerText = "Verwerken...";
+            
+            // Render SVG naar Canvas
+            const img = new Image();
+            img.onload = function() {
+                ctx.clearRect(0, 0, 512, 512);
+                ctx.drawImage(img, 0, 0, 512, 512);
+                status.innerText = "Klaar!";
+                setTimeout(() => status.classList.add('hidden'), 2000);
+                callback();
+            };
+            img.onerror = function() {
+                alert("Fout bij verwerken SVG. Is het een geldig bestand?");
+                status.classList.add('hidden');
+            };
+            img.src = preview.src;
+        }
+
+        function downloadPNG() {
+            drawToCanvas(() => {
+                const link = document.createElement('a');
+                link.download = 'icon.png';
+                link.href = canvas.toDataURL('image/png');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+        }
+
+        function downloadICO() {
+            drawToCanvas(() => {
+                canvas.toBlob(async (blob) => {
+                    // Simpele ICO Wrapper (PNG-in-ICO methode)
+                    const header = new Uint8Array([0, 0, 1, 0, 1, 0]);
+                    const pngBuffer = await blob.arrayBuffer();
+                    const pngData = new Uint8Array(pngBuffer);
+                    const size = pngData.length;
+
+                    const directory = new Uint8Array(16);
+                    const view = new DataView(directory.buffer);
+                    view.setUint8(0, 0); // Width 256
+                    view.setUint8(1, 0); // Height 256
+                    view.setUint8(2, 0); 
+                    view.setUint8(3, 0);
+                    view.setUint16(4, 1, true);
+                    view.setUint16(6, 32, true);
+                    view.setUint32(8, size, true);
+                    view.setUint32(12, 22, true);
+
+                    const icoBlob = new Blob([header, directory, pngData], { type: 'image/x-icon' });
+                    const link = document.createElement('a');
+                    link.download = 'favicon.ico';
+                    link.href = URL.createObjectURL(icoBlob);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }, 'image/png');
+            });
+        }
+    </script>
+</body>
+</html>
