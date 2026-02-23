@@ -15,7 +15,7 @@ import {
     ToggleRight,
     ShieldAlert,
     CheckCircle
-} from 'lucide-react';
+} from '../icons';
 import { NumpadModal } from '../components/NumpadModal';
 import { useTable } from '../hooks/useTable';
 import { KEYS } from '../services/db/core';

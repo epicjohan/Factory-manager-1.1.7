@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react'
 import { db } from '../services/storage';
 import { Machine, MaintenanceTicket, SupportRequest, SupportStatus, Permission } from '../types';
 import { useAuth } from '../contexts/AuthContext';
-import { Maximize, Minimize, AlertTriangle, Activity, CheckCircle, Clock, Zap, Megaphone, Wrench, Package, Timer, ChevronDown, Play, Power, Octagon } from 'lucide-react';
+import { Maximize, Minimize, AlertTriangle, Activity, CheckCircle, Clock, Zap, Megaphone, Wrench, Package, Timer, ChevronDown, Play, Power, Octagon } from '../icons';
 import { useTable } from '../hooks/useTable';
 import { KEYS } from '../services/db/core';
 

@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { Wrench, Plus, Info, RotateCcw, AlertTriangle, X, History, Clock } from 'lucide-react';
+import { Wrench, Plus, Info, RotateCcw, AlertTriangle, X, History, Clock } from '../../../icons';
 import { ArticleTool, SetupTemplate, SetupChangeEntry, SetupVariant } from '../../../types';
 import { ToolBlock } from '../shared/ToolBlock';
 import { generateId } from '../../../services/db/core';

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-// Fix: added CheckCircle to the import list from 'lucide-react' to resolve missing reference
-import { History, Plus, HardDrive, Trash2, AlertTriangle, Smartphone, Download, CheckCircle } from 'lucide-react';
+// Fix: added CheckCircle to the import list from '../../icons' to resolve missing reference
+import { History, Plus, HardDrive, Trash2, AlertTriangle, Smartphone, Download, CheckCircle } from '../../icons';
 import { db } from '../../services/storage';
 import { useTable } from '../../hooks/useTable';
 import { KEYS } from '../../services/db/core';

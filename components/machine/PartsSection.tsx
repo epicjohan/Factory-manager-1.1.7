@@ -19,7 +19,7 @@ import {
   X,
   MapPin,
   Euro
-} from 'lucide-react';
+} from '../../icons';
 
 interface PartsSectionProps {
     machine: Machine;

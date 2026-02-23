@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Book, Wrench, AlertTriangle, Smartphone, Package, Activity, Droplet, LayoutGrid, Monitor, Wifi } from 'lucide-react';
+import { ArrowLeft, Book, Wrench, AlertTriangle, Smartphone, Package, Activity, Droplet, LayoutGrid, Monitor, Wifi } from '../icons';
 
 export const Help: React.FC = () => {
   const navigate = useNavigate();

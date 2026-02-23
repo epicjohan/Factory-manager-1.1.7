@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { db } from '../services/storage';
 import { Machine, ScheduleType, WorkSchedule, EfficiencyLog } from '../types';
-import { TrendingUp, BarChart2, Calendar, Clock, Activity, AlertCircle, Filter, Monitor, SunMoon, Zap, ShieldCheck, Gauge } from 'lucide-react';
+import { TrendingUp, BarChart2, Calendar, Clock, Activity, AlertCircle, Filter, Monitor, SunMoon, Zap, ShieldCheck, Gauge } from '../icons';
 import { 
     BarChart, 
     Bar, 

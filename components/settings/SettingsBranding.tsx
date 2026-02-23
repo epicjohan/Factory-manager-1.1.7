@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Building2, ImageIcon, HelpCircle, Save, CheckCircle } from 'lucide-react';
+import { Building2, ImageIcon, HelpCircle, Save, CheckCircle } from '../../icons';
 import { db } from '../../services/storage';
 import { SystemSettings } from '../../types';
 

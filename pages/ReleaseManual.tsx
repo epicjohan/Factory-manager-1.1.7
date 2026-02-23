@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Package, RefreshCw, Folder, File, Terminal, Shield, AlertTriangle, CheckCircle, Info, ShieldCheck, HardDrive, Cpu, Database, Settings } from 'lucide-react';
+import { ArrowLeft, Package, RefreshCw, Folder, File, Terminal, Shield, AlertTriangle, CheckCircle, Info, ShieldCheck, HardDrive, Cpu, Database, Settings } from '../icons';
 
 export const ReleaseManual: React.FC = () => {
   const navigate = useNavigate();

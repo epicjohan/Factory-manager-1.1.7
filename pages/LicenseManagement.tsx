@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle, Square, Shield, Layers, Lock, Clock, Info } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Square, Shield, Layers, Lock, Clock, Info } from '../icons';
 import { db } from '../services/storage';
 import { CommercialModule, SystemSettings } from '../types';
 import { COMMERCIAL_MODULES } from '../config/commercialModules';

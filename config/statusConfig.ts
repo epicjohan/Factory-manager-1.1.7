@@ -1,5 +1,5 @@
 
-import { Activity, AlertTriangle, Wrench, Clock, Power } from 'lucide-react';
+import { Activity, AlertTriangle, Wrench, Clock, Power } from '../icons';
 
 export const STATUS_CONFIG = {
     RUNNING: {

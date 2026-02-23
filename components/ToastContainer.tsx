@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useNotifications } from '../contexts/NotificationContext';
-import { X, AlertCircle, CheckCircle, Info, AlertTriangle } from 'lucide-react';
+import { X, AlertCircle, CheckCircle, Info, AlertTriangle } from '../icons';
 
 export const ToastContainer: React.FC = () => {
     const { notifications } = useNotifications();

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { UserCircle, LogOut, Sun, Moon, Bell, CloudUpload, FlaskConical, Zap, Wifi, WifiOff } from 'lucide-react';
+import { UserCircle, LogOut, Sun, Moon, Bell, CloudUpload, FlaskConical, Zap, Wifi, WifiOff } from '../../icons';
 import { User } from '../../types';
 import { APP_INFO } from '../../services/appInfo';
 

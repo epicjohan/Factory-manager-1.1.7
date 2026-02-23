@@ -7,9 +7,9 @@ import { KEYS, generateId } from '../services/db/core';
 import { MachineCard } from '../components/MachineCard';
 import { useAuth } from '../contexts/AuthContext';
 /**
- * Fix: Added CloudCog to the import list from 'lucide-react' to resolve the reference on line 214
+ * Fix: Added CloudCog to the import list from '../icons' to resolve the reference on line 214
  */
-import { Search, Filter, AlertTriangle, Clock, ArrowRight, CheckCircle, Plus, X, Siren, Zap, CalendarClock, Info, CloudCog } from 'lucide-react';
+import { Search, Filter, AlertTriangle, Clock, ArrowRight, CheckCircle, Plus, X, Siren, Zap, CalendarClock, Info, CloudCog } from '../icons';
 import { ManagerDashboard } from './ManagerDashboard';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { StatusBadge } from '../components/StatusBadge';

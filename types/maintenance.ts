@@ -122,6 +122,8 @@ export interface MixingLog {
   date: string;
   percentage?: number;
   type: 'MEASUREMENT' | 'EXCHANGE' | 'CLEANING' | 'ADDITIVE';
+  // CLEAN-02: 'notes' en 'actionTaken' bestaan lokaal maar zijn NIET aanwezig in de PocketBase
+  // 'mixing_logs' collectie. Voeg deze velden toe aan PB of verwijder ze als ze niet meer gebruikt worden.
   notes: string;
   performedBy: string;
   actionTaken?: boolean;

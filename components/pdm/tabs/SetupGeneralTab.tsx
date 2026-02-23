@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { Monitor, Box, Clock, RefreshCw, ChevronRight, Search, History, X, FileCode, Wrench, Settings, Info, User, Calendar } from 'lucide-react';
+import { Monitor, Box, Clock, RefreshCw, ChevronRight, Search, History, X, FileCode, Wrench, Settings, Info, User, Calendar } from '../../../icons';
 import { SetupVariant, Machine, SetupTemplate, SetupChangeEntry } from '../../../types';
 
 interface SetupGeneralTabProps {

@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Search, ChevronDown, Lock } from 'lucide-react';
+import { Search, ChevronDown, Lock } from '../../../icons';
 import { PredefinedOperation } from '../../../types';
 
 interface MKGCodePickerProps { 

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Machine } from '../types';
-import { Activity, Database, Zap, ImageIcon } from 'lucide-react';
+import { Activity, Database, Zap, ImageIcon } from '../icons';
 import { StatusBadge } from './StatusBadge';
 import { SyncService } from '../services/sync';
 import { db } from '../services/storage';

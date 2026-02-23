@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { ClipboardList, Plus, Trash2 } from 'lucide-react';
+import { ClipboardList, Plus, Trash2 } from '../../../icons';
 import { ArticleStep } from '../../../types';
 
 interface AutoResizingTextareaProps {

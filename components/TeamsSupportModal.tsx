@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { X, Send, AlertTriangle, Info, MapPin, Monitor, User } from 'lucide-react';
+import { X, Send, AlertTriangle, Info, MapPin, Monitor, User } from '../icons';
 import { useAuth } from '../contexts/AuthContext';
 import { TeamsService, TeamsUrgency } from '../services/teams';
 import { db } from '../services/storage';

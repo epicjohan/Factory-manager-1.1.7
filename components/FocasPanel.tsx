@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { FocasLiveStats, Machine } from '../types';
-import { Activity, Monitor, Play, Clock, Zap, Wifi, WifiOff, AlertTriangle, Settings, Wrench, FileText, Timer, FlaskConical } from 'lucide-react';
+import { Activity, Monitor, Play, Clock, Zap, Wifi, WifiOff, AlertTriangle, Settings, Wrench, FileText, Timer, FlaskConical } from '../icons';
 import { db } from '../services/storage';
 import { KEYS } from '../services/db/core';
 

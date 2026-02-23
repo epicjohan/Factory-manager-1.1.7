@@ -15,6 +15,8 @@ export const KEYS = {
     PARTS_GENERAL: 'fm_table_parts_general',
     REQUESTS: 'fm_table_requests',
     SCHEDULES: 'fm_table_schedules',
+    // CLEAN-01: SETTINGS_SYSTEM is superseded door SYSTEM_CONFIG. Wordt alleen bewaard voor backwards-compat,
+    // maar settingsService leest altijd uit SYSTEM_CONFIG. In een volgende major-versie kan dit verwijderd worden.
     SETTINGS_SYSTEM: 'fm_table_settings_system',
     SETTINGS_ENERGY: 'fm_table_settings_energy',
     SETTINGS_FEATURES: 'fm_table_settings_features',
@@ -32,7 +34,8 @@ export const KEYS = {
     LOGS_ENERGY_HISTORICAL: 'fm_table_logs_energy_historical',
     ARTICLES: 'fm_table_articles',
     MKG_OPERATIONS: 'fm_table_mkg_operations',
-    SETUP_TEMPLATES: 'fm_table_setup_templates'
+    SETUP_TEMPLATES: 'fm_table_setup_templates',
+    DOCUMENT_CATEGORIES: 'fm_table_document_categories'
 };
 
 export const DB_NAME = 'FactoryManagerDB';
@@ -64,11 +67,11 @@ export const formatDateForPB = (date: string | Date): string => {
 export const ensureParsedData = (data: any): any => {
     if (!data || typeof data !== 'object') return data;
     const result = Array.isArray(data) ? [...data] : { ...data };
-    
+
     const jsonFields = [
-        'liveStats', 'toolStats', 'checklist', 'permissions', 
-        'allowedAssetIds', 'allowedModules', 'allowedTabs', 
-        'activeModules', 'notificationEmails', 'actions', 
+        'liveStats', 'toolStats', 'checklist', 'permissions',
+        'allowedAssetIds', 'allowedModules', 'allowedTabs',
+        'activeModules', 'notificationEmails', 'actions',
         'usedParts', 'shifts', 'andonConfig', 'mtConnectConfig',
         'fields', 'toolFields', 'templateData', 'operations', 'bomItems', 'files', 'auditTrail'
     ];
@@ -81,7 +84,7 @@ export const ensureParsedData = (data: any): any => {
             }
         }
     });
-    
+
     return result;
 };
 
@@ -137,7 +140,7 @@ export const saveTable = async (key: string, data: any) => {
         const tx = db.transaction(key, 'readwrite');
         const store = tx.objectStore(key);
         store.put(data, 'data');
-        
+
         if (key !== KEYS.METADATA && key !== KEYS.OUTBOX && key !== KEYS.ENERGY_LIVE) {
             const meta = await loadTable(KEYS.METADATA, {});
             const newMeta = { ...meta, lastModified: Date.now() };
@@ -172,20 +175,20 @@ export const outboxUtils = {
     getOutbox: () => loadTable<SyncEntry[]>(KEYS.OUTBOX, []),
     getMetadata: () => loadTable<any>(KEYS.METADATA, {}),
     saveMetadata: (data: any) => saveTable(KEYS.METADATA, data),
-    
+
     addToOutbox: (table: string, action: SyncAction, data: any) => {
         outboxQueue = outboxQueue.then(async () => {
             try {
                 let outbox = await loadTable<SyncEntry[]>(KEYS.OUTBOX, []);
-                
+
                 if (action === 'UPDATE' && data.id) {
                     const existingIdx = outbox.findIndex(item => item && item.table === table && (item.action === 'UPDATE' || item.action === 'INSERT') && item.data && item.data.id === data.id);
                     if (existingIdx !== -1) {
-                        outbox[existingIdx] = { 
-                            ...outbox[existingIdx], 
-                            data: { ...outbox[existingIdx].data, ...data }, 
+                        outbox[existingIdx] = {
+                            ...outbox[existingIdx],
+                            data: { ...outbox[existingIdx].data, ...data },
                             timestamp: Date.now(),
-                            error: undefined 
+                            error: undefined
                         };
                     } else {
                         outbox.push({ id: generateId(), table, action, data, timestamp: Date.now() });
@@ -193,7 +196,7 @@ export const outboxUtils = {
                 } else {
                     outbox.push({ id: generateId(), table, action, data, timestamp: Date.now() });
                 }
-                
+
                 if (outbox.length > 1000) outbox = outbox.slice(-1000);
                 await saveTable(KEYS.OUTBOX, outbox);
                 window.dispatchEvent(new CustomEvent('outbox-changed'));
@@ -203,7 +206,7 @@ export const outboxUtils = {
         });
         return outboxQueue;
     },
-    
+
     updateOutboxEntry: (id: string, updates: Partial<SyncEntry>) => {
         outboxQueue = outboxQueue.then(async () => {
             const current = await loadTable<SyncEntry[]>(KEYS.OUTBOX, []);
@@ -240,11 +243,11 @@ export const outboxUtils = {
     },
 
     logAudit: async (action: string, userId: string, details: string) => {
-      const entry: SystemAuditLog = { id: generateId(), action, userId, details, created: getNowISO() };
-      const current = await loadTable<SystemAuditLog[]>(KEYS.SYSTEM_AUDIT_LOGS, []);
-      current.unshift(entry);
-      await saveTable(KEYS.SYSTEM_AUDIT_LOGS, current.slice(0, 500));
-      await outboxUtils.addToOutbox(KEYS.SYSTEM_AUDIT_LOGS, 'INSERT', entry);
+        const entry: SystemAuditLog = { id: generateId(), action, userId, details, created: getNowISO() };
+        const current = await loadTable<SystemAuditLog[]>(KEYS.SYSTEM_AUDIT_LOGS, []);
+        current.unshift(entry);
+        await saveTable(KEYS.SYSTEM_AUDIT_LOGS, current.slice(0, 500));
+        await outboxUtils.addToOutbox(KEYS.SYSTEM_AUDIT_LOGS, 'INSERT', entry);
     }
 };
 
@@ -254,7 +257,7 @@ export const migrateToIndexedDB = async () => {
     for (const [key, storageKey] of Object.entries(KEYS)) {
         const oldData = localStorage.getItem(storageKey);
         if (oldData) {
-            try { await saveTable(storageKey, JSON.parse(oldData)); } catch (e) {}
+            try { await saveTable(storageKey, JSON.parse(oldData)); } catch (e) { }
         }
     }
     localStorage.setItem('fm_migrated_v2', 'true');

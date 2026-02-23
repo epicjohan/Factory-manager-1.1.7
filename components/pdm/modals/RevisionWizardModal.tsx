@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { X, GitBranch, AlertTriangle } from 'lucide-react';
+import { X, GitBranch, AlertTriangle } from '../../../icons';
 
 interface RevisionWizardModalProps {
     isOpen: boolean;

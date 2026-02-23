@@ -10,7 +10,7 @@ import {
     ArrowLeft, LayoutTemplate, Plus, Trash2, Save, Edit, 
     ChevronUp, ChevronDown, Check, X, FileText, Hash, 
     ToggleLeft, List, AlignLeft, Type, Wrench, Layers, Copy, Box, AlertTriangle, LayoutGrid
-} from 'lucide-react';
+} from '../icons';
 
 const FIELD_TYPES: { type: SetupFieldType; label: string; icon: any }[] = [
     { type: 'text', label: 'Tekst (Kort)', icon: Type },

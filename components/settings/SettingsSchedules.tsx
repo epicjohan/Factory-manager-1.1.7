@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { CalendarClock, Plus, Edit2, Trash2, HelpCircle, X } from 'lucide-react';
+import { CalendarClock, Plus, Edit2, Trash2, HelpCircle, X } from '../../icons';
 import { db } from '../../services/storage';
 import { WorkSchedule, DailyShift } from '../../types';
 import { useTable } from '../../hooks/useTable';

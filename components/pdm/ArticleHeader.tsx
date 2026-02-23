@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Settings, Save, Lock, ArrowRight, ShieldCheck, CornerUpRight, AlertTriangle, FileUp } from 'lucide-react';
+import { Settings, Save, Lock, ArrowRight, ShieldCheck, CornerUpRight, AlertTriangle, FileUp } from '../../icons';
 import { Article, ArticleStatus, User } from '../../types';
 
 interface ArticleHeaderProps {

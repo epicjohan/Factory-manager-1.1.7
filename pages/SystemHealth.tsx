@@ -3,7 +3,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../services/storage';
 import { SyncService } from '../services/sync';
-import { ArrowLeft, Server, Activity, Wifi, WifiOff, Clock, AlertTriangle, RefreshCw, Cpu, Database, HardDrive, Trash2, BarChart, Zap, Monitor } from 'lucide-react';
+import { ArrowLeft, Server, Activity, Wifi, WifiOff, Clock, AlertTriangle, RefreshCw, Cpu, Database, HardDrive, Trash2, BarChart, Zap, Monitor } from '../icons';
 import { KEYS } from '../services/db/core';
 import { Machine, SystemStatus, SyncEntry } from '../types';
 import { useTable } from '../hooks/useTable';

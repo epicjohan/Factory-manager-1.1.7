@@ -5,7 +5,7 @@ import {
     Box, Megaphone, Package, TrendingUp, Calendar, Activity, 
     Zap, ShieldAlert, History, Folder, FileCode, Terminal, Cpu, Settings, Shield, 
     Layers, ClipboardList, ListChecks, Users, Wrench, Container, Recycle
-} from 'lucide-react';
+} from '../icons';
 
 export interface HardwareSpec {
     icon: any;

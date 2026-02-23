@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Check, Server, Cloud, Shield, Wrench, HardDrive, RefreshCw, Zap, TrendingUp, Calculator, Info, HelpCircle, Box, PieChart, Target, Clock, Euro, ArrowRight, Briefcase, Settings, Truck, Package, Layers, ListChecks, Monitor } from 'lucide-react';
+import { ArrowLeft, Check, Server, Cloud, Shield, Wrench, HardDrive, RefreshCw, Zap, TrendingUp, Calculator, Info, HelpCircle, Box, PieChart, Target, Clock, Euro, ArrowRight, Briefcase, Settings, Truck, Package, Layers, ListChecks, Monitor } from '../icons';
 
 type ModelType = 'SAAS' | 'PERPETUAL';
 type ViewTab = 'PRICING' | 'ROI';

@@ -6,7 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTable } from '../../hooks/useTable';
 import { 
   ClipboardList, CheckSquare, History, Settings, Plus, Trash2, XCircle, Square, CheckCircle, Calendar, Filter, CloudCog, Clock
-} from 'lucide-react';
+} from '../../icons';
 
 interface ChecklistSectionProps {
     machine: Machine;

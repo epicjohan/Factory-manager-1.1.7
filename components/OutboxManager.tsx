@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../services/storage';
 import { SyncEntry } from '../types';
-import { Cloud, X, Clock, Database, ArrowRight, RefreshCw, CheckCircle, Trash2, AlertTriangle, ShieldAlert } from 'lucide-react';
+import { Cloud, X, Clock, Database, ArrowRight, RefreshCw, CheckCircle, Trash2, AlertTriangle, ShieldAlert } from '../icons';
 
 interface OutboxManagerProps {
     isOpen: boolean;

@@ -2,7 +2,7 @@
 import React, { useMemo } from 'react';
 import { Machine, MaintenanceTicket, GeneralPart, TicketImpact } from '../types';
 import { PieChart, Pie, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { AlertTriangle, TrendingUp, Package, Euro, Activity, ArrowRight, Info, Zap, CheckCircle } from 'lucide-react';
+import { AlertTriangle, TrendingUp, Package, Euro, Activity, ArrowRight, Info, Zap, CheckCircle } from '../icons';
 import { Link } from 'react-router-dom';
 import { useTable } from '../hooks/useTable';
 import { KEYS } from '../services/db/core';

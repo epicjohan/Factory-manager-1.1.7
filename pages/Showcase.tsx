@@ -21,7 +21,7 @@ import {
   TrendingUp,
   Zap,
   Gauge
-} from 'lucide-react';
+} from '../icons';
 import { APP_INFO } from '../services/appInfo';
 
 export const Showcase: React.FC = () => {

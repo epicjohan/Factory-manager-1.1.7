@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw } from '../../icons';
 import { APP_INFO } from '../../services/appInfo';
 
 interface UpdateBannerProps {

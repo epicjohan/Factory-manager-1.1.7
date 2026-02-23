@@ -1,8 +1,10 @@
-
 import React, { useState } from 'react';
-import { Trash2, Edit2, Eye, RotateCcw, AlertTriangle, ShieldCheck } from 'lucide-react';
-import { ArticleTool, SetupTemplate } from '../../../types';
+import { Trash2, Edit2, Eye, RotateCcw, AlertTriangle, ShieldCheck, Wrench } from '../../../icons';
+import { ArticleTool, SetupTemplate, ArticleFile } from '../../../types';
 import { SearchableSelect } from '../../ui/SearchableSelect';
+import { SleekDocumentList } from '../ui/SleekDocumentList';
+import { generateId } from '../../../services/db/core';
+import { useAuth } from '../../../contexts/AuthContext';
 
 interface ToolBlockProps {
     tool: ArticleTool;
@@ -15,7 +17,8 @@ interface ToolBlockProps {
 
 export const ToolBlock: React.FC<ToolBlockProps> = ({ tool, onUpdate, onDelete, onReplace, disabled, template }) => {
     const [isExpanded, setIsExpanded] = useState(false);
-    
+    const { user } = useAuth();
+
     const handleDynamicChange = (key: string, value: any) => {
         if (disabled) return;
         const currentData = tool.toolData || {};
@@ -30,12 +33,71 @@ export const ToolBlock: React.FC<ToolBlockProps> = ({ tool, onUpdate, onDelete, 
         }
     };
 
+    const handleUploadFiles = async (newFiles: FileList | File[], role: string) => {
+        if (disabled || isReplaced) return;
+
+        const filesArray = Array.from(newFiles);
+        const addedFiles: ArticleFile[] = await Promise.all(
+            filesArray.map((file) => {
+                return new Promise<ArticleFile>((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        resolve({
+                            id: generateId(),
+                            name: file.name,
+                            type: file.type,
+                            url: reader.result as string,
+                            uploadedBy: user?.name || 'Onbekend',
+                            uploadDate: new Date().toISOString(),
+                            fileRole: role,
+                            version: 1
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                });
+            })
+        );
+
+        onUpdate({
+            files: [...(tool.files || []), ...addedFiles]
+        });
+    };
+
+    const handleDeleteFile = (fileId: string) => {
+        if (disabled || isReplaced) return;
+        if (window.confirm('Bestand verwijderen?')) {
+            onUpdate({
+                files: (tool.files || []).filter(f => f.id !== fileId)
+            });
+        }
+    };
+
+    const handlePreviewFile = (file: ArticleFile) => {
+        if (file.type === 'application/pdf' || file.type.startsWith('image/')) {
+            const newWindow = window.open();
+            if (newWindow) {
+                newWindow.document.write(
+                    `<iframe width='100%' height='100%' src='${file.url}' style='border:none; margin:0; padding:0;'></iframe>`
+                );
+            }
+        }
+    };
+
+    const handleDownloadFile = (file: ArticleFile) => {
+        const link = document.createElement('a');
+        link.href = file.url;
+        link.download = file.name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     const hasDynamicFields = template && template.toolFields && template.toolFields.length > 0;
     const isReplaced = tool.status === 'REPLACED';
 
     return (
         <div className={`bg-white dark:bg-slate-800 border-2 rounded-xl overflow-hidden transition-all duration-200 ${isExpanded ? 'shadow-lg border-blue-500 dark:border-blue-500' : 'shadow-sm border-slate-200 dark:border-slate-700 hover:border-blue-300'} ${isReplaced ? 'opacity-60 grayscale-[0.8] border-slate-100 bg-slate-50' : ''}`}>
-            
+
             {/* COMPACT ROW HEADER */}
             <div className="flex items-center gap-4 p-3 pr-4">
                 {/* LEFT: T-Number */}
@@ -70,8 +132,8 @@ export const ToolBlock: React.FC<ToolBlockProps> = ({ tool, onUpdate, onDelete, 
                 <div className="flex items-center gap-1 shrink-0">
                     {disabled || isReplaced ? (
                         // LOCKED / RELEASED / REPLACED STATE -> VIEW ONLY
-                        <button 
-                            onClick={() => setIsExpanded(!isExpanded)} 
+                        <button
+                            onClick={() => setIsExpanded(!isExpanded)}
                             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors ${isExpanded ? 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300' : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100'}`}
                         >
                             <Eye size={14} /> Bekijken
@@ -79,15 +141,15 @@ export const ToolBlock: React.FC<ToolBlockProps> = ({ tool, onUpdate, onDelete, 
                     ) : (
                         // EDIT STATE -> EDIT / DELETE
                         <>
-                            <button 
-                                onClick={() => setIsExpanded(!isExpanded)} 
+                            <button
+                                onClick={() => setIsExpanded(!isExpanded)}
                                 className={`p-2 rounded-lg transition-colors ${isExpanded ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400' : 'text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700'}`}
                                 title="Bewerken"
                             >
                                 <Edit2 size={16} />
                             </button>
-                            <button 
-                                onClick={(e) => { e.stopPropagation(); onDelete(); }} 
+                            <button
+                                onClick={(e) => { e.stopPropagation(); onDelete(); }}
                                 className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                                 title="Verwijderen"
                             >
@@ -97,11 +159,11 @@ export const ToolBlock: React.FC<ToolBlockProps> = ({ tool, onUpdate, onDelete, 
                     )}
                 </div>
             </div>
-            
+
             {/* EXPANDED DETAILS BODY */}
             {isExpanded && (
                 <div className="p-6 border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 animate-in slide-in-from-top-2 duration-200">
-                    
+
                     {/* Header Fields */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div className="space-y-1">
@@ -121,11 +183,11 @@ export const ToolBlock: React.FC<ToolBlockProps> = ({ tool, onUpdate, onDelete, 
                                 const val = tool.toolData?.[field.key] ?? field.defaultValue ?? '';
                                 const isFilled = val !== '' && val !== null && val !== undefined;
                                 const isHighlightActive = field.highlightFilled && isFilled;
-                                
+
                                 const spanClass = `col-span-12 md:col-span-${field.colSpan || 6}`;
 
                                 const inputBaseClass = "w-full p-3 rounded-xl border outline-none transition-all disabled:opacity-60 disabled:border-transparent";
-                                const highlightClass = isHighlightActive 
+                                const highlightClass = isHighlightActive
                                     ? "bg-amber-50 dark:bg-amber-900/30 border-amber-500 text-amber-900 dark:text-amber-100 font-black"
                                     : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-800 dark:text-white font-bold focus:border-blue-500";
 
@@ -137,7 +199,7 @@ export const ToolBlock: React.FC<ToolBlockProps> = ({ tool, onUpdate, onDelete, 
                                     return (
                                         <div key={field.key} className={spanClass + " space-y-1"}>
                                             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">{field.label}</label>
-                                            <button 
+                                            <button
                                                 disabled={disabled || isReplaced}
                                                 onClick={() => handleDynamicChange(field.key, !val)}
                                                 className={`w-full p-3 rounded-xl border-2 font-black text-[10px] uppercase transition-all ${val ? 'bg-blue-50 border-blue-500 text-blue-600 shadow-inner' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-400'} disabled:opacity-60`}
@@ -176,7 +238,7 @@ export const ToolBlock: React.FC<ToolBlockProps> = ({ tool, onUpdate, onDelete, 
                                             {field.type === 'textarea' ? (
                                                 <textarea disabled={disabled || isReplaced} rows={2} className={`${inputBaseClass} ${highlightClass}`} value={val} onChange={e => handleDynamicChange(field.key, e.target.value)} />
                                             ) : (
-                                                <input 
+                                                <input
                                                     disabled={disabled || isReplaced}
                                                     type={field.type === 'number' ? 'number' : 'text'}
                                                     className={`${inputBaseClass} ${highlightClass}`}
@@ -220,7 +282,7 @@ export const ToolBlock: React.FC<ToolBlockProps> = ({ tool, onUpdate, onDelete, 
                             </div>
                         </div>
                     )}
-                    
+
                     {/* Special Locked Actions Area */}
                     {disabled && !isReplaced && onReplace && (
                         <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700 flex flex-col md:flex-row items-center justify-between gap-4 bg-orange-50/50 dark:bg-orange-900/10 p-4 rounded-xl">
@@ -228,14 +290,31 @@ export const ToolBlock: React.FC<ToolBlockProps> = ({ tool, onUpdate, onDelete, 
                                 <AlertTriangle size={20} />
                                 <span className="text-xs font-bold">Setup is vrijgegeven (Released). Wijzigingen vereisen een revisie.</span>
                             </div>
-                            <button 
-                                onClick={onReplace} 
+                            <button
+                                onClick={onReplace}
                                 className="px-6 py-2 bg-white dark:bg-slate-800 text-orange-600 border border-orange-200 dark:border-orange-800 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-orange-50 dark:hover:bg-orange-900/30 transition-all flex items-center gap-2 shadow-sm"
                             >
                                 <RotateCcw size={14} /> Vervang Gereedschap
                             </button>
                         </div>
                     )}
+
+                    {/* Tooling Documents Area */}
+                    <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700">
+                        <SleekDocumentList
+                            title={<><Wrench size={18} /> Gereedschap Documenten</>}
+                            subtitle="Slijptekeningen, instelbladen, etc."
+                            files={tool.files || []}
+                            applicableTo="SETUP"
+                            excludedCategories={['CAM', 'NC']}
+                            defaultCategoryCode="OTHER"
+                            isLocked={disabled || isReplaced}
+                            onUpload={handleUploadFiles}
+                            onDelete={handleDeleteFile}
+                            onPreview={handlePreviewFile}
+                            onDownload={handleDownloadFile}
+                        />
+                    </div>
                 </div>
             )}
         </div>

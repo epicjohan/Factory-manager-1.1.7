@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Machine, SetupVariant } from '../../../types';
-import { Copy, LayoutTemplate, Monitor, X, Check } from 'lucide-react';
+import { Copy, LayoutTemplate, Monitor, X, Check } from '../../../icons';
 
 interface DuplicateSetupModalProps {
     isOpen: boolean;

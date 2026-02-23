@@ -14,7 +14,7 @@ import {
     Cpu,
     CloudUpload,
     FileCode
-} from 'lucide-react';
+} from '../icons';
 import { VersionManager } from '../services/versionManager';
 import { APP_INFO } from '../services/appInfo';
 import { getStore } from '../services/storage';

@@ -10,7 +10,7 @@ import {
 /* Added missing CheckCircle and Clock imports from lucide-react */
 import { 
   FlaskConical, Plus, Sparkles, Activity, Trash2, CloudCog, Droplet, MessageSquare, AlertCircle, RefreshCw, PlusCircle, Factory, History, ClipboardList, CheckCircle, Clock
-} from 'lucide-react';
+} from '../../icons';
 import { NumpadModal } from '../NumpadModal';
 
 interface CoolingSectionProps {

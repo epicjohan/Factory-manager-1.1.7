@@ -20,7 +20,7 @@ import {
     Tv,
     Truck,
     FileText
-} from 'lucide-react';
+} from '../icons';
 import { AppModule } from '../types';
 
 // Custom Icon for Industrial Robot Arm (Re-used for consistency)

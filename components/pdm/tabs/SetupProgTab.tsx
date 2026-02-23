@@ -1,12 +1,14 @@
-
-import React, { useRef, useState } from 'react';
-import { 
-    FileCode, Download, Upload, CheckCircle2, Lock, 
+import React, { useRef, useState, useEffect } from 'react';
+import {
+    FileCode, Download, Upload, CheckCircle2, Lock, FileText, Trash2, File, Box, Terminal,
     X, AlertTriangle, UserCircle, Cpu, ShieldAlert, History, Eye, CornerUpRight,
-    Archive
-} from 'lucide-react';
-import { ArticleFile, FileRole, SetupVariant, SetupChangeEntry, SetupStatus } from '../../../types';
+    Archive, Image, Camera, Hammer, Table, ClipboardList, Ruler, BarChart
+} from '../../../icons';
+import { ArticleFile, FileRole, SetupVariant, SetupChangeEntry, SetupStatus, DocumentCategory } from '../../../types';
 import { generateId } from '../../../services/db/core';
+import { ImageProcessor } from '../../../services/db/imageProcessor';
+import { db } from '../../../services/storage';
+import { SleekDocumentList } from '../ui/SleekDocumentList';
 
 interface SetupProgTabProps {
     setup: SetupVariant;
@@ -18,38 +20,144 @@ interface SetupProgTabProps {
     onUpdateSetup?: (updates: Partial<SetupVariant>) => void; // Made optional for TS safety, but should be passed
 }
 
-export const SetupProgTab: React.FC<SetupProgTabProps> = ({ 
-    setup, allFiles, isLocked, user, onUpdateFiles, onPreview, onUpdateSetup 
+export const SetupProgTab: React.FC<SetupProgTabProps> = ({
+    setup, allFiles, isLocked, user, onUpdateFiles, onPreview, onUpdateSetup
 }) => {
     const camInputRef = useRef<HTMLInputElement>(null);
     const ncInputRef = useRef<HTMLInputElement>(null);
-    
+
     // Reason Modal State
     const [showReasonModal, setShowReasonModal] = useState(false);
     const [changeReason, setChangeReason] = useState('');
-    const [pendingFile, setPendingFile] = useState<{file: File, role: FileRole} | null>(null);
+    const [pendingFile, setPendingFile] = useState<{ file: File, role: FileRole } | null>(null);
 
     // Cancel Confirm Modal State
     const [showCancelConfirmModal, setShowCancelConfirmModal] = useState(false);
 
+    // Default categories for CAM and NC if missing from global state
+    const [categories, setCategories] = useState<DocumentCategory[]>([
+        { id: '3', name: 'CAM Programma', code: 'CAM', icon: 'FileCode', color: 'text-orange-500', isSystem: true, applicableTo: 'SETUP', order: 30 },
+        { id: '4', name: 'NC Code', code: 'NC', icon: 'Terminal', color: 'text-green-500', isSystem: true, applicableTo: 'SETUP', order: 40 },
+        { id: '5', name: 'Overig', code: 'OTHER', icon: 'FileText', color: 'text-slate-500', isSystem: false, applicableTo: 'BOTH', order: 90 }
+    ]);
+
+    useEffect(() => {
+        const loadCategories = async () => {
+            const settings = await db.getSystemSettings();
+            if (settings.documentCategories && settings.documentCategories.length > 0) {
+                // Filter categories specific to SETUP or BOTH
+                const setupCategories = settings.documentCategories.filter(
+                    c => c.applicableTo === 'SETUP' || c.applicableTo === 'BOTH'
+                );
+                if (setupCategories.length > 0) {
+                    setCategories(setupCategories);
+                }
+            }
+        };
+        loadCategories();
+    }, []);
+
     // Filter bestanden voor deze specifieke setup
     const setupFiles = allFiles.filter(f => f.setupId === setup.id);
-    const camFile = setupFiles.find(f => f.fileRole === FileRole.CAM);
-    const ncFile = setupFiles.find(f => f.fileRole === FileRole.NC);
+    const camFile = setupFiles.find(f => f.fileRole === 'CAM');
+    const ncFile = setupFiles.find(f => f.fileRole === 'NC');
+    const docFiles = setupFiles.filter(f => f.fileRole !== 'CAM' && f.fileRole !== 'NC');
 
     // Lock Status Checks
     const isArchived = setup.status === SetupStatus.ARCHIVED;
-    const isReleased = setup.status === SetupStatus.RELEASED; 
+    const isReleased = setup.status === SetupStatus.RELEASED;
     // `isLocked` passed prop usually reflects Article Locked OR Setup Released. 
     // We use granular checks for the "Update Flow" vs "Hard Lock".
+
+    const handleDocFiles = async (fileList: FileList | File[], role: string) => {
+        if (!fileList || isLocked) return;
+
+        const newFilesList: ArticleFile[] = [...allFiles];
+
+        for (let i = 0; i < fileList.length; i++) {
+            const file = fileList[i];
+            const reader = new FileReader();
+
+            const filePromise = new Promise<ArticleFile | null>((resolve) => {
+                reader.onload = async () => {
+                    try {
+                        let result = reader.result as string;
+
+                        if (file.type.startsWith('image/')) {
+                            try {
+                                result = await ImageProcessor.compress(result);
+                            } catch (e) { console.warn('Compression failed', e); }
+                        }
+
+                        resolve({
+                            id: generateId(),
+                            setupId: setup.id,
+                            name: file.name,
+                            type: file.type,
+                            url: result,
+                            uploadedBy: user?.name || 'Onbekend',
+                            uploadDate: new Date().toISOString(),
+                            fileRole: role,
+                            version: 1
+                        });
+                    } catch (e) {
+                        console.error('Error processing doc file', e);
+                        resolve(null);
+                    }
+                };
+                reader.onerror = () => {
+                    resolve(null);
+                };
+                reader.readAsDataURL(file);
+            });
+
+            const processedFile = await filePromise;
+            if (processedFile) newFilesList.push(processedFile);
+        }
+
+        onUpdateFiles(newFilesList);
+    };
+
+    const handleDeleteDoc = (fileId: string) => {
+        if (isLocked) return;
+        if (window.confirm('Bestand definitief verwijderen?')) {
+            onUpdateFiles(allFiles.filter(f => f.id !== fileId));
+        }
+    };
+
+    const getCategoryByCode = (code: string | FileRole) => {
+        return categories.find(c => c.code === code) || {
+            name: code as string,
+            icon: 'File',
+            color: 'text-slate-400'
+        } as any;
+    };
+
+    const getRoleIcon = (code: string | FileRole) => {
+        const cat = getCategoryByCode(code);
+        switch (cat.icon) {
+            case 'Hammer': return <Hammer size={18} className={cat.color} />;
+            case 'Camera': return <Camera size={18} className={cat.color} />;
+            case 'Image': return <Image size={18} className={cat.color} />;
+            case 'Table': return <Table size={18} className={cat.color} />;
+            case 'ClipboardList': return <ClipboardList size={18} className={cat.color} />;
+            case 'Ruler': return <Ruler size={18} className={cat.color} />;
+            case 'BarChart': return <BarChart size={18} className={cat.color} />;
+            case 'FileCode': return <FileCode size={18} className={cat.color} />;
+            case 'Terminal': return <Terminal size={18} className={cat.color} />;
+            case 'Archive': return <Archive size={18} className={cat.color} />;
+            case 'Box': return <Box size={18} className={cat.color} />;
+            default: return <File size={18} className={cat.color} />;
+        }
+    };
 
     const processUpload = async (file: File, role: FileRole, reason?: string) => {
         const reader = new FileReader();
         reader.onload = async () => {
             const content = reader.result as string;
-            
+
             const existingIdx = allFiles.findIndex(f => f.setupId === setup.id && f.fileRole === role);
-            
+
             const newFile: ArticleFile = {
                 id: existingIdx !== -1 ? allFiles[existingIdx].id : generateId(),
                 setupId: setup.id,
@@ -60,7 +168,7 @@ export const SetupProgTab: React.FC<SetupProgTabProps> = ({
                 uploadDate: new Date().toISOString(),
                 fileRole: role,
                 version: existingIdx !== -1 ? (allFiles[existingIdx].version || 1) + 1 : 1,
-                lockedBy: undefined, 
+                lockedBy: undefined,
                 lockedAt: undefined
             };
 
@@ -83,7 +191,7 @@ export const SetupProgTab: React.FC<SetupProgTabProps> = ({
                     description: `Nieuwe versie upload: ${file.name}`,
                     reason: reason
                 };
-                
+
                 // Increment setup revision
                 const newRev = (setup.revision || 0) + 1;
                 onUpdateSetup({
@@ -95,22 +203,22 @@ export const SetupProgTab: React.FC<SetupProgTabProps> = ({
         reader.readAsDataURL(file);
     };
 
-    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, role: FileRole) => {
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, role: string) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
         // Reset input value to allow re-uploading same file if needed
         e.target.value = '';
 
-        if (isReleased && role === FileRole.NC) {
+        if (isReleased && role === 'NC') {
             // PROCES WIJZIGING FLOW (Only if Released, not Archived)
-            setPendingFile({ file, role });
+            setPendingFile({ file, role: role as FileRole });
             setChangeReason('');
             setShowReasonModal(true);
         } else {
             // Normale flow (Draft of CAM file die altijd mag worden geupdate als locked by me)
-            if (isLocked && role === FileRole.CAM && !camFile?.lockedBy) return; // Cant update if locked and not checked out
-            processUpload(file, role);
+            if (isLocked && role === 'CAM' && !camFile?.lockedBy) return; // Cant update if locked and not checked out
+            processUpload(file, role as FileRole);
         }
     };
 
@@ -168,7 +276,7 @@ export const SetupProgTab: React.FC<SetupProgTabProps> = ({
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                
+
                 {/* 1. CAM PROJECT SECTIE */}
                 <div className={`p-8 rounded-[2.5rem] border-2 transition-all shadow-sm flex flex-col h-full ${camFile?.lockedBy ? 'bg-orange-50 border-orange-500 dark:bg-orange-900/10' : 'bg-white border-slate-200 dark:bg-slate-800 dark:border-slate-700'}`}>
                     <div className="flex justify-between items-start mb-8 shrink-0">
@@ -193,7 +301,7 @@ export const SetupProgTab: React.FC<SetupProgTabProps> = ({
                                     <div className="font-bold text-sm truncate uppercase tracking-tight">{camFile.name}</div>
                                     <div className="flex justify-between mt-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                                         <span>{new Date(camFile.uploadDate).toLocaleDateString()}</span>
-                                        <span className="flex items-center gap-1"><UserCircle size={12}/> {camFile.uploadedBy}</span>
+                                        <span className="flex items-center gap-1"><UserCircle size={12} /> {camFile.uploadedBy}</span>
                                     </div>
                                 </div>
                                 {camFile.lockedBy && (
@@ -294,16 +402,32 @@ export const SetupProgTab: React.FC<SetupProgTabProps> = ({
                         {ncFile && (
                             <div className="flex gap-2">
                                 <button onClick={() => onPreview(ncFile)} className="flex-1 py-3 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold text-[10px] uppercase flex items-center justify-center gap-1.5 hover:bg-slate-200 transition-colors">
-                                    <Eye size={14}/> Inzien
+                                    <Eye size={14} /> Inzien
                                 </button>
                                 <button onClick={() => handleDownload(ncFile)} className="flex-1 py-3 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold text-[10px] uppercase flex items-center justify-center gap-1.5 hover:bg-slate-200 transition-colors">
-                                    <Download size={14}/> Download
+                                    <Download size={14} /> Download
                                 </button>
                             </div>
                         )}
                     </div>
                 </div>
 
+            </div>
+
+            <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+                <SleekDocumentList
+                    title={<><FileText size={20} className="text-blue-600" /> Overige Setup Documentatie</>}
+                    subtitle="Opspanschetsen, meetrapporten, etc."
+                    files={docFiles}
+                    applicableTo="SETUP"
+                    excludedCategories={['CAM', 'NC']}
+                    defaultCategoryCode="OTHER"
+                    isLocked={isLocked || isArchived}
+                    onUpload={handleDocFiles}
+                    onDelete={handleDeleteDoc}
+                    onPreview={onPreview}
+                    onDownload={handleDownload}
+                />
             </div>
 
             {isReleased && (
@@ -319,8 +443,8 @@ export const SetupProgTab: React.FC<SetupProgTabProps> = ({
             )}
 
             {/* Hidden Inputs */}
-            <input type="file" ref={camInputRef} className="hidden" onChange={(e) => handleFileUpload(e, FileRole.CAM)} />
-            <input type="file" ref={ncInputRef} className="hidden" onChange={(e) => handleFileUpload(e, FileRole.NC)} />
+            <input type="file" ref={camInputRef} className="hidden" onChange={(e) => handleFileUpload(e, 'CAM')} />
+            <input type="file" ref={ncInputRef} className="hidden" onChange={(e) => handleFileUpload(e, 'NC')} />
 
             {/* REASON MODAL */}
             {showReasonModal && (
@@ -333,8 +457,8 @@ export const SetupProgTab: React.FC<SetupProgTabProps> = ({
                             <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase italic tracking-tight">Proces Wijziging</h3>
                             <p className="text-xs font-bold text-slate-500 mt-2">Dit artikel is vrijgegeven. Geef een reden op voor deze wijziging.</p>
                         </div>
-                        
-                        <textarea 
+
+                        <textarea
                             autoFocus
                             rows={3}
                             className="w-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-medium outline-none focus:border-orange-500 transition-all text-sm mb-6"

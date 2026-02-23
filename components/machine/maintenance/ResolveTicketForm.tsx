@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { MaintenanceTicket, Permission } from '../../../types';
 import { db } from '../../../services/storage';
 import { useAuth } from '../../../contexts/AuthContext';
-import { CheckCircle, Euro, Timer, X } from 'lucide-react';
+import { CheckCircle, Euro, Timer, X } from '../../../icons';
 
 interface ResolveTicketFormProps {
     ticket: MaintenanceTicket;

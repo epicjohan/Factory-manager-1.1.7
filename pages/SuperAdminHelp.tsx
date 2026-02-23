@@ -8,7 +8,7 @@ import {
     ShieldCheck, Archive, RefreshCw, ArrowRight, Droplet, Megaphone, Info, 
     Shield, History, Layers, ListChecks, User, ShieldPlus, Folders, Binary as BinaryIcon, 
     Bug, Grid, Wind, Lightbulb, FileJson, Copy, Sun, HardDrive, Globe
-} from 'lucide-react';
+} from '../icons';
 
 import { 
     HARDWARE_SPECS, 

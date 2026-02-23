@@ -1,16 +1,16 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { db } from '../services/storage';
-import { KEYS, generateId, getNowISO } from '../services/db/core';
-import { 
-    Article, ArticleStatus, Permission, ArticleFile, ArticleOperation, Machine, 
-    PredefinedOperation, SetupTemplate, ArticleBOMItem, SetupStatus, ArticleAuditEntry, 
+import { KEYS, generateId, getNowISO, loadTable } from '../services/db/core';
+import {
+    Article, ArticleStatus, Permission, ArticleFile, ArticleOperation, Machine,
+    PredefinedOperation, SetupTemplate, ArticleBOMItem, SetupStatus, ArticleAuditEntry,
     SetupVariant, FileRole, SetupVerificationStatus, AssetType, SetupChangeEntry
 } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useTable } from '../hooks/useTable';
 import { FilePreviewModal } from '../components/ui/FilePreviewModal';
-import { ArrowLeft, BookOpen, Plus, LayoutPanelLeft } from 'lucide-react';
+import { ArrowLeft, BookOpen, Plus, LayoutPanelLeft } from '../icons';
 import { articleService } from '../services/db/articleService';
 
 // NEW LAYOUT COMPONENTS
@@ -31,33 +31,41 @@ import { ArticleFiles } from '../components/pdm/ArticleFiles';
 
 export const ArticleManagement: React.FC = () => {
     const { user, hasPermission } = useAuth();
-    
+
     // Hooks
     const { data: articles, refresh: refreshArticles } = useTable<Article>(KEYS.ARTICLES);
     const { data: machines } = useTable<Machine>(KEYS.MACHINES);
     const { data: mkgOperations, refresh: refreshCatalog } = useTable<PredefinedOperation>(KEYS.MKG_OPERATIONS);
     const { data: templates } = useTable<SetupTemplate>(KEYS.SETUP_TEMPLATES);
+    const [serverUrl, setServerUrl] = useState<string | undefined>(undefined);
+
+    // Load serverUrl for thumbnail URL resolution
+    useEffect(() => {
+        loadTable<any>(KEYS.METADATA, {}).then(meta => {
+            if (meta.serverUrl) setServerUrl(meta.serverUrl);
+        });
+    }, []);
 
     // Navigation State
     const [view, setView] = useState<'LIST' | 'EXPLORER' | 'CATALOG'>('LIST');
-    
+
     // Selection State (Explorer)
     const [editingArticle, setEditingArticle] = useState<Article | null>(null);
     const [selectedType, setSelectedType] = useState<'ARTICLE' | 'OPERATION' | 'SETUP'>('ARTICLE');
     const [selectedId, setSelectedId] = useState<string | null>(null); // Active node ID
     const [activeOpId, setActiveOpId] = useState<string | null>(null); // For context when setup is selected
-    
+
     // Context Panel State
     const [activeFile, setActiveFile] = useState<ArticleFile | null>(null);
     const [showContextPanel, setShowContextPanel] = useState(true);
     const [fullScreenPreview, setFullScreenPreview] = useState<ArticleFile | null>(null);
-    
+
     // Modals State
     const [duplicateModal, setDuplicateModal] = useState<{ isOpen: boolean; opId: string | null; sourceSetup: SetupVariant | null }>({
         isOpen: false, opId: null, sourceSetup: null
     });
     const [showAddOpModal, setShowAddOpModal] = useState(false);
-    
+
     const [revisionModal, setRevisionModal] = useState<{ isOpen: boolean; opId: string | null; setup: SetupVariant | null }>({
         isOpen: false, opId: null, setup: null
     });
@@ -76,8 +84,8 @@ export const ArticleManagement: React.FC = () => {
     // --- EFFECT: Auto-select drawing when article loads ---
     useEffect(() => {
         if (editingArticle && editingArticle.files) {
-            const drawing = editingArticle.files.find(f => f.fileRole === FileRole.DRAWING) 
-                         || editingArticle.files.find(f => f.type === 'application/pdf');
+            const drawing = editingArticle.files.find(f => f.fileRole === FileRole.DRAWING)
+                || editingArticle.files.find(f => f.type === 'application/pdf');
             if (drawing) setActiveFile(drawing);
         }
     }, [editingArticle]);
@@ -139,7 +147,7 @@ export const ArticleManagement: React.FC = () => {
             machineId = id;
             opName = targetMachine ? `${targetMachine.name} (${targetMachine.machineNumber})` : 'Machine';
             setupName = targetMachine ? targetMachine.name : 'Standaard Setup';
-            
+
             // Load Default Template if machine has one
             if (targetMachine?.setupTemplateId) {
                 const tpl = templates.find(t => t.id === targetMachine.setupTemplateId);
@@ -155,7 +163,7 @@ export const ArticleManagement: React.FC = () => {
                 opName = catalogOp.name;
                 setupName = catalogOp.name;
                 mkgOperationCode = catalogOp.id; // Store link to catalog item
-                
+
                 // If the catalog item has a template linked, use it
                 if (catalogOp.setupTemplateId) {
                     setupTemplateId = catalogOp.setupTemplateId;
@@ -166,8 +174,8 @@ export const ArticleManagement: React.FC = () => {
                     }
                 }
             } else {
-                 opName = 'Proces';
-                 setupName = 'Proces';
+                opName = 'Proces';
+                setupName = 'Proces';
             }
         }
 
@@ -175,30 +183,30 @@ export const ArticleManagement: React.FC = () => {
         const newSetupId = generateId();
         const newOpId = generateId();
 
-        const newOp: ArticleOperation = { 
-            id: newOpId, 
-            order: newOrder, 
+        const newOp: ArticleOperation = {
+            id: newOpId,
+            order: newOrder,
             description: opName,
             mkgOperationCode: mkgOperationCode, // Store catalog link
-            setups: [{ 
-                id: newSetupId, 
-                name: setupName, 
+            setups: [{
+                id: newSetupId,
+                name: setupName,
                 machineId: machineId, // Empty string if Process
                 setupTemplateId: setupTemplateId,
-                status: SetupStatus.DRAFT, 
+                status: SetupStatus.DRAFT,
                 version: 1, // Start at version 1
                 isDefault: true, // First setup is always default
-                setupTimeMinutes: type === 'PROCESS' ? 0 : 30, 
-                cycleTimeMinutes: type === 'PROCESS' ? 10 : 2, 
-                steps: [], 
+                setupTimeMinutes: type === 'PROCESS' ? 0 : 30,
+                cycleTimeMinutes: type === 'PROCESS' ? 10 : 2,
+                steps: [],
                 tools: [],
                 frozenFields,
                 frozenToolFields
-            }] 
+            }]
         };
 
         updateCurrentArticle(art => ({ ...art, operations: [...art.operations, newOp] }), `Bewerking ${newOrder} toegevoegd (${type}: ${setupName}).`);
-        
+
         // Auto-select the new operation
         setSelectedType('SETUP');
         setActiveOpId(newOpId);
@@ -213,10 +221,10 @@ export const ArticleManagement: React.FC = () => {
             updateCurrentArticle(art => ({ ...art, ...baseData } as Article), 'Stamgegevens bijgewerkt.');
         } else {
             const auditEntry = { id: generateId(), timestamp: new Date().toISOString(), user: user.name, action: 'Artikel aangemaakt.' };
-            const newArticle = { 
+            const newArticle = {
                 id: generateId(), articleCode: data.articleCode || '', revision: 'A', name: data.name || '',
-                status: ArticleStatus.DRAFT, operations: [], bomItems: [], files: [], 
-                auditTrail: [auditEntry], createdBy: user.name, created: new Date().toISOString(), updated: new Date().toISOString(), updatedBy: user.name, ...baseData 
+                status: ArticleStatus.DRAFT, operations: [], bomItems: [], files: [],
+                auditTrail: [auditEntry], createdBy: user.name, created: new Date().toISOString(), updated: new Date().toISOString(), updatedBy: user.name, ...baseData
             } as Article;
             await db.addArticle(newArticle);
             setEditingArticle(newArticle);
@@ -232,19 +240,21 @@ export const ArticleManagement: React.FC = () => {
     };
 
     const handleUpdateSetup = (opId: string, setupId: string, updates: Partial<SetupVariant>) => {
-        updateCurrentArticle(art => ({ ...art, operations: art.operations.map(op => {
-            if (op.id !== opId) return op;
-            return { ...op, setups: op.setups.map(s => s.id === setupId ? { ...s, ...updates } : s) };
-        }) }));
+        updateCurrentArticle(art => ({
+            ...art, operations: art.operations.map(op => {
+                if (op.id !== opId) return op;
+                return { ...op, setups: op.setups.map(s => s.id === setupId ? { ...s, ...updates } : s) };
+            })
+        }));
     };
-    
+
     // New Function to handle setting a setup as default
     const handleSetDefaultSetup = (opId: string, setupId: string) => {
         updateCurrentArticle(art => ({
             ...art,
             operations: art.operations.map(op => {
                 if (op.id !== opId) return op;
-                
+
                 // 1. Update all setups in this operation
                 const newSetups = op.setups.map(s => ({
                     ...s,
@@ -255,8 +265,8 @@ export const ArticleManagement: React.FC = () => {
                 const newDefaultSetup = newSetups.find(s => s.id === setupId);
                 const newOpDescription = newDefaultSetup ? newDefaultSetup.name : op.description;
 
-                return { 
-                    ...op, 
+                return {
+                    ...op,
                     setups: newSetups,
                     description: newOpDescription // Update operation name to match default setup
                 };
@@ -266,10 +276,12 @@ export const ArticleManagement: React.FC = () => {
 
     const handleDeleteSetup = (opId: string, setupId: string) => {
         if (window.confirm("Setup verwijderen?")) {
-            updateCurrentArticle(art => ({ ...art, operations: art.operations.map(o => {
-                if (o.id !== opId) return o;
-                return { ...o, setups: o.setups.filter(s => s.id !== setupId) };
-            }) }));
+            updateCurrentArticle(art => ({
+                ...art, operations: art.operations.map(o => {
+                    if (o.id !== opId) return o;
+                    return { ...o, setups: o.setups.filter(s => s.id !== setupId) };
+                })
+            }));
             setSelectedType('OPERATION');
             setSelectedId(opId);
         }
@@ -321,7 +333,7 @@ export const ArticleManagement: React.FC = () => {
             tools: JSON.parse(JSON.stringify(setup.tools || [])),
             templateData: JSON.parse(JSON.stringify(setup.templateData || {}))
         };
-        
+
         // 4. Clone Files associated with this setup (Fork & Freeze)
         const associatedFiles = editingArticle.files.filter(f => f.setupId === setup.id);
         const newFiles = associatedFiles.map(f => ({
@@ -396,9 +408,9 @@ export const ArticleManagement: React.FC = () => {
                 newSetup.frozenToolFields = tpl.toolFields;
             }
         } else if (mode === 'CLONE') {
-             // If cloning and no target template, try to keep source structure
-             newSetup.frozenFields = sourceSetup.frozenFields;
-             newSetup.frozenToolFields = sourceSetup.frozenToolFields;
+            // If cloning and no target template, try to keep source structure
+            newSetup.frozenFields = sourceSetup.frozenFields;
+            newSetup.frozenToolFields = sourceSetup.frozenToolFields;
         }
 
         let newFiles: ArticleFile[] = [];
@@ -408,7 +420,7 @@ export const ArticleManagement: React.FC = () => {
             newSetup.steps = (sourceSetup.steps || []).map(s => ({ ...s, id: generateId() }));
             newSetup.tools = (sourceSetup.tools || []).map(t => ({ ...t, id: generateId() }));
             newSetup.templateData = { ...sourceSetup.templateData };
-            
+
             // Files logic (Create new references)
             const sourceFiles = editingArticle.files.filter(f => f.setupId === sourceSetup.id);
             sourceFiles.forEach(f => {
@@ -420,7 +432,7 @@ export const ArticleManagement: React.FC = () => {
                     uploadedBy: user?.name || 'System'
                 });
             });
-        } 
+        }
         // TEMPLATE MODE: Kept clean (steps/tools empty), fields are reset.
 
         updateCurrentArticle(art => {
@@ -428,15 +440,15 @@ export const ArticleManagement: React.FC = () => {
                 if (op.id !== opId) return op;
                 return { ...op, setups: [...op.setups, newSetup] };
             });
-            return { 
-                ...art, 
-                operations: updatedOps, 
-                files: [...art.files, ...newFiles] 
+            return {
+                ...art,
+                operations: updatedOps,
+                files: [...art.files, ...newFiles]
             };
         }, `Setup ${sourceSetup.name} gedupliceerd naar ${newMachineName} (${mode}).`);
 
         setDuplicateModal({ isOpen: false, opId: null, sourceSetup: null });
-        
+
         // Auto-select
         setSelectedType('SETUP');
         setSelectedId(newSetupId);
@@ -457,33 +469,33 @@ export const ArticleManagement: React.FC = () => {
         if (selectedType === 'ARTICLE' || !selectedId) {
             return (
                 <div className="p-8 h-full overflow-y-auto custom-scrollbar space-y-10">
-                    <ArticleHeader 
-                        article={editingArticle} 
-                        isLocked={isLocked} 
-                        canEdit={hasEditRights} 
-                        canRelease={hasPermission(Permission.PDM_RELEASE)} 
-                        onSave={handleSaveHeader} 
-                        user={user} 
-                        onChangeStatus={async (s) => { const upd = await articleService.updateArticleStatus(editingArticle.id, s); if(upd) setEditingArticle(upd); }}
+                    <ArticleHeader
+                        article={editingArticle}
+                        isLocked={isLocked}
+                        canEdit={hasEditRights}
+                        canRelease={hasPermission(Permission.PDM_RELEASE)}
+                        onSave={handleSaveHeader}
+                        user={user}
+                        onChangeStatus={async (s) => { const upd = await articleService.updateArticleStatus(editingArticle.id, s); if (upd) setEditingArticle(upd); }}
                         onRevise={async () => { /* Revision Logic reuse */ }}
                     />
                     <div className={`grid grid-cols-1 gap-8 ${showContextPanel ? '' : 'xl:grid-cols-2'}`}>
                         <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-3xl border border-slate-200 dark:border-slate-700">
-                            <ArticleBOM 
-                                items={editingArticle.bomItems || []} 
-                                allArticles={articles} 
-                                currentArticleId={editingArticle.id} 
-                                isLocked={isLocked} 
-                                onUpdate={(items) => updateCurrentArticle(a => ({...a, bomItems: items}))} 
+                            <ArticleBOM
+                                items={editingArticle.bomItems || []}
+                                allArticles={articles}
+                                currentArticleId={editingArticle.id}
+                                isLocked={isLocked}
+                                onUpdate={(items) => updateCurrentArticle(a => ({ ...a, bomItems: items }))}
                             />
                         </div>
                         <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-3xl border border-slate-200 dark:border-slate-700">
-                            <ArticleFiles 
-                                files={editingArticle.files || []} 
-                                isLocked={isLocked} 
-                                onUpdate={handleUpdateFiles} 
-                                onPreview={setActiveFile} 
-                                user={user} 
+                            <ArticleFiles
+                                files={editingArticle.files || []}
+                                isLocked={isLocked}
+                                onUpdate={handleUpdateFiles}
+                                onPreview={setActiveFile}
+                                user={user}
                             />
                         </div>
                     </div>
@@ -495,10 +507,10 @@ export const ArticleManagement: React.FC = () => {
         if (selectedType === 'SETUP' && selectedId && activeOpId) {
             const op = editingArticle.operations.find(o => o.id === activeOpId);
             const setup = op?.setups.find(s => s.id === selectedId);
-            
+
             if (setup) {
                 return (
-                    <SetupDocumentView 
+                    <SetupDocumentView
                         article={editingArticle}
                         setup={setup}
                         activeOpId={activeOpId}
@@ -536,13 +548,14 @@ export const ArticleManagement: React.FC = () => {
     // --- MAIN RENDER ---
 
     if (view === 'LIST') {
-        return <ArticleList 
-            articles={articles} 
-            canCreate={canCreate} 
+        return <ArticleList
+            articles={articles}
+            canCreate={canCreate}
             canManageCatalog={canManageCatalog}
-            onCreateNew={handleCreateArticle} 
+            onCreateNew={handleCreateArticle}
             onEdit={handleEditArticle}
-            onOpenCatalog={() => setView('CATALOG')} 
+            onOpenCatalog={() => setView('CATALOG')}
+            serverUrl={serverUrl}
         />;
     }
 
@@ -550,17 +563,17 @@ export const ArticleManagement: React.FC = () => {
         return (
             <div className="max-w-7xl mx-auto pb-20">
                 <button onClick={() => setView('LIST')} className="flex items-center gap-2 mb-6 text-slate-500 hover:text-slate-800 dark:text-slate-400"><ArrowLeft size={18} /> Terug</button>
-                <CatalogManager 
-                    mkgOperations={mkgOperations} 
-                    machines={machines} 
-                    templates={templates} 
-                    onSave={async (op) => { if (mkgOperations.find(o => o.id === op.id)) await db.updateMkgOperation(op); else await db.addMkgOperation(op); refreshCatalog(); }} 
-                    onDelete={async (id) => { if(window.confirm("Wissen?")) { await db.deleteMkgOperation(id); refreshCatalog(); } }} 
+                <CatalogManager
+                    mkgOperations={mkgOperations}
+                    machines={machines}
+                    templates={templates}
+                    onSave={async (op) => { if (mkgOperations.find(o => o.id === op.id)) await db.updateMkgOperation(op); else await db.addMkgOperation(op); refreshCatalog(); }}
+                    onDelete={async (id) => { if (window.confirm("Wissen?")) { await db.deleteMkgOperation(id); refreshCatalog(); } }}
                 />
             </div>
         );
     }
-    
+
     // Header string with specific spacing (5 non-breaking spaces around slash)
     // using unicode non-breaking space \u00A0
     const separator = '\u00A0\u00A0\u00A0\u00A0\u00A0/\u00A0\u00A0\u00A0\u00A0\u00A0';
@@ -581,7 +594,7 @@ export const ArticleManagement: React.FC = () => {
                         {editingArticle ? headerParts : 'Nieuw Artikel'}
                     </h1>
                 </div>
-                <button 
+                <button
                     onClick={() => setShowContextPanel(!showContextPanel)}
                     className={`p-2 rounded-lg transition-colors ${showContextPanel ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'text-slate-400 hover:text-slate-600'}`}
                     title="Toon/Verberg Tekening"
@@ -592,14 +605,14 @@ export const ArticleManagement: React.FC = () => {
 
             {/* EXPLORER LAYOUT */}
             <div className="flex-1 p-4 overflow-hidden">
-                <ArticleExplorerLayout 
+                <ArticleExplorerLayout
                     showPanel={showContextPanel}
                     sidebar={
                         editingArticle ? (
-                            <ArticleTreeSidebar 
-                                article={editingArticle} 
-                                selectedId={selectedId} 
-                                onSelect={handleTreeSelect} 
+                            <ArticleTreeSidebar
+                                article={editingArticle}
+                                selectedId={selectedId}
+                                onSelect={handleTreeSelect}
                                 onAddOperation={handleAddOperationClick}
                                 isLocked={isLocked}
                             />
@@ -607,8 +620,8 @@ export const ArticleManagement: React.FC = () => {
                     }
                     main={renderMainContent()}
                     panel={
-                        <PDFContextPanel 
-                            file={activeFile} 
+                        <PDFContextPanel
+                            file={activeFile}
                             onClose={() => setShowContextPanel(false)}
                             onMaximize={() => setFullScreenPreview(activeFile)}
                         />
@@ -618,18 +631,18 @@ export const ArticleManagement: React.FC = () => {
 
             {/* FULLSCREEN PREVIEW MODAL */}
             <FilePreviewModal file={fullScreenPreview} onClose={() => setFullScreenPreview(null)} />
-            
+
             {/* DUPLICATE MODAL */}
-            <DuplicateSetupModal 
-                isOpen={duplicateModal.isOpen} 
-                onClose={() => setDuplicateModal({ isOpen: false, opId: null, sourceSetup: null })} 
+            <DuplicateSetupModal
+                isOpen={duplicateModal.isOpen}
+                onClose={() => setDuplicateModal({ isOpen: false, opId: null, sourceSetup: null })}
                 onConfirm={confirmDuplicateSetup}
                 sourceSetup={duplicateModal.sourceSetup}
                 machines={machines}
             />
 
             {/* ADD OPERATION MODAL */}
-            <AddOperationModal 
+            <AddOperationModal
                 isOpen={showAddOpModal}
                 onClose={() => setShowAddOpModal(false)}
                 onConfirm={confirmAddOperation}
@@ -639,7 +652,7 @@ export const ArticleManagement: React.FC = () => {
             />
 
             {/* REVISION WIZARD MODAL */}
-            <RevisionWizardModal 
+            <RevisionWizardModal
                 isOpen={revisionModal.isOpen}
                 onClose={() => setRevisionModal({ isOpen: false, opId: null, setup: null })}
                 onConfirm={handleCreateRevision}

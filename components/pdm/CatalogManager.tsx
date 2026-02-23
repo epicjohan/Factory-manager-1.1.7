@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Edit, Plus, Trash2, Monitor, Box } from 'lucide-react';
+import { Edit, Plus, Trash2, Monitor, Box } from '../../icons';
 import { PredefinedOperation, AssetType, Machine, SetupTemplate, OperationType } from '../../types';
 import { generateId } from '../../services/db/core';
 

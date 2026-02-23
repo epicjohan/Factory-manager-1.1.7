@@ -15,7 +15,7 @@ import {
     Wrench, Info, Truck, Box, Expand, Shrink,
     ClipboardList, Hammer, ScanEye, Container, RefreshCw, AlertTriangle, Loader2,
     X, Ruler, Binary, Thermometer, Recycle, Droplet
-} from 'lucide-react';
+} from '../icons';
 
 type DashboardTab = 'INSTRUCTION' | 'TOOLS' | 'INFO';
 

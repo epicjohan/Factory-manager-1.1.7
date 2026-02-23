@@ -4,7 +4,7 @@ import { Article, ArticleStatus, SetupStatus } from '../../types';
 import { 
     ChevronRight, ChevronDown, Layers, FileText, Monitor, Box, 
     Plus, MoreHorizontal, ShieldCheck, AlertTriangle 
-} from 'lucide-react';
+} from '../../icons';
 
 interface ArticleTreeSidebarProps {
     article: Article;

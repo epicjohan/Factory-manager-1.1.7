@@ -8,7 +8,7 @@ import {
   FileText, 
   Globe, 
   Database 
-} from 'lucide-react';
+} from '../icons';
 import { useNavigate } from 'react-router-dom';
 
 // Sub Components

@@ -1,8 +1,8 @@
-
 import React from 'react';
-import { AlertTriangle, Info, RefreshCcw, Link, Camera, Plus, X, Upload, FileText, FolderOpen } from 'lucide-react';
-import { SetupFieldDefinition, ArticleFile } from '../../../types';
+import { AlertTriangle, Info, RefreshCcw, Link, Camera, Plus, X, Upload, FileText, FolderOpen, Hammer, UserCircle, Trash2 } from '../../../icons';
+import { SetupFieldDefinition, ArticleFile, DocumentCategory } from '../../../types';
 import { SearchableSelect } from '../../ui/SearchableSelect';
+import { SleekDocumentList } from '../ui/SleekDocumentList';
 
 interface SetupFixtureTabProps {
     fields: SetupFieldDefinition[];
@@ -15,7 +15,7 @@ interface SetupFixtureTabProps {
     hasMachine: boolean;
     onUpdateTemplateData: (key: string, value: any) => void;
     onSyncTemplate: () => void;
-    onUploadImage: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onUploadImage: (files: FileList | File[], role: string) => void;
     onDeleteImage: (id: string) => void;
     onPreviewImage: (file: ArticleFile) => void;
 }
@@ -24,7 +24,7 @@ export const SetupFixtureTab: React.FC<SetupFixtureTabProps> = ({
     fields, templateName, updateStatus, templateData, images, isLocked, isProcessSetup, hasMachine,
     onUpdateTemplateData, onSyncTemplate, onUploadImage, onDeleteImage, onPreviewImage
 }) => {
-    
+
     const renderFields = () => {
         if (fields.length === 0) {
             return (
@@ -38,7 +38,7 @@ export const SetupFixtureTab: React.FC<SetupFixtureTabProps> = ({
                         </div>
                     )}
                     {hasMachine && (
-                         <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-200 dark:border-blue-800 flex items-center gap-3">
+                        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-200 dark:border-blue-800 flex items-center gap-3">
                             <Info className="text-blue-500 shrink-0" size={20} />
                             <div>
                                 <p className="text-xs text-blue-800 dark:text-blue-200 font-bold">Geen velden gedefinieerd</p>
@@ -67,7 +67,7 @@ export const SetupFixtureTab: React.FC<SetupFixtureTabProps> = ({
                         </div>
                     </div>
                     {updateStatus !== 'NONE' && !isLocked && (
-                        <button 
+                        <button
                             onClick={onSyncTemplate}
                             className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold rounded-lg flex items-center gap-2 shadow-sm transition-colors animate-pulse"
                         >
@@ -76,7 +76,7 @@ export const SetupFixtureTab: React.FC<SetupFixtureTabProps> = ({
                         </button>
                     )}
                 </div>
-                
+
                 {/* GRID SYSTEM: 12 Columns. Mobile forces col-span-12. Desktop respects config */}
                 <div className="grid grid-cols-12 gap-6">
                     {fields.map(field => {
@@ -84,7 +84,7 @@ export const SetupFixtureTab: React.FC<SetupFixtureTabProps> = ({
                         const spanClass = `col-span-12 md:col-span-${field.colSpan || 6}`;
 
                         if (field.type === 'header') return <h4 key={field.key} className="col-span-12 font-black text-slate-400 uppercase tracking-widest text-xs border-b border-slate-100 dark:border-slate-700 pb-2 mt-4">{field.label}</h4>;
-                        
+
                         if (field.type === 'textarea') return (
                             <div key={field.key} className={spanClass + " space-y-2"}>
                                 <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">{field.label}</label>
@@ -128,53 +128,33 @@ export const SetupFixtureTab: React.FC<SetupFixtureTabProps> = ({
         );
     };
 
+    const handleDownload = (file: ArticleFile) => {
+        const link = document.createElement('a');
+        link.href = file.url;
+        link.download = file.name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     return (
         <div className="space-y-8 animate-in fade-in text-left">
             {renderFields()}
-            
-            <div className="mt-8 pt-8 border-t border-slate-200 dark:border-slate-700">
-                <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-3 italic mb-4"><Camera size={18}/> Foto's & Bijlagen</h4>
-                <div className="grid grid-cols-2 gap-4">
-                    {images?.map(img => (
-                        <div key={img.id} className="relative aspect-video rounded-[1.5rem] overflow-hidden border-4 border-white dark:border-slate-700 shadow-xl group/img cursor-zoom-in bg-slate-100 dark:bg-slate-900" onClick={() => onPreviewImage(img)}>
-                            {img.type.startsWith('image/') ? (
-                                <img src={img.url} className="w-full h-full object-cover transition-transform group-hover/img:scale-105" alt="Doc" />
-                            ) : (
-                                <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 group-hover/img:text-blue-500 transition-colors">
-                                    <FileText size={48} />
-                                    <span className="text-[10px] font-black uppercase mt-2">{img.name}</span>
-                                </div>
-                            )}
-                            
-                            {!isLocked && (
-                                <button 
-                                    onClick={(e) => { 
-                                        e.stopPropagation(); 
-                                        onDeleteImage(img.id);
-                                    }} 
-                                    className="absolute top-2 right-2 p-2 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg opacity-0 group-hover/img:opacity-100 transition-opacity"
-                                >
-                                    <X size={14}/>
-                                </button>
-                            )}
-                        </div>
-                    ))}
-                    {!isLocked && (
-                        <label className="aspect-video rounded-[1.5rem] border-4 border-dashed border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center text-slate-300 dark:text-slate-600 hover:border-blue-500 hover:text-blue-500 cursor-pointer transition-all bg-white dark:bg-slate-800 group/upload">
-                            <Upload size={48} className="group-hover/upload:scale-110 transition-transform" />
-                            <span className="text-[11px] font-black uppercase mt-2 tracking-widest">Document Uploaden</span>
-                            <p className="text-[9px] text-slate-400 font-medium mt-1">Foto's, PDF of Instructies</p>
-                            <input type="file" className="hidden" accept="image/*,application/pdf" onChange={onUploadImage} />
-                        </label>
-                    )}
-                </div>
 
-                {(!images || images.length === 0) && isLocked && (
-                    <div className="p-20 text-center text-slate-400 italic bg-slate-50 dark:bg-slate-900/50 rounded-[3rem] border-2 border-dashed border-slate-200 dark:border-slate-700">
-                        <FolderOpen size={64} className="mx-auto mb-4 opacity-20" />
-                        <p>Geen bestanden gekoppeld.</p>
-                    </div>
-                )}
+            <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800">
+                <SleekDocumentList
+                    title={<><Camera size={18} /> Foto's & Bijlagen</>}
+                    subtitle="Opspanschetsen, meetrapporten, etc."
+                    files={images || []}
+                    applicableTo="SETUP"
+                    excludedCategories={['CAM', 'NC']}
+                    defaultCategoryCode="FIXTURE"
+                    isLocked={isLocked}
+                    onUpload={onUploadImage}
+                    onDelete={onDeleteImage}
+                    onPreview={onPreviewImage}
+                    onDownload={handleDownload}
+                />
             </div>
         </div>
     );

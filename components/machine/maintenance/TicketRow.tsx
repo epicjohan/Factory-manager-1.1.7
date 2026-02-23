@@ -12,7 +12,7 @@ import { KEYS } from '../../../services/db/core';
 import { 
     AlertTriangle, Clock, CloudCog, CheckCircle, Trash2, AlertCircle, ShoppingCart, 
     Paperclip, FileText, Download, Upload, Send 
-} from 'lucide-react';
+} from '../../../icons';
 import { ResolveTicketForm } from './ResolveTicketForm';
 
 interface TicketRowProps {

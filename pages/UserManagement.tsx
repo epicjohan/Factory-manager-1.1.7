@@ -5,7 +5,7 @@ import { db, ROLE_DEFAULT_TABS } from '../services/storage';
 import { generateId, KEYS } from '../services/db/core';
 import { MODULE_GROUPS, ModuleGroupConfig } from '../config/moduleGroups';
 import { getEnabledAppModules } from '../config/commercialModules';
-import { Trash2, UserPlus, Shield, Wrench, User as UserIcon, ArrowLeft, CheckSquare, Square, Edit, Eye, EyeOff, LayoutGrid, Lock, Layers, List, Monitor, ShieldCheck, Users, Save, Plus } from 'lucide-react';
+import { Trash2, UserPlus, Shield, Wrench, User as UserIcon, ArrowLeft, CheckSquare, Square, Edit, Eye, EyeOff, LayoutGrid, Lock, Layers, List, Monitor, ShieldCheck, Users, Save, Plus } from '../icons';
 import { useNavigate } from 'react-router-dom';
 import { useTable } from '../hooks/useTable';
 import { useNotifications } from '../contexts/NotificationContext';

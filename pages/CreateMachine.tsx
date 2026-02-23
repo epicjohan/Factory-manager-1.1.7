@@ -13,7 +13,7 @@ import {
   ShieldCheck, Trash2, Archive, ArchiveX, Info, Monitor, 
   ToggleLeft, ToggleRight, LayoutDashboard, Tv, ImageIcon, AlertTriangle,
   CheckCircle, FileJson
-} from 'lucide-react';
+} from '../icons';
 
 export const CreateMachine: React.FC = () => {
   const navigate = useNavigate();

@@ -1,7 +1,7 @@
 
 import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { PlusCircle, Users, Settings, ArrowRight, BarChart2, RefreshCw, BookOpen, Presentation, Terminal, Shield, Activity, Beaker, Briefcase, Code, Archive, Box, Info, Cpu, Zap, Layers, PlayCircle, ClipboardList, FileJson, LayoutTemplate } from 'lucide-react';
+import { PlusCircle, Users, Settings, ArrowRight, BarChart2, RefreshCw, BookOpen, Presentation, Terminal, Shield, Activity, Beaker, Briefcase, Code, Archive, Box, Info, Cpu, Zap, Layers, PlayCircle, ClipboardList, FileJson, LayoutTemplate } from '../icons';
 import { useAuth } from '../contexts/AuthContext';
 import { Machine, AppModule } from '../types';
 import { APP_INFO } from '../services/appInfo';

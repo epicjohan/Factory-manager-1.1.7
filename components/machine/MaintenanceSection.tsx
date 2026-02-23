@@ -6,7 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useMaintenance } from '../../hooks/useMaintenance';
 import { useTable } from '../../hooks/useTable';
 import { KEYS } from '../../services/db/core';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search } from '../../icons';
 
 import { CreateTicketForm } from './maintenance/CreateTicketForm';
 import { TicketRow } from './maintenance/TicketRow';

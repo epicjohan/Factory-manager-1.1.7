@@ -24,7 +24,7 @@ import {
     Info,
     X,
     CalendarClock
-} from 'lucide-react';
+} from '../icons';
 
 export const LogisticsAndon: React.FC = () => {
     const navigate = useNavigate();

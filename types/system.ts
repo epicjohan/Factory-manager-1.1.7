@@ -2,10 +2,9 @@
 import { CommercialModule, LicenseStatus, NotificationTrigger, SyncEntry } from './common';
 import { User, UserRoleDefinition } from './user';
 import { Machine } from './machine';
-import { MaintenanceTicket, MaintenanceEvent, SupportRequest, MixingLog, MistLog, ChecklistLog, EfficiencyLog, MachinePart, GeneralPart } from './maintenance';
+import { WorkSchedule, MaintenanceTicket, MaintenanceEvent, SupportRequest, MixingLog, MistLog, ChecklistLog, EfficiencyLog, MachinePart, GeneralPart } from './maintenance';
 import { EnergyLiveData, EnergyHistoricalLog, EnergySettings, AssetEnergyConfig, EnergyQuarterlyLog } from './energy';
-import { WorkSchedule } from './maintenance';
-import { Article, PredefinedOperation, SetupTemplate } from './pdm';
+import { Article, PredefinedOperation, SetupTemplate, DocumentCategory } from './pdm';
 
 export interface SystemStatus {
   id: string;
@@ -45,7 +44,7 @@ export interface SystemSettings {
   licenseStatus?: LicenseStatus;
   activeModules?: CommercialModule[];
   notificationEmails?: string[];
-  documentCategories?: string[]; 
+  documentCategories?: DocumentCategory[];
   teamsWebhook?: string;
   systemVersion?: string;
   licenseHolder?: string;
@@ -77,13 +76,13 @@ export interface SimulationState {
 // ROOT STATE
 export interface AppState {
   dbVersion: number;
-  isDemoMode?: boolean; 
+  isDemoMode?: boolean;
   currentUser: User | null;
   users: User[];
   roles?: UserRoleDefinition[];
   machines: Machine[];
   mkgOperations?: PredefinedOperation[];
-  setupTemplates?: SetupTemplate[]; 
+  setupTemplates?: SetupTemplate[];
   energyLive?: EnergyLiveData;
   energyHistorical?: EnergyHistoricalLog[];
   systemVersion?: string;
@@ -99,7 +98,7 @@ export interface AppState {
   efficiencyLogs?: EfficiencyLog[];
   notificationEmails?: string[];
   notificationTriggers?: NotificationTrigger[];
-  documentCategories?: string[];
+  documentCategories?: DocumentCategory[];
   energySettings?: EnergySettings;
   assetEnergyConfigs?: AssetEnergyConfig[];
   featureFlags?: FeatureFlags;
@@ -108,7 +107,7 @@ export interface AppState {
   systemStatus?: SystemStatus[];
   systemAuditLogs?: SystemAuditLog[];
   energyQuarterlyLogs?: EnergyQuarterlyLog[];
-  articles?: Article[]; 
+  articles?: Article[];
   lastModified?: number;
   serverUrl?: string;
   adminEmail?: string;

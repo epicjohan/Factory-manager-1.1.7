@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, Link, Mail, Lock, RefreshCw, UserCheck, Network, AlertCircle, CloudDownload, CloudUpload, MessageSquare, HardDrive, Info, Server } from 'lucide-react';
+import { ShieldCheck, Link, Mail, Lock, RefreshCw, UserCheck, Network, AlertCircle, CloudDownload, CloudUpload, MessageSquare, HardDrive, Info, Server } from '../../icons';
 import { db } from '../../services/storage';
 import { SyncService } from '../../services/sync';
 import { KEYS } from '../../services/db/core';

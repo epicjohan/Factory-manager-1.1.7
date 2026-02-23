@@ -6,7 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTable } from '../../hooks/useTable';
 import { 
   Wind, Grid, Shield, Plus, Activity, CloudCog, MessageSquare, Trash2, AlertCircle 
-} from 'lucide-react';
+} from '../../icons';
 
 interface MistSectionProps {
     machine: Machine;

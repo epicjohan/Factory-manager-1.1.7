@@ -20,7 +20,7 @@ import {
   Activity,
   CheckCircle,
   History
-} from 'lucide-react';
+} from '../../icons';
 import { SupportRequestModals } from './SupportRequestModals';
 
 interface CallSectionProps {

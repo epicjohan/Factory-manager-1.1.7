@@ -18,7 +18,7 @@ import {
   FileSearch,
   Trash2,
   AlertTriangle
-} from 'lucide-react';
+} from '../../icons';
 
 interface DocsSectionProps {
   machine: Machine;

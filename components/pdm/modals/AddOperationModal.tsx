@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Machine, SetupTemplate, AssetType, PredefinedOperation } from '../../../types';
-import { Plus, Monitor, X, PlayCircle, Box, CheckCircle2 } from 'lucide-react';
+import { Plus, Monitor, X, PlayCircle, Box, CheckCircle2 } from '../../../icons';
 
 interface AddOperationModalProps {
     isOpen: boolean;

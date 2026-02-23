@@ -4,7 +4,7 @@ import {
 } from 'recharts';
 import { 
   Zap, Calendar, ChevronLeft, ChevronRight, BarChart2, Search, Activity, Plug, TrendingUp, Monitor
-} from 'lucide-react';
+} from '../../icons';
 import { useTable } from '../../hooks/useTable';
 import { KEYS } from '../../services/db/core';
 import { Machine, AssetEnergyLog, EnergySettings, AssetEnergyConfig } from '../../types';

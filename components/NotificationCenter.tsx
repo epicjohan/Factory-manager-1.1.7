@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNotifications } from '../contexts/NotificationContext';
-import { X, Check, Trash2, Bell, AlertTriangle, CheckCircle, Info, BellRing } from 'lucide-react';
+import { X, Check, Trash2, Bell, AlertTriangle, CheckCircle, Info, BellRing } from '../icons';
 
 interface NotificationCenterProps {
     isOpen: boolean;

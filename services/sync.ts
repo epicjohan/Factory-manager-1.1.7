@@ -5,14 +5,14 @@ import { KEYS, loadTable, saveTable, outboxUtils, formatDateForPB, ensureParsedD
 
 let syncTimer: any = null;
 let isSyncBusy = false;
-let isBootstrapped = false; 
+let isBootstrapped = false;
 let eventSource: EventSource | null = null;
 let failCount = 0;
 let lastClientId: string | null = null;
 let cachedToken: string | null = null;
 
 const TABLE_MAP: Record<string, string> = {
-    [KEYS.USERS]: 'app_users', 
+    [KEYS.USERS]: 'app_users',
     [KEYS.MACHINES]: 'machines',
     [KEYS.TICKETS]: 'tickets',
     [KEYS.LOGS_MIXING]: 'mixing_logs',
@@ -26,29 +26,44 @@ const TABLE_MAP: Record<string, string> = {
     [KEYS.SCHEDULES]: 'schedules',
     [KEYS.ENERGY_LIVE]: 'energy_live',
     [KEYS.LOGS_ENERGY_HISTORICAL]: 'energy_historical',
-    [KEYS.SETTINGS_ENERGY]: 'energy_settings', 
+    [KEYS.SETTINGS_ENERGY]: 'energy_settings',
     [KEYS.SYSTEM_CONFIG]: 'system_config',
     [KEYS.SNAPSHOTS]: 'snapshots',
     [KEYS.SYSTEM_STATUS]: 'system_status',
     [KEYS.SYSTEM_AUDIT_LOGS]: 'system_audit_logs',
+    [KEYS.ROLES]: 'user_roles',
     [KEYS.MKG_OPERATIONS]: 'mkg_operations',
     [KEYS.ARTICLES]: 'articles',
-    [KEYS.SETUP_TEMPLATES]: 'setup_templates'
+    [KEYS.SETUP_TEMPLATES]: 'setup_templates',
+    [KEYS.DOCUMENT_CATEGORIES]: 'document_categories'
 };
 
 const COLLECTION_TO_KEY = Object.fromEntries(
     Object.entries(TABLE_MAP).map(([key, coll]) => [coll, key])
 );
 
-const sanitizeDataForServer = (data: any): any => {
+// BUG-06: Collections waarbij PocketBase de timestamps server-side beheert via autodate.
+// created/updated meesturen veroorzaakt stille validatiefouten of onjuiste overwrite.
+const AUTO_DATE_COLLECTIONS = new Set([
+    'articles', 'mkg_operations', 'setup_templates', 'energy_historical',
+    'system_audit_logs', 'energy_settings', 'system_config'
+]);
+
+const sanitizeDataForServer = (data: any, collection?: string): any => {
     if (typeof data !== 'object' || data === null) return data;
     const clean = Array.isArray(data) ? [...data] : { ...data };
-    
+
+    // Strip autodate velden voor collections die timestamps server-side beheren
+    if (collection && AUTO_DATE_COLLECTIONS.has(collection)) {
+        delete clean.created;
+        delete clean.updated;
+    }
+
     Object.keys(clean).forEach(key => {
         const val = clean[key];
         if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(val)) {
             clean[key] = val.replace('T', ' ').split('.')[0];
-        } else if (typeof val === 'object' && val !== null) {
+        } else if (typeof val === 'object' && val !== null && !Array.isArray(val)) {
             clean[key] = sanitizeDataForServer(val);
         }
     });
@@ -72,8 +87,8 @@ const getHeaders = (token?: string, contentType: string | null = 'application/js
 };
 
 const updateConnectionStatus = (status: 'ONLINE' | 'OFFLINE' | 'SYNCING' | 'DEMO' | 'LIVE', lastError?: string) => {
-    window.dispatchEvent(new CustomEvent('connection-status-change', { 
-        detail: { status, lastSync: Date.now(), error: lastError } 
+    window.dispatchEvent(new CustomEvent('connection-status-change', {
+        detail: { status, lastSync: Date.now(), error: lastError }
     }));
 };
 
@@ -85,10 +100,10 @@ const dataURLtoBlob = (dataurl: string) => {
         const bstr = atob(arr[1]);
         let n = bstr.length;
         const u8arr = new Uint8Array(n);
-        while(n--) {
+        while (n--) {
             u8arr[n] = bstr.charCodeAt(n);
         }
-        return new Blob([u8arr], {type:mime});
+        return new Blob([u8arr], { type: mime });
     } catch (e) {
         console.error("Blob conversion error", e);
         return null;
@@ -125,25 +140,22 @@ export const SyncService = {
         if (!filename) return '';
         const name = typeof filename === 'object' ? filename.name : filename;
         if (!name || typeof name !== 'string') return '';
-        
+
         // Base64 direct renderen
         if (name.startsWith('data:') || name.startsWith('http')) return name;
         if (!serverUrl) return '';
-        
+
         const collection = TABLE_MAP[tableKey];
         if (!collection) return name;
         const base = serverUrl.endsWith('/') ? serverUrl.slice(0, -1) : serverUrl;
-        
-        // Als het articles betreft, gebruiken we de 'documents' field, anders de standaard
-        const fieldName = (tableKey === KEYS.ARTICLES) ? 'documents' : (tableKey === KEYS.TICKETS ? 'invoice' : 'image');
-        
+
         // PocketBase file URL format: /api/files/COLLECTION_ID_OR_NAME/RECORD_ID/FILENAME
         return `${base}/api/files/${collection}/${recordId}/${name}`;
     },
 
     start: async () => {
         if (syncTimer) return;
-        
+
         const meta = await loadTable<any>(KEYS.METADATA, {});
         if (meta.lastAuthToken) {
             cachedToken = meta.lastAuthToken;
@@ -159,7 +171,7 @@ export const SyncService = {
         }
 
         SyncService.initRealtime();
-        SyncService.scheduleNextRun(2000); 
+        SyncService.scheduleNextRun(2000);
     },
 
     scheduleNextRun: (delay: number) => {
@@ -169,14 +181,14 @@ export const SyncService = {
 
     runSyncLoop: async () => {
         const store = await getStore();
-        if (store.isDemoMode) { 
-            updateConnectionStatus('DEMO'); 
-            SyncService.scheduleNextRun(30000); 
-            return; 
+        if (store.isDemoMode) {
+            updateConnectionStatus('DEMO');
+            SyncService.scheduleNextRun(30000);
+            return;
         }
-        
+
         const serverConfig = await db.getServerSettings();
-        
+
         if (!serverConfig.url || !serverConfig.email || !serverConfig.password) {
             updateConnectionStatus('OFFLINE', 'Wachten op server URL en Inloggegevens...');
             SyncService.scheduleNextRun(10000);
@@ -204,23 +216,23 @@ export const SyncService = {
 
             if (!isBootstrapped) {
                 updateConnectionStatus('SYNCING');
-                await SyncService.pullDeltas(serverConfig.url, true); 
+                await SyncService.pullDeltas(serverConfig.url, true);
                 isBootstrapped = true;
             }
 
             const outboxProcessed = await SyncService.processOutbox(serverConfig.url);
             await SyncService.pullDeltas(serverConfig.url);
             await SyncService.fetchLiveStreams(serverConfig.url);
-            
-            failCount = 0; 
+
+            failCount = 0;
             updateConnectionStatus(eventSource ? 'LIVE' : 'ONLINE');
-            
+
             const nextDelay = outboxProcessed ? 2000 : 15000;
             SyncService.scheduleNextRun(nextDelay);
         } catch (e: any) {
             failCount++;
             const errMsg = e.message || 'Netwerkfout';
-            
+
             if (errMsg.includes('401') || errMsg.includes('Unauthorized')) {
                 cachedToken = null;
                 const meta = await loadTable<any>(KEYS.METADATA, {});
@@ -248,11 +260,11 @@ export const SyncService = {
 
         try {
             eventSource = new EventSource(`${effectiveUrl}/api/realtime`);
-            
+
             eventSource.onerror = () => {
                 if (eventSource) { eventSource.close(); eventSource = null; }
                 lastClientId = null;
-                setTimeout(SyncService.initRealtime, 5000); 
+                setTimeout(SyncService.initRealtime, 5000);
             };
 
             eventSource.onmessage = async (e) => {
@@ -283,17 +295,17 @@ export const SyncService = {
                             }
                         }
                     }
-                } catch(err) {}
+                } catch (err) { }
             };
-        } catch (e) {}
+        } catch (e) { }
     },
 
     removeLocalRecord: async (tableKey: string, id: string) => {
         const propMap: Record<string, keyof AppState> = {
             [KEYS.USERS]: 'users', [KEYS.MACHINES]: 'machines', [KEYS.TICKETS]: 'maintenanceTickets',
             [KEYS.LOGS_MIXING]: 'mixingLogs', [KEYS.LOGS_MIST]: 'mistLogs', [KEYS.LOGS_CHECKLIST]: 'checklistLogs',
-            [KEYS.LOGS_EFFICIENCY]: 'efficiencyLogs', [KEYS.EVENTS]: 'maintenanceEvents', 
-            [KEYS.PARTS_MACHINE]: 'machineParts', [KEYS.PARTS_GENERAL]: 'generalParts' as any, 
+            [KEYS.LOGS_EFFICIENCY]: 'efficiencyLogs', [KEYS.EVENTS]: 'maintenanceEvents',
+            [KEYS.PARTS_MACHINE]: 'machineParts', [KEYS.PARTS_GENERAL]: 'generalParts' as any,
             [KEYS.REQUESTS]: 'supportRequests', [KEYS.SCHEDULES]: 'schedules',
             [KEYS.LOGS_ENERGY_HISTORICAL]: 'energyHistorical',
             [KEYS.MKG_OPERATIONS]: 'mkgOperations',
@@ -307,7 +319,7 @@ export const SyncService = {
         const store = await getStore();
         const items = (store as any)[stateKey] || [];
         const filtered = items.filter((i: any) => i.id !== id);
-        
+
         await setStore({ ...store, [stateKey]: filtered });
         const currentTableData = await loadTable<any[]>(tableKey, []);
         const filteredTable = currentTableData.filter(i => i.id !== id);
@@ -318,8 +330,8 @@ export const SyncService = {
         const propMap: Record<string, keyof AppState> = {
             [KEYS.USERS]: 'users', [KEYS.MACHINES]: 'machines', [KEYS.TICKETS]: 'maintenanceTickets',
             [KEYS.LOGS_MIXING]: 'mixingLogs', [KEYS.LOGS_MIST]: 'mistLogs', [KEYS.LOGS_CHECKLIST]: 'checklistLogs',
-            [KEYS.LOGS_EFFICIENCY]: 'efficiencyLogs', [KEYS.EVENTS]: 'maintenanceEvents', 
-            [KEYS.PARTS_MACHINE]: 'machineParts', [KEYS.PARTS_GENERAL]: 'generalParts' as any, 
+            [KEYS.LOGS_EFFICIENCY]: 'efficiencyLogs', [KEYS.EVENTS]: 'maintenanceEvents',
+            [KEYS.PARTS_MACHINE]: 'machineParts', [KEYS.PARTS_GENERAL]: 'generalParts' as any,
             [KEYS.REQUESTS]: 'supportRequests', [KEYS.SCHEDULES]: 'schedules',
             [KEYS.SYSTEM_CONFIG]: 'systemSettings' as any, [KEYS.SNAPSHOTS]: 'snapshots',
             [KEYS.SYSTEM_STATUS]: 'systemStatus' as any, [KEYS.SYSTEM_AUDIT_LOGS]: 'systemAuditLogs' as any,
@@ -335,7 +347,7 @@ export const SyncService = {
 
         const store = await getStore();
         const parsedData = ensureParsedData(remoteData);
-        
+
         // Mapping fix voor ARTICLES: 
         // PocketBase 'documents' (File) -> App 'files' (JSON met metadata) 
         // We moeten de metadata (filesMeta) gebruiken, niet de file URLs alleen.
@@ -394,7 +406,7 @@ export const SyncService = {
         const outboxRaw = await db.getOutbox();
         const outbox = Array.isArray(outboxRaw) ? outboxRaw : [];
         if (outbox.length === 0) return false;
-        
+
         updateConnectionStatus('SYNCING');
         let hasProcessedAny = false;
 
@@ -406,13 +418,14 @@ export const SyncService = {
             const updateEndpoint = `${url}/api/collections/${collection}/records/${entry.data.id}`;
             const endpoint = entry.action === 'INSERT' ? insertEndpoint : updateEndpoint;
 
-            const cleanData = sanitizeDataForServer(entry.data);
+            // BUG-06: Geef de collection naam mee zodat sanitizeDataForServer autodate velden kan strippen
+            const cleanData = sanitizeDataForServer(entry.data, collection);
             delete cleanData.isPending;
             delete cleanData.lastRemoteUpdate;
             delete cleanData.updatedAt;
             delete cleanData.collectionId;
             delete cleanData.collectionName;
-            
+
             if (entry.action === 'UPDATE') delete cleanData.id;
 
             // --- FILE API HANDLING ---
@@ -426,10 +439,10 @@ export const SyncService = {
                 // files -> filesMeta (JSON) + documents (FormData)
                 if (cleanData.files && Array.isArray(cleanData.files)) {
                     const filesMeta: any[] = [];
-                    
+
                     cleanData.files.forEach((fileObj: any) => {
                         const metaClone = { ...fileObj };
-                        
+
                         // Check of er nieuwe Base64 data is (url begint met data:)
                         if (metaClone.url && metaClone.url.startsWith('data:')) {
                             const blob = dataURLtoBlob(metaClone.url);
@@ -446,9 +459,9 @@ export const SyncService = {
 
                     // Hernoem files -> filesMeta voor de PB JSON kolom
                     cleanData.filesMeta = filesMeta;
-                    delete cleanData.files; 
+                    delete cleanData.files;
                 }
-            } 
+            }
             // 2. MACHINES & TICKETS LOGIC (Simpler)
             else if (['image', 'invoice'].some(k => cleanData[k])) {
                 ['image', 'invoice'].forEach(key => {
@@ -460,7 +473,7 @@ export const SyncService = {
                             hasBinaryContent = true;
                         }
                         // Clear from JSON payload
-                        cleanData[key] = ''; 
+                        cleanData[key] = '';
                     } else if (typeof val === 'string' && val.startsWith('data:')) {
                         // Legacy string format
                         const blob = dataURLtoBlob(val);
@@ -502,7 +515,7 @@ export const SyncService = {
                     method: entry.action === 'INSERT' ? 'POST' : entry.action === 'UPDATE' ? 'PATCH' : 'DELETE',
                     headers: currentHeaders,
                     body: entry.action === 'DELETE' ? undefined : body,
-                    timeout: 60000 
+                    timeout: 60000
                 } as any);
 
                 // Fallback: Als UPDATE faalt met 404, probeer INSERT (Self-healing)
@@ -514,7 +527,7 @@ export const SyncService = {
                     } else {
                         formData.append('id', entry.data.id);
                     }
-                    
+
                     res = await fetch(insertEndpoint, {
                         method: 'POST',
                         headers: currentHeaders,
@@ -533,11 +546,11 @@ export const SyncService = {
                 } else {
                     const errorJson = await res.json().catch(() => ({}));
                     const errorMsg = errorJson.message || `Server Error ${res.status}`;
-                    
+
                     if (res.status === 400 || res.status === 404) {
                         // Markeer als gefaald, maar blokkeer niet de rest
                         await outboxUtils.updateOutboxEntry(entry.id, { error: `${errorMsg} (Data: ${JSON.stringify(errorJson.data)})` });
-                        continue; 
+                        continue;
                     }
 
                     if (res.status === 401) {
@@ -558,19 +571,20 @@ export const SyncService = {
     pullDeltas: async (url: string, forceFull: boolean = false) => {
         const headers = getHeaders();
         const meta = await db.getMetadata();
-        
+
         const localMachines = await db.getMachines(true);
         const isDeviceEmpty = localMachines.length === 0;
-        
+
         const lastSyncISO = meta.serverHighWaterMark || "2000-01-01T00:00:00.000Z";
         const filterTime = (forceFull || isDeviceEmpty) ? "2000-01-01T00:00:00.000Z" : lastSyncISO;
-        
+
         const pbFilterValue = formatDateForPB(filterTime);
         let newestSeenISO = lastSyncISO;
 
         for (const [tableKey, collection] of Object.entries(TABLE_MAP)) {
-            if (tableKey === KEYS.ENERGY_LIVE || tableKey === KEYS.SYSTEM_AUDIT_LOGS) continue;
-            
+            // Sla energy_live over (aparte stream), en system_audit_logs worden apart gepulled
+            if (tableKey === KEYS.ENERGY_LIVE) continue;
+
             const filterString = `updated >= '${pbFilterValue}'`;
             const params = new URLSearchParams({
                 filter: filterString,
@@ -580,7 +594,7 @@ export const SyncService = {
 
             const fullUrl = `${url}/api/collections/${collection}/records?${params.toString()}`;
             const res = await fetch(fullUrl, { headers, timeout: 20000 } as any);
-            
+
             if (!res.ok) {
                 if (res.status === 401) {
                     cachedToken = null;
@@ -589,7 +603,7 @@ export const SyncService = {
                 }
                 continue;
             }
-            
+
             const data = await res.json();
             if (data.items && data.items.length > 0) {
                 const mostRecent = data.items[0].updated;
@@ -602,10 +616,10 @@ export const SyncService = {
                 }
             }
         }
-        
+
         const updatedMeta = await db.getMetadata();
-        await db.saveMetadata({ 
-            ...updatedMeta, 
+        await db.saveMetadata({
+            ...updatedMeta,
             lastSuccessfulSync: Date.now(),
             serverHighWaterMark: newestSeenISO
         });
@@ -615,9 +629,9 @@ export const SyncService = {
         const propMap: Record<string, keyof AppState> = {
             [KEYS.USERS]: 'users', [KEYS.MACHINES]: 'machines', [KEYS.TICKETS]: 'maintenanceTickets',
             [KEYS.LOGS_MIXING]: 'mixingLogs', [KEYS.LOGS_MIST]: 'mistLogs', [KEYS.LOGS_CHECKLIST]: 'checklistLogs',
-            [KEYS.LOGS_EFFICIENCY]: 'efficiencyLogs', [KEYS.EVENTS]: 'maintenanceEvents', 
-            [KEYS.PARTS_MACHINE]: 'machineParts', [KEYS.PARTS_GENERAL]: 'generalParts' as any, 
-            [KEYS.REQUESTS]: 'supportRequests', [KEYS.SCHEDULES]: 'schedules', 
+            [KEYS.LOGS_EFFICIENCY]: 'efficiencyLogs', [KEYS.EVENTS]: 'maintenanceEvents',
+            [KEYS.PARTS_MACHINE]: 'machineParts', [KEYS.PARTS_GENERAL]: 'generalParts' as any,
+            [KEYS.REQUESTS]: 'supportRequests', [KEYS.SCHEDULES]: 'schedules',
             [KEYS.SNAPSHOTS]: 'snapshots', [KEYS.SYSTEM_STATUS]: 'systemStatus' as any,
             [KEYS.SETTINGS_ENERGY]: 'energySettings' as any,
             [KEYS.LOGS_ENERGY_HISTORICAL]: 'energyHistorical',
@@ -638,7 +652,7 @@ export const SyncService = {
 
         remoteItems.forEach(item => {
             const remote = ensureParsedData(item);
-            
+
             // SPECIFIEKE LOGICA VOOR ARTICLES: filesMeta -> files
             if (tableKey === KEYS.ARTICLES && remote.filesMeta) {
                 remote.files = remote.filesMeta;
@@ -698,7 +712,7 @@ export const SyncService = {
                     await setStore({ ...store, systemStatus: data.items });
                 }
             }
-        } catch (e) {}
+        } catch (e) { }
     },
 
     uploadState: async (force: boolean = false): Promise<{ success: boolean; message: string }> => {

@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { Layers, Plus, Search, Trash2, Box, ArrowRight } from 'lucide-react';
+import { Layers, Plus, Search, Trash2, Box, ArrowRight } from '../../icons';
 import { Article, ArticleBOMItem } from '../../types';
 import { generateId } from '../../services/db/core';
 

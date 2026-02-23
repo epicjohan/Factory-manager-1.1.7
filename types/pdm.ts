@@ -17,6 +17,17 @@ export enum FileRole {
   OTHER = 'OTHER'          // Overig
 }
 
+export interface DocumentCategory {
+  id: string;
+  name: string;
+  code: string;        // E.g. "CERTIFICATE", "DRAWING", "SPECIFICATION"
+  icon?: string;       // E.g. "FileText", "Receipt", "Certificate"
+  color?: string;      // E.g. "blue", "green", "purple"
+  isSystem: boolean;   // If true, cannot be deleted (e.g. DRAWING, MODEL, CAM, NC)
+  applicableTo: 'ARTICLE' | 'SETUP' | 'BOTH';
+  order?: number;
+}
+
 export interface ArticleStep {
   id: string;
   order: number;
@@ -28,7 +39,7 @@ export interface ArticleFile extends UploadedDocument {
   id: string;
   uploadedBy: string;
   uploadDate: string;
-  fileRole: FileRole;
+  fileRole: FileRole | string; // Can be a custom DocumentCategory code
   version: number;
   setupId?: string;        // Koppeling aan specifieke machine-setup
   lockedBy?: string;       // Alleen voor PRODUCTIE bestanden
@@ -47,26 +58,26 @@ export interface ArticleFixture {
 export type SetupFieldType = 'text' | 'number' | 'boolean' | 'textarea' | 'select' | 'header';
 
 export interface SetupFieldDefinition {
-    key: string;
-    label: string;
-    type: SetupFieldType;
-    required?: boolean;
-    highlightFilled?: boolean; // Highlight field (Orange) when value is present (Safety/Poka Yoke)
-    colSpan?: number; // 1 to 12. Defines width in a grid system. Default 6 (Half).
-    options?: string[]; 
-    unit?: string; 
-    defaultValue?: any;
+  key: string;
+  label: string;
+  type: SetupFieldType;
+  required?: boolean;
+  highlightFilled?: boolean; // Highlight field (Orange) when value is present (Safety/Poka Yoke)
+  colSpan?: number; // 1 to 12. Defines width in a grid system. Default 6 (Half).
+  options?: string[];
+  unit?: string;
+  defaultValue?: any;
 }
 
 export interface SetupTemplate {
-    id: string;
-    name: string;
-    description?: string;
-    assetType: AssetType; 
-    fields: SetupFieldDefinition[]; 
-    toolFields?: SetupFieldDefinition[]; 
-    isDefault?: boolean;
-    updated?: string;
+  id: string;
+  name: string;
+  description?: string;
+  assetType: AssetType;
+  fields: SetupFieldDefinition[];
+  toolFields?: SetupFieldDefinition[];
+  isDefault?: boolean;
+  updated?: string;
 }
 
 export enum SetupStatus {
@@ -77,17 +88,17 @@ export enum SetupStatus {
 }
 
 export enum SetupVerificationStatus {
-    UNVERIFIED = 'UNVERIFIED',
-    VERIFIED = 'VERIFIED'
+  UNVERIFIED = 'UNVERIFIED',
+  VERIFIED = 'VERIFIED'
 }
 
 export interface SetupChangeEntry {
-    id: string;
-    date: string;
-    user: string;
-    type: 'NC' | 'CAM' | 'TOOL' | 'PARAM' | 'OTHER' | 'VERSION';
-    description: string;
-    reason: string;
+  id: string;
+  date: string;
+  user: string;
+  type: 'NC' | 'CAM' | 'TOOL' | 'PARAM' | 'OTHER' | 'VERSION';
+  description: string;
+  reason: string;
 }
 
 export interface SetupVariant {
@@ -97,13 +108,13 @@ export interface SetupVariant {
   setupTemplateId?: string;
   status: SetupStatus;
   isDefault?: boolean; // NEW: Indicates if this is the primary route
-  
+
   // Proces Revisie Data
   version: number; // 1, 2, 3...
-  
+
   revision?: number; // Legacy field, keeping for compatibility if needed, but prefer 'version'
   changeLog?: SetupChangeEntry[]; // Audit trail specifiek voor deze setup
-  
+
   verificationStatus?: SetupVerificationStatus;
   verifiedBy?: string;
   verifiedDate?: string;
@@ -111,9 +122,9 @@ export interface SetupVariant {
   cycleTimeMinutes: number;
   steps: ArticleStep[];
   tools: ArticleTool[];
-  fixture?: ArticleFixture; 
-  templateData?: Record<string, any>; 
-  frozenFields?: SetupFieldDefinition[]; 
+  fixture?: ArticleFixture;
+  templateData?: Record<string, any>;
+  frozenFields?: SetupFieldDefinition[];
   frozenToolFields?: SetupFieldDefinition[];
 }
 
@@ -154,6 +165,7 @@ export interface Article {
   name: string;
   description2?: string;
   customer?: string;
+  material?: string;
   description?: string;
   status: ArticleStatus;
   operations: ArticleOperation[];
@@ -169,16 +181,16 @@ export interface Article {
 export type OperationType = 'MACHINING' | 'PROCESS';
 
 export interface PredefinedOperation {
-    id: string;
-    code: string;
-    name: string;
-    category?: string;
-    operationType?: OperationType;
-    setupTemplateId?: string;
-    defaultMachineId?: string; 
-    defaultMachineType?: AssetType;
-    updated?: string;
-    created?: string;
+  id: string;
+  code: string;
+  name: string;
+  category?: string;
+  operationType?: OperationType;
+  setupTemplateId?: string;
+  defaultMachineId?: string;
+  defaultMachineType?: AssetType;
+  updated?: string;
+  created?: string;
 }
 
 export interface ArticleTool {
@@ -194,9 +206,10 @@ export interface ArticleTool {
   internalCooling?: boolean;
   lifeTime: string;
   toolData?: Record<string, any>;
-  
+  files?: ArticleFile[]; // Attached documents/images for the tool
+
   status?: 'ACTIVE' | 'REPLACED'; // NEW: Track lifecycle
-  
+
   // Tool Swap History
   replacedToolId?: string; // ID van de tool die deze vervangen heeft
   changeReason?: string;   // Waarom is deze tool toegevoegd/gewijzigd?

@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { SiteEnergyView } from '../components/energy/SiteEnergyView';
 import { AssetEnergyView } from '../components/energy/AssetEnergyView';
-import { Factory, Plug } from 'lucide-react';
+import { Factory, Plug } from '../icons';
 
 export const EnergyDashboard: React.FC = () => {
     const [activeView, setActiveView] = useState<'SITE' | 'ASSETS'>('SITE');

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Layers, Hash, Plus, ChevronUp, ChevronDown, ArrowRight, Trash2, Lock } from 'lucide-react';
+import { Layers, Hash, Plus, ChevronUp, ChevronDown, ArrowRight, Trash2, Lock } from '../../icons';
 import { Article, ArticleOperation, PredefinedOperation } from '../../types';
 import { MKGCodePicker } from './shared/MKGCodePicker';
 

@@ -14,7 +14,7 @@ import {
     Send,
     MessageCircle,
     History
-} from 'lucide-react';
+} from '../icons';
 import { useTable } from '../hooks/useTable';
 import { KEYS } from '../services/db/core';
 

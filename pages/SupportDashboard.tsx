@@ -4,7 +4,7 @@ import { db } from '../services/storage';
 import { SupportRequest, SupportStatus, SupportType, Machine } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Megaphone, CheckCircle, ArrowRight, Droplet, Box, Recycle, Container, MapPin, Layers, History, Activity, Monitor, Clock, MessageSquare } from 'lucide-react';
+import { Megaphone, CheckCircle, ArrowRight, Droplet, Box, Recycle, Container, MapPin, Layers, History, Activity, Monitor, Clock, MessageSquare } from '../icons';
 import { useTable } from '../hooks/useTable';
 import { KEYS } from '../services/db/core';
 

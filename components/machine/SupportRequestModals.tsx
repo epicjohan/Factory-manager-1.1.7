@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { SupportType } from '../../types';
-import { Box, Recycle, Droplet, Container, X, RefreshCw, Clock } from 'lucide-react';
+import { Box, Recycle, Droplet, Container, X, RefreshCw, Clock } from '../../icons';
 
 interface SupportRequestModalsProps {
     activeType: SupportType | null;

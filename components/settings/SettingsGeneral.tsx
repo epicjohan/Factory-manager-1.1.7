@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Mail, BellRing, CheckSquare, Square, Save, CheckCircle, HelpCircle } from 'lucide-react';
+import { Mail, BellRing, CheckSquare, Square, Save, CheckCircle, HelpCircle } from '../../icons';
 import { db } from '../../services/storage';
 import { NotificationTrigger } from '../../types';
 

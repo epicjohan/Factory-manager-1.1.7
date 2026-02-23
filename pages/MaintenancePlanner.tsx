@@ -4,7 +4,7 @@ import { db } from '../services/storage';
 import { generateId } from '../services/db/core';
 import { MaintenanceEvent, Machine, User } from '../types';
 import { useAuth } from '../contexts/AuthContext';
-import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, X, Check, Trash2, Clock, CheckCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, X, Check, Trash2, Clock, CheckCircle } from '../icons';
 import { useTable } from '../hooks/useTable';
 import { KEYS } from '../services/db/core';
 

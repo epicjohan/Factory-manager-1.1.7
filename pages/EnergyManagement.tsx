@@ -29,7 +29,7 @@ import {
   Settings,
   Lock,
   Scale
-} from 'lucide-react';
+} from '../icons';
 
 export const EnergyManagement: React.FC = () => {
   const navigate = useNavigate();

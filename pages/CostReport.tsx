@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { MaintenanceTicket, Machine, AssetType } from '../types';
 import { useAuth } from '../contexts/AuthContext';
-import { ArrowLeft, Euro, Clock, FileText, BarChart2, Filter, Download, Calendar } from 'lucide-react';
+import { ArrowLeft, Euro, Clock, FileText, BarChart2, Filter, Download, Calendar } from '../icons';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { useTable } from '../hooks/useTable';

@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, MessageSquare, ShieldCheck, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react';
+import { LayoutDashboard, MessageSquare, ShieldCheck, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from '../../icons';
 import { SidebarFooter } from './SidebarFooter';
 import { AppModule, UserRole, User } from '../../types';
 

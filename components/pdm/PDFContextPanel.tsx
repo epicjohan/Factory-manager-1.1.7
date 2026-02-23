@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { ArticleFile, FileRole } from '../../types';
-import { FileText, Maximize, X } from 'lucide-react';
+import { FileText, Maximize, X } from '../../icons';
+import { usePdfBlobUrl } from '../../hooks/usePdfBlobUrl';
 
 interface PDFContextPanelProps {
     file: ArticleFile | null;
@@ -21,6 +22,8 @@ export const PDFContextPanel: React.FC<PDFContextPanelProps> = ({ file, onClose,
     }
 
     const isImage = file.type.startsWith('image/');
+    const isPdf = file.type === 'application/pdf';
+    const safePdfUrl = usePdfBlobUrl(isPdf ? file.url : null);
 
     return (
         <div className="flex flex-col h-full bg-slate-900">
@@ -50,11 +53,17 @@ export const PDFContextPanel: React.FC<PDFContextPanelProps> = ({ file, onClose,
                 {isImage ? (
                     <img src={file.url} className="max-w-full max-h-full object-contain" alt="Preview" />
                 ) : (
-                    <iframe 
-                        src={`${file.url}#toolbar=0&navpanes=0&scrollbar=0`} 
-                        className="w-full h-full border-none bg-white" 
-                        title="PDF Preview"
-                    />
+                    safePdfUrl ? (
+                        <iframe
+                            src={`${safePdfUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+                            className="w-full h-full border-none bg-white"
+                            title="PDF Preview"
+                        />
+                    ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-white text-slate-500">
+                            Laden...
+                        </div>
+                    )
                 )}
             </div>
         </div>

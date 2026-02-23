@@ -41,7 +41,7 @@ import {
   WifiOff,
   ImageIcon,
   Briefcase // Icon for Job Tab
-} from 'lucide-react';
+} from '../icons';
 import { QRCodeSVG } from 'qrcode.react';
 import { FocasPanel } from '../components/FocasPanel';
 import { StatusBadge } from '../components/StatusBadge';

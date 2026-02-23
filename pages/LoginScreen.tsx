@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../services/storage';
-import { Lock, Delete, ArrowRight, CheckCircle2, ShieldAlert, Loader2 } from 'lucide-react';
+import { Lock, Delete, ArrowRight, CheckCircle2, ShieldAlert, Loader2 } from '../icons';
 
 export const LoginScreen: React.FC = () => {
   const { login, users } = useAuth();

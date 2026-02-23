@@ -5,52 +5,58 @@ import { KEYS, loadTable, saveTable, outboxUtils, getNowISO, generateId } from '
 const getCurrentUserName = () => {
     const userJson = localStorage.getItem('cnc_active_user_full');
     if (userJson) {
-        try { return JSON.parse(userJson).name; } catch(e) { return 'Unknown User'; }
+        try { return JSON.parse(userJson).name; } catch (e) { return 'Unknown User'; }
     }
     return 'Unknown User';
 };
 
 const getNextRevision = (currentRev: string): string => {
     if (!currentRev) return 'A';
-    const lastChar = currentRev.slice(-1);
-    const prefix = currentRev.slice(0, -1);
-    
-    const charCode = lastChar.charCodeAt(0);
-    if (charCode >= 90) { // Z
-        return prefix + "AA"; 
+    // Behandel als base-26 getal (A=1, B=2, ..., Z=26)
+    const chars = currentRev.toUpperCase().split('');
+    let carry = true;
+    for (let i = chars.length - 1; i >= 0 && carry; i--) {
+        const code = chars[i].charCodeAt(0);
+        if (code < 90) { // < 'Z': verhoog en stop
+            chars[i] = String.fromCharCode(code + 1);
+            carry = false;
+        } else { // 'Z': reset naar 'A' en ga door (carry)
+            chars[i] = 'A';
+        }
     }
-    return prefix + String.fromCharCode(charCode + 1);
+    // Als er nog een carry is, voeg een extra 'A' toe aan het begin
+    return carry ? 'A' + chars.join('') : chars.join('');
 };
 
 export const articleService = {
     getArticles: () => loadTable<Article[]>(KEYS.ARTICLES, []),
-    
+
     getArticleById: async (id: string) => {
         const items = await articleService.getArticles();
         return items.find(a => a.id === id);
     },
 
-    addArticle: async (a: Article) => { 
+    addArticle: async (a: Article) => {
         const now = getNowISO();
         a.created = now;
         a.updated = now;
-        
+
         const items = await loadTable<Article[]>(KEYS.ARTICLES, []);
         items.push(a);
-        
+
         await saveTable(KEYS.ARTICLES, items);
         await outboxUtils.addToOutbox(KEYS.ARTICLES, 'INSERT', a);
-        
+
         await outboxUtils.logAudit('CREATE_ARTICLE', getCurrentUserName(), `Artikel aangemaakt: ${a.articleCode} - ${a.name}`);
     },
-    
-    updateArticle: async (a: Article) => { 
+
+    updateArticle: async (a: Article) => {
         const now = getNowISO();
         a.updated = now;
-        
+
         const items = await loadTable<Article[]>(KEYS.ARTICLES, []);
         const idx = items.findIndex(x => x.id === a.id);
-        
+
         if (idx !== -1) {
             items[idx] = a;
             await saveTable(KEYS.ARTICLES, items);
@@ -61,13 +67,13 @@ export const articleService = {
     updateArticleStatus: async (id: string, newStatus: ArticleStatus, reason?: string) => {
         const items = await loadTable<Article[]>(KEYS.ARTICLES, []);
         const idx = items.findIndex(x => x.id === id);
-        
+
         if (idx === -1) return;
         const article = items[idx];
         const oldStatus = article.status;
 
         const isLocked = newStatus === ArticleStatus.RELEASED || newStatus === ArticleStatus.OBSOLETE;
-        
+
         const updatedArticle: Article = {
             ...article,
             status: newStatus,
@@ -89,7 +95,7 @@ export const articleService = {
         await saveTable(KEYS.ARTICLES, items);
         await outboxUtils.addToOutbox(KEYS.ARTICLES, 'UPDATE', updatedArticle);
         await outboxUtils.logAudit('STATUS_CHANGE', getCurrentUserName(), `Artikel ${article.articleCode} ${article.revision} naar ${newStatus}`);
-        
+
         return updatedArticle;
     },
 
@@ -179,8 +185,8 @@ export const articleService = {
 
         return newArticle.id;
     },
-    
-    deleteArticle: async (id: string) => { 
+
+    deleteArticle: async (id: string) => {
         const items = await loadTable<Article[]>(KEYS.ARTICLES, []);
         const toDelete = items.find(x => x.id === id);
         if (toDelete) {

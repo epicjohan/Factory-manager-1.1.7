@@ -1,14 +1,16 @@
 
 import React from 'react';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle } from '../../icons';
 
 interface OfflineBannerProps {
     show: boolean;
 }
 
 export const OfflineBanner: React.FC<OfflineBannerProps> = ({ show }) => {
-    if (!show) return null;
-    
+    // In development (npm run dev) de banner nooit tonen — voorkomt afleiding tijdens bouwen.
+    // In productie builds werkt de banner normaal.
+    if (!show || (import.meta as any).env?.DEV) return null;
+
     return (
         <div className="bg-red-600 text-white px-6 py-3 flex items-center justify-between shadow-2xl sticky top-0 z-50 animate-in slide-in-from-top duration-500 border-b-2 border-red-800">
             <div className="flex items-center gap-4">

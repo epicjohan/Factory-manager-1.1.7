@@ -21,7 +21,7 @@ import {
     BookOpen,
     ChevronRight,
     Braces
-} from 'lucide-react';
+} from '../icons';
 
 export const DeveloperGuide: React.FC = () => {
     const navigate = useNavigate();

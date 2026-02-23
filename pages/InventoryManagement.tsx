@@ -16,7 +16,7 @@ import {
   AlertTriangle,
   CloudCog,
   X
-} from 'lucide-react';
+} from '../icons';
 import { MachineCard } from '../components/MachineCard';
 import { useAuth } from '../contexts/AuthContext';
 import { useTable } from '../hooks/useTable';

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Check, X } from 'lucide-react';
+import { Check, X } from '../icons';
 
 interface NumpadModalProps {
     isOpen: boolean;

@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Factory Manager — Icon Keuzetool</title>
+<!-- Lucide (huidige icons) -->
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<!-- Phosphor Icons (nieuwe alternatieven) -->
+<script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  :root {
+    --bg: #0D1117;
+    --surface: #161B22;
+    --card: #1C2128;
+    --border: #30363D;
+    --text: #E6EDF3;
+    --muted: #8B949E;
+    --accent: #0A84FF;
+    --accent-dim: #0D2044;
+    --green: #3FB950;
+    --amber: #D29922;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, 'Inter', BlinkMacSystemFont, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  header h1 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -.2px;
+  }
+  
+  header span {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .toolbar {
+    padding: 16px 32px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .toolbar input {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 7px 12px;
+    color: var(--text);
+    font-size: 13px;
+    width: 240px;
+    outline: none;
+  }
+
+  .toolbar input:focus { border-color: var(--accent); }
+
+  .count-badge {
+    font-size: 12px;
+    color: var(--muted);
+    margin-left: auto;
+  }
+
+  .count-badge strong { color: var(--green); }
+
+  .btn {
+    padding: 7px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all .15s;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+  .btn-primary:hover { background: #0070E0; color: white; }
+
+  .container { padding: 24px 32px; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    padding: 0 12px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  thead th:first-child { width: 48px; }
+  thead th:nth-child(2) { width: 200px; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background .1s;
+  }
+  tbody tr:hover { background: rgba(255,255,255,.02); }
+
+  td {
+    padding: 14px 12px;
+    vertical-align: middle;
+  }
+
+  .row-num {
+    color: var(--muted);
+    font-size: 12px;
+    font-family: monospace;
+    text-align: right;
+  }
+
+  .icon-name {
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 500;
+    font-family: 'SF Mono', monospace;
+  }
+
+  .icon-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .icon-box {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all .15s;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .icon-box:hover {
+    border-color: var(--accent);
+    color: var(--text);
+    background: var(--accent-dim);
+  }
+
+  .icon-box.selected {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+    color: var(--accent);
+  }
+
+  .icon-box.selected::after {
+    content: '✓';
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: var(--accent);
+    color: white;
+    font-size: 9px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    line-height: 14px;
+    text-align: center;
+  }
+
+  .icon-box i, .icon-box svg {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+  }
+
+  .options-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .option-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 3px;
+    max-width: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .option-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .current-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .divider {
+    width: 1px;
+    height: 40px;
+    background: var(--border);
+    margin: 0 8px;
+  }
+
+  .chosen-text {
+    font-size: 11px;
+    color: var(--green);
+    min-width: 120px;
+  }
+  
+  .chosen-none {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .export-panel {
+    position: fixed;
+    bottom: 24px;
+    right: 32px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.4);
+  }
+
+  .export-text { font-size: 13px; color: var(--muted); }
+  .export-count { font-size: 13px; color: var(--green); font-weight: 600; }
+
+  pre {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    font-size: 12px;
+    color: var(--text);
+    overflow-x: auto;
+    margin-top: 16px;
+    display: none;
+    white-space: pre-wrap;
+  }
+
+  .section-tag {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: monospace;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🎨 Icon Keuzetool — Factory Manager</h1>
+  </div>
+  <span>Klik op een optie (A, B of C) om te kiezen. Huidig = Lucide. Opties = Phosphor Icons.</span>
+</header>
+
+<div class="toolbar">
+  <input type="text" id="search" placeholder="🔍 Zoek icoon..." oninput="filterIcons()">
+  <button class="btn" onclick="selectNone()">Alle deacti­veren</button>
+  <button class="btn" onclick="selectAll('A')">Alles → A</button>
+  <button class="btn btn-primary" onclick="exportChoices()">📋 Exporteer keuze</button>
+  <span class="count-badge">Gekozen: <strong id="chosen-count">0</strong> / <span id="total-count">0</span></span>
+</div>
+
+<div class="container">
+  <table id="icon-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Lucide naam (huidig)</th>
+        <th>Huidig icoon</th>
+        <th>Optie A</th>
+        <th>Optie B</th>
+        <th>Optie C</th>
+        <th>Keuze</th>
+      </tr>
+    </thead>
+    <tbody id="table-body">
+    </tbody>
+  </table>
+  <pre id="export-output"></pre>
+</div>
+
+<div class="export-panel">
+  <span class="export-text">Geselecteerd:</span>
+  <span class="export-count" id="panel-count">0</span>
+  <span class="export-text">iconen gekozen</span>
+  <button class="btn btn-primary" onclick="exportChoices()">Exporteer JSON</button>
+</div>
+
+<script>
+// Mapping: Lucide icon name → [OptionA (Phosphor), OptionB (Phosphor), OptionC (Phosphor)]
+// Format: ['phosphor-class-name', display-name]
+const ICON_MAP = [
+  { lucide: 'Activity',       name: 'Activity',        a: ['ph-activity',            'Activity'],           b: ['ph-chart-line-up',       'ChartLineUp'],      c: ['ph-pulse',               'Pulse'] },
+  { lucide: 'AlertCircle',    name: 'AlertCircle',     a: ['ph-warning-circle',      'WarningCircle'],      b: ['ph-seal-warning',        'SealWarning'],      c: ['ph-x-circle',            'XCircle'] },
+  { lucide: 'AlertTriangle',  name: 'AlertTriangle',   a: ['ph-warning',             'Warning'],            b: ['ph-warning-diamond',     'WarningDiamond'],   c: ['ph-triangle',            'Triangle'] },
+  { lucide: 'Archive',        name: 'Archive',         a: ['ph-archive-box',         'ArchiveBox'],         b: ['ph-archive',             'Archive'],          c: ['ph-tray-arrow-down',     'TrayArrowDown'] },
+  { lucide: 'ArrowLeft',      name: 'ArrowLeft',       a: ['ph-arrow-left',          'ArrowLeft'],          b: ['ph-caret-left',          'CaretLeft'],        c: ['ph-arrow-bend-up-left',  'ArrowBendUpLeft'] },
+  { lucide: 'ArrowRight',     name: 'ArrowRight',      a: ['ph-arrow-right',         'ArrowRight'],         b: ['ph-caret-right',         'CaretRight'],       c: ['ph-arrow-circle-right',  'ArrowCircleRight'] },
+  { lucide: 'BarChart',       name: 'BarChart',        a: ['ph-chart-bar',           'ChartBar'],           b: ['ph-chart-bar-horizontal','ChartBarH'],        c: ['ph-chart-line',          'ChartLine'] },
+  { lucide: 'BarChart2',      name: 'BarChart2',       a: ['ph-chart-bar',           'ChartBar'],           b: ['ph-chart-column',        'ChartColumn'],      c: ['ph-equalizer',           'Equalizer'] },
+  { lucide: 'Beaker',         name: 'Beaker',          a: ['ph-flask',               'Flask'],              b: ['ph-test-tube',           'TestTube'],         c: ['ph-beaker',              'Beaker'] },
+  { lucide: 'Bell',           name: 'Bell',            a: ['ph-bell',                'Bell'],               b: ['ph-bell-simple',         'BellSimple'],       c: ['ph-bell-ringing',        'BellRinging'] },
+  { lucide: 'BellRing',       name: 'BellRing',        a: ['ph-bell-ringing',        'BellRinging'],        b: ['ph-bell-simple-ringing', 'BellSimpleR'],      c: ['ph-alarm',               'Alarm'] },
+  { lucide: 'Book',           name: 'Book',            a: ['ph-book',                'Book'],               b: ['ph-book-open',           'BookOpen'],         c: ['ph-books',               'Books'] },
+  { lucide: 'BookOpen',       name: 'BookOpen',        a: ['ph-book-open',           'BookOpen'],           b: ['ph-book-open-text',      'BookOpenText'],     c: ['ph-read-cv-logo',        'ReadCV'] },
+  { lucide: 'Box',            name: 'Box',             a: ['ph-cube',                'Cube'],               b: ['ph-package',             'Package'],          c: ['ph-box',                 'Box'] },
+  { lucide: 'Briefcase',      name: 'Briefcase',       a: ['ph-briefcase',           'Briefcase'],          b: ['ph-briefcase-metal',     'BriefcaseMetal'],   c: ['ph-bag-simple',          'BagSimple'] },
+  { lucide: 'Building2',      name: 'Building2',       a: ['ph-buildings',           'Buildings'],          b: ['ph-factory',             'Factory'],          c: ['ph-warehouse',           'Warehouse'] },
+  { lucide: 'Calculator',     name: 'Calculator',      a: ['ph-calculator',          'Calculator'],         b: ['ph-math-operations',     'MathOperations'],   c: ['ph-equals',              'Equals'] },
+  { lucide: 'Calendar',       name: 'Calendar',        a: ['ph-calendar',            'Calendar'],           b: ['ph-calendar-blank',      'CalendarBlank'],    c: ['ph-calendar-dots',       'CalendarDots'] },
+  { lucide: 'CalendarClock',  name: 'CalendarClock',   a: ['ph-calendar-check',      'CalendarCheck'],      b: ['ph-timer',               'Timer'],            c: ['ph-calendar-clock',      'CalendarClock'] },
+  { lucide: 'Camera',         name: 'Camera',          a: ['ph-camera',              'Camera'],             b: ['ph-camera-plus',         'CameraPlus'],       c: ['ph-image-square',        'ImageSquare'] },
+  { lucide: 'Check',          name: 'Check',           a: ['ph-check',               'Check'],              b: ['ph-check-fat',           'CheckFat'],         c: ['ph-check-circle',        'CheckCircle'] },
+  { lucide: 'CheckCircle',    name: 'CheckCircle',     a: ['ph-check-circle',        'CheckCircle'],        b: ['ph-seal-check',          'SealCheck'],        c: ['ph-shield-check',        'ShieldCheck'] },
+  { lucide: 'CheckCircle2',   name: 'CheckCircle2',    a: ['ph-check-circle',        'CheckCircle'],        b: ['ph-circle-wavy-check',   'CircleWavyCheck'],  c: ['ph-seal-check',          'SealCheck'] },
+  { lucide: 'CheckSquare',    name: 'CheckSquare',     a: ['ph-check-square',        'CheckSquare'],        b: ['ph-check-square-offset', 'CheckSquareOff'],   c: ['ph-list-checks',         'ListChecks'] },
+  { lucide: 'ChevronDown',    name: 'ChevronDown',     a: ['ph-caret-down',          'CaretDown'],          b: ['ph-arrow-down',          'ArrowDown'],        c: ['ph-chevron-down',        'ChevronDown'] },
+  { lucide: 'ChevronLeft',    name: 'ChevronLeft',     a: ['ph-caret-left',          'CaretLeft'],          b: ['ph-arrow-left',          'ArrowLeft'],        c: ['ph-chevron-left',        'ChevronLeft'] },
+  { lucide: 'ChevronRight',   name: 'ChevronRight',    a: ['ph-caret-right',         'CaretRight'],         b: ['ph-arrow-right',         'ArrowRight'],       c: ['ph-chevron-right',       'ChevronRight'] },
+  { lucide: 'ChevronUp',      name: 'ChevronUp',       a: ['ph-caret-up',            'CaretUp'],            b: ['ph-arrow-up',            'ArrowUp'],          c: ['ph-chevron-up',          'ChevronUp'] },
+  { lucide: 'ClipboardList',  name: 'ClipboardList',   a: ['ph-clipboard-text',      'ClipboardText'],      b: ['ph-clipboard-list',      'ClipboardList'],    c: ['ph-note',                'Note'] },
+  { lucide: 'Clock',          name: 'Clock',           a: ['ph-clock',               'Clock'],              b: ['ph-clock-afternoon',     'ClockAfternoon'],   c: ['ph-clock-countdown',     'ClockCountdown'] },
+  { lucide: 'Cloud',          name: 'Cloud',           a: ['ph-cloud',               'Cloud'],              b: ['ph-cloud-fog',           'CloudFog'],         c: ['ph-cloud-arrow-up',      'CloudArrowUp'] },
+  { lucide: 'CloudCog',       name: 'CloudCog',        a: ['ph-cloud-warning',       'CloudWarning'],       b: ['ph-cloud',               'Cloud'],            c: ['ph-cloud-arrow-up',      'CloudArrowUp'] },
+  { lucide: 'CloudDownload',  name: 'CloudDownload',   a: ['ph-cloud-arrow-down',    'CloudArrowDown'],     b: ['ph-download-simple',     'DownloadSimple'],   c: ['ph-cloud-check',         'CloudCheck'] },
+  { lucide: 'CloudUpload',    name: 'CloudUpload',     a: ['ph-cloud-arrow-up',      'CloudArrowUp'],       b: ['ph-upload-simple',       'UploadSimple'],     c: ['ph-cloud',               'Cloud'] },
+  { lucide: 'Code',           name: 'Code',            a: ['ph-code',                'Code'],               b: ['ph-code-simple',         'CodeSimple'],       c: ['ph-brackets-curly',      'BracketsCurly'] },
+  { lucide: 'Container',      name: 'Container',       a: ['ph-cube',                'Cube'],               b: ['ph-stack',               'Stack'],            c: ['ph-package',             'Package'] },
+  { lucide: 'Copy',           name: 'Copy',            a: ['ph-copy',                'Copy'],               b: ['ph-copy-simple',         'CopySimple'],       c: ['ph-files',               'Files'] },
+  { lucide: 'Cpu',            name: 'Cpu',             a: ['ph-cpu',                 'Cpu'],                b: ['ph-circuit-board',       'CircuitBoard'],     c: ['ph-hard-drives',         'HardDrives'] },
+  { lucide: 'Database',       name: 'Database',        a: ['ph-database',            'Database'],           b: ['ph-cylinder',            'Cylinder'],         c: ['ph-hard-drive',          'HardDrive'] },
+  { lucide: 'Delete',         name: 'Delete',          a: ['ph-backspace',           'Backspace'],          b: ['ph-x-square',            'XSquare'],          c: ['ph-eraser',              'Eraser'] },
+  { lucide: 'Download',       name: 'Download',        a: ['ph-download-simple',     'DownloadSimple'],     b: ['ph-download',            'Download'],         c: ['ph-arrow-line-down',     'ArrowLineDown'] },
+  { lucide: 'Droplet',        name: 'Droplet',         a: ['ph-drop',                'Drop'],               b: ['ph-drop-half',           'DropHalf'],         c: ['ph-tint',                'Tint'] },
+  { lucide: 'Edit',           name: 'Edit',            a: ['ph-pencil-simple',       'PencilSimple'],       b: ['ph-note-pencil',         'NotePencil'],       c: ['ph-pen',                 'Pen'] },
+  { lucide: 'Edit2',          name: 'Edit2',           a: ['ph-pencil',              'Pencil'],             b: ['ph-pen-nib',             'PenNib'],           c: ['ph-pencil-line',         'PencilLine'] },
+  { lucide: 'Euro',           name: 'Euro',            a: ['ph-currency-eur',        'CurrencyEur'],        b: ['ph-money',               'Money'],            c: ['ph-coins',               'Coins'] },
+  { lucide: 'ExternalLink',   name: 'ExternalLink',    a: ['ph-arrow-square-out',    'ArrowSquareOut'],     b: ['ph-arrow-up-right',      'ArrowUpRight'],     c: ['ph-link-simple',         'LinkSimple'] },
+  { lucide: 'Eye',            name: 'Eye',             a: ['ph-eye',                 'Eye'],                b: ['ph-eye-slash',           'EyeSlash'],         c: ['ph-binoculars',          'Binoculars'] },
+  { lucide: 'EyeOff',         name: 'EyeOff',          a: ['ph-eye-slash',           'EyeSlash'],           b: ['ph-eye-closed',          'EyeClosed'],        c: ['ph-eye',                 'Eye'] },
+  { lucide: 'Factory',        name: 'Factory',         a: ['ph-factory',             'Factory'],            b: ['ph-buildings',           'Buildings'],        c: ['ph-warehouse',           'Warehouse'] },
+  { lucide: 'File',           name: 'File',            a: ['ph-file',                'File'],               b: ['ph-file-dashed',         'FileDashed'],       c: ['ph-paper',               'Paper'] },
+  { lucide: 'FileCode',       name: 'FileCode',        a: ['ph-file-code',           'FileCode'],           b: ['ph-file-js',             'FileJs'],           c: ['ph-code-block',          'CodeBlock'] },
+  { lucide: 'FileJson',       name: 'FileJson',        a: ['ph-file-code',           'FileCode'],           b: ['ph-brackets-curly',      'BracketsCurly'],    c: ['ph-archive-box',         'ArchiveBox'] },
+  { lucide: 'FileText',       name: 'FileText',        a: ['ph-file-text',           'FileText'],           b: ['ph-article',             'Article'],          c: ['ph-note-blank',          'NoteBlank'] },
+  { lucide: 'FileUp',         name: 'FileUp',          a: ['ph-file-arrow-up',       'FileArrowUp'],        b: ['ph-upload-simple',       'UploadSimple'],     c: ['ph-file-cloud',          'FileCloud'] },
+  { lucide: 'Filter',         name: 'Filter',          a: ['ph-funnel',              'Funnel'],             b: ['ph-funnel-simple',       'FunnelSimple'],     c: ['ph-sliders',             'Sliders'] },
+  { lucide: 'FlaskConical',   name: 'FlaskConical',    a: ['ph-flask',               'Flask'],              b: ['ph-test-tube',           'TestTube'],         c: ['ph-erlenmeyer-flask',    'ErlenmeyerFlask'] },
+  { lucide: 'Folder',         name: 'Folder',          a: ['ph-folder',              'Folder'],             b: ['ph-folder-simple',       'FolderSimple'],     c: ['ph-folder-notch',        'FolderNotch'] },
+  { lucide: 'FolderOpen',     name: 'FolderOpen',      a: ['ph-folder-open',         'FolderOpen'],         b: ['ph-folder-notch-open',   'FolderNotchOpen'],  c: ['ph-folder-minus',        'FolderMinus'] },
+  { lucide: 'Gauge',          name: 'Gauge',           a: ['ph-gauge',               'Gauge'],              b: ['ph-speedometer',         'Speedometer'],      c: ['ph-chart-pie-slice',     'ChartPieSlice'] },
+  { lucide: 'GitBranch',      name: 'GitBranch',       a: ['ph-git-branch',          'GitBranch'],          b: ['ph-git-commit',          'GitCommit'],        c: ['ph-git-fork',            'GitFork'] },
+  { lucide: 'Hammer',         name: 'Hammer',          a: ['ph-hammer',              'Hammer'],             b: ['ph-wrench',              'Wrench'],           c: ['ph-tool',                'Tool'] },
+  { lucide: 'HardDrive',      name: 'HardDrive',       a: ['ph-hard-drive',          'HardDrive'],          b: ['ph-database',            'Database'],         c: ['ph-storage',             'Storage'] },
+  { lucide: 'Hash',           name: 'Hash',            a: ['ph-hash',                'Hash'],               b: ['ph-number-square-one',   'NumberSquare'],     c: ['ph-number-circle-one',   'NumberCircle'] },
+  { lucide: 'HelpCircle',     name: 'HelpCircle',      a: ['ph-question',            'Question'],           b: ['ph-question-mark',       'QuestionMark'],     c: ['ph-info',                'Info'] },
+  { lucide: 'History',        name: 'History',         a: ['ph-clock-counter-clockwise','ClockCounter'],    b: ['ph-arrow-counter-clockwise','ArrowCounterCW'], c: ['ph-calendar',            'Calendar'] },
+  { lucide: 'Info',           name: 'Info',            a: ['ph-info',                'Info'],               b: ['ph-question',            'Question'],         c: ['ph-seal-question',       'SealQuestion'] },
+  { lucide: 'Layers',         name: 'Layers',          a: ['ph-stack',               'Stack'],              b: ['ph-squares-four',        'SquaresFour'],      c: ['ph-copy',                'Copy'] },
+  { lucide: 'LayoutDashboard',name: 'LayoutDashboard', a: ['ph-squares-four',        'SquaresFour'],        b: ['ph-layout',              'Layout'],           c: ['ph-grid-four',           'GridFour'] },
+  { lucide: 'LayoutGrid',     name: 'LayoutGrid',      a: ['ph-grid-four',           'GridFour'],           b: ['ph-table',               'Table'],            c: ['ph-circles-four',        'CirclesFour'] },
+  { lucide: 'Link',           name: 'Link',            a: ['ph-link',                'Link'],               b: ['ph-link-simple',         'LinkSimple'],       c: ['ph-link-simple-horizontal','LinkSimpleH'] },
+  { lucide: 'List',           name: 'List',            a: ['ph-list',                'List'],               b: ['ph-list-bullets',        'ListBullets'],      c: ['ph-rows',                'Rows'] },
+  { lucide: 'ListChecks',     name: 'ListChecks',      a: ['ph-list-checks',         'ListChecks'],         b: ['ph-clipboard-text',      'ClipboardText'],    c: ['ph-check-square',        'CheckSquare'] },
+  { lucide: 'Loader2',        name: 'Loader2',         a: ['ph-spinner',             'Spinner'],            b: ['ph-spiral',              'Spiral'],           c: ['ph-circle-notch',        'CircleNotch'] },
+  { lucide: 'Lock',           name: 'Lock',            a: ['ph-lock-simple',         'LockSimple'],         b: ['ph-lock-key',            'LockKey'],          c: ['ph-lock',                'Lock'] },
+  { lucide: 'LogOut',         name: 'LogOut',          a: ['ph-sign-out',            'SignOut'],             b: ['ph-arrow-square-right',  'ArrowSquareRight'], c: ['ph-door-open',           'DoorOpen'] },
+  { lucide: 'Mail',           name: 'Mail',            a: ['ph-envelope',            'Envelope'],           b: ['ph-envelope-simple',     'EnvelopeSimple'],   c: ['ph-at',                  'At'] },
+  { lucide: 'MapPin',         name: 'MapPin',          a: ['ph-map-pin',             'MapPin'],             b: ['ph-map-pin-simple',      'MapPinSimple'],     c: ['ph-navigation-arrow',    'NavigationArrow'] },
+  { lucide: 'Maximize',       name: 'Maximize',        a: ['ph-arrows-out',          'ArrowsOut'],          b: ['ph-frame-corners',       'FrameCorners'],     c: ['ph-crop',                'Crop'] },
+  { lucide: 'Megaphone',      name: 'Megaphone',       a: ['ph-megaphone',           'Megaphone'],          b: ['ph-megaphone-simple',    'MegaphoneSimple'],  c: ['ph-speaker-high',        'SpeakerHigh'] },
+  { lucide: 'MessageSquare',  name: 'MessageSquare',   a: ['ph-chat-square-text',    'ChatSquareText'],     b: ['ph-chat',                'Chat'],             c: ['ph-comment',             'Comment'] },
+  { lucide: 'Minimize',       name: 'Minimize',        a: ['ph-arrows-in',           'ArrowsIn'],           b: ['ph-minus-circle',        'MinusCircle'],      c: ['ph-arrows-in-simple',    'ArrowsInSimple'] },
+  { lucide: 'Monitor',        name: 'Monitor',         a: ['ph-monitor',             'Monitor'],            b: ['ph-desktop',             'Desktop'],          c: ['ph-display',             'Display'] },
+  { lucide: 'Moon',           name: 'Moon',            a: ['ph-moon',                'Moon'],               b: ['ph-moon-stars',          'MoonStars'],        c: ['ph-cloud-moon',          'CloudMoon'] },
+  { lucide: 'Network',        name: 'Network',         a: ['ph-network',             'Network'],            b: ['ph-graph',               'Graph'],            c: ['ph-tree-structure',      'TreeStructure'] },
+  { lucide: 'Octagon',        name: 'Octagon',         a: ['ph-stop-circle',         'StopCircle'],         b: ['ph-prohibit',            'Prohibit'],         c: ['ph-octagon',             'Octagon'] },
+  { lucide: 'Package',        name: 'Package',         a: ['ph-package',             'Package'],            b: ['ph-cube',                'Cube'],             c: ['ph-box',                 'Box'] },
+  { lucide: 'PieChart',       name: 'PieChart',        a: ['ph-chart-pie',           'ChartPie'],           b: ['ph-chart-donut',         'ChartDonut'],       c: ['ph-chart-pie-slice',     'ChartPieSlice'] },
+  { lucide: 'Play',           name: 'Play',            a: ['ph-play',                'Play'],               b: ['ph-play-circle',         'PlayCircle'],       c: ['ph-caret-right',         'CaretRight'] },
+  { lucide: 'PlayCircle',     name: 'PlayCircle',      a: ['ph-play-circle',         'PlayCircle'],         b: ['ph-video-camera',        'VideoCamera'],      c: ['ph-record',              'Record'] },
+  { lucide: 'Plug',           name: 'Plug',            a: ['ph-plug',                'Plug'],               b: ['ph-plugs',               'Plugs'],            c: ['ph-plugs-connected',     'PlugsConnected'] },
+  { lucide: 'Plus',           name: 'Plus',            a: ['ph-plus',                'Plus'],               b: ['ph-plus-circle',         'PlusCircle'],       c: ['ph-plus-square',         'PlusSquare'] },
+  { lucide: 'PlusCircle',     name: 'PlusCircle',      a: ['ph-plus-circle',         'PlusCircle'],         b: ['ph-plus-square',         'PlusSquare'],       c: ['ph-circle-dashed',       'CircleDashed'] },
+  { lucide: 'Power',          name: 'Power',           a: ['ph-power',               'Power'],              b: ['ph-switch',              'Switch'],           c: ['ph-lightning',           'Lightning'] },
+  { lucide: 'Presentation',   name: 'Presentation',    a: ['ph-presentation-chart',  'PresentationChart'], b: ['ph-chalkboard',           'Chalkboard'],       c: ['ph-monitor-play',        'MonitorPlay'] },
+  { lucide: 'Recycle',        name: 'Recycle',         a: ['ph-recycle',             'Recycle'],            b: ['ph-arrow-clockwise',     'ArrowClockwise'],   c: ['ph-arrows-clockwise',    'ArrowsClockwise'] },
+  { lucide: 'RefreshCcw',     name: 'RefreshCcw',      a: ['ph-arrow-counter-clockwise','ArrowCounterCW'], b: ['ph-arrows-counter-clockwise','ArrowsCCW'],      c: ['ph-recycle',             'Recycle'] },
+  { lucide: 'RefreshCw',      name: 'RefreshCw',       a: ['ph-arrow-clockwise',     'ArrowClockwise'],     b: ['ph-arrows-clockwise',    'ArrowsClockwise'],  c: ['ph-recycle',             'Recycle'] },
+  { lucide: 'RotateCcw',      name: 'RotateCcw',       a: ['ph-arrow-counter-clockwise','ArrowCounterCW'], b: ['ph-arrow-u-up-left',     'ArrowUUpLeft'],      c: ['ph-clock-counter-clockwise','ClockCCW'] },
+  { lucide: 'Save',           name: 'Save',            a: ['ph-floppy-disk',         'FloppyDisk'],         b: ['ph-cloud-check',         'CloudCheck'],       c: ['ph-check-circle',        'CheckCircle'] },
+  { lucide: 'Search',         name: 'Search',          a: ['ph-magnifying-glass',    'MagnifyingGlass'],    b: ['ph-magnifying-glass-plus','MagnifyingGlassPlus'],c:['ph-binoculars',          'Binoculars'] },
+  { lucide: 'Send',           name: 'Send',            a: ['ph-paper-plane-tilt',    'PaperPlaneTilt'],     b: ['ph-paper-plane-right',   'PaperPlaneRight'],  c: ['ph-arrow-right',         'ArrowRight'] },
+  { lucide: 'Server',         name: 'Server',          a: ['ph-server',              'Server'],             b: ['ph-database',            'Database'],         c: ['ph-hard-drives',         'HardDrives'] },
+  { lucide: 'Settings',       name: 'Settings',        a: ['ph-gear',                'Gear'],               b: ['ph-sliders-horizontal',  'SlidersH'],         c: ['ph-gear-six',            'GearSix'] },
+  { lucide: 'Shield',         name: 'Shield',          a: ['ph-shield',              'Shield'],             b: ['ph-shield-slash',        'ShieldSlash'],      c: ['ph-lock',                'Lock'] },
+  { lucide: 'ShieldAlert',    name: 'ShieldAlert',     a: ['ph-shield-warning',      'ShieldWarning'],      b: ['ph-shield-slash',        'ShieldSlash'],      c: ['ph-warning-circle',      'WarningCircle'] },
+  { lucide: 'ShieldCheck',    name: 'ShieldCheck',     a: ['ph-shield-check',        'ShieldCheck'],        b: ['ph-seal-check',          'SealCheck'],        c: ['ph-check-circle',        'CheckCircle'] },
+  { lucide: 'Siren',          name: 'Siren',           a: ['ph-bell-ringing',        'BellRinging'],        b: ['ph-warning',             'Warning'],          c: ['ph-alarm',               'Alarm'] },
+  { lucide: 'Smartphone',     name: 'Smartphone',      a: ['ph-device-mobile',       'DeviceMobile'],       b: ['ph-cell-signal-full',    'CellSignalFull'],   c: ['ph-device-mobile-camera','DeviceMobileCamera'] },
+  { lucide: 'Star',           name: 'Star',            a: ['ph-star',                'Star'],               b: ['ph-star-four',           'StarFour'],         c: ['ph-sparkle',             'Sparkle'] },
+  { lucide: 'Sun',            name: 'Sun',             a: ['ph-sun',                 'Sun'],                b: ['ph-sun-dim',             'SunDim'],           c: ['ph-sun-horizon',         'SunHorizon'] },
+  { lucide: 'SunMoon',        name: 'SunMoon',         a: ['ph-sun-horizon',         'SunHorizon'],         b: ['ph-cloud-sun',           'CloudSun'],         c: ['ph-moon-stars',          'MoonStars'] },
+  { lucide: 'Target',         name: 'Target',          a: ['ph-target',              'Target'],             b: ['ph-crosshair-simple',    'CrosshairSimple'],  c: ['ph-crosshair',           'Crosshair'] },
+  { lucide: 'Terminal',       name: 'Terminal',        a: ['ph-terminal',            'Terminal'],           b: ['ph-code',                'Code'],             c: ['ph-terminal-window',     'TerminalWindow'] },
+  { lucide: 'Timer',          name: 'Timer',           a: ['ph-timer',               'Timer'],              b: ['ph-stopwatch',           'Stopwatch'],        c: ['ph-clock',               'Clock'] },
+  { lucide: 'Trash2',         name: 'Trash2',          a: ['ph-trash',               'Trash'],              b: ['ph-trash-simple',        'TrashSimple'],      c: ['ph-x-circle',            'XCircle'] },
+  { lucide: 'TrendingUp',     name: 'TrendingUp',      a: ['ph-trend-up',            'TrendUp'],            b: ['ph-chart-line-up',       'ChartLineUp'],      c: ['ph-arrow-up-right',      'ArrowUpRight'] },
+  { lucide: 'Truck',          name: 'Truck',           a: ['ph-truck',               'Truck'],              b: ['ph-van',                 'Van'],              c: ['ph-package',             'Package'] },
+  { lucide: 'Upload',         name: 'Upload',          a: ['ph-upload-simple',       'UploadSimple'],       b: ['ph-cloud-arrow-up',      'CloudArrowUp'],     c: ['ph-arrow-up',            'ArrowUp'] },
+  { lucide: 'User',           name: 'User',            a: ['ph-user',                'User'],               b: ['ph-user-circle',         'UserCircle'],       c: ['ph-person',              'Person'] },
+  { lucide: 'UserCheck',      name: 'UserCheck',       a: ['ph-user-check',          'UserCheck'],          b: ['ph-user-circle-check',   'UserCircleCheck'],  c: ['ph-seal-check',          'SealCheck'] },
+  { lucide: 'UserCircle',     name: 'UserCircle',      a: ['ph-user-circle',         'UserCircle'],         b: ['ph-user-circle-gear',    'UserCircleGear'],   c: ['ph-user-focus',          'UserFocus'] },
+  { lucide: 'UserPlus',       name: 'UserPlus',        a: ['ph-user-plus',           'UserPlus'],           b: ['ph-user-circle-plus',    'UserCirclePlus'],   c: ['ph-users-three',         'UsersThree'] },
+  { lucide: 'Users',          name: 'Users',           a: ['ph-users',               'Users'],              b: ['ph-users-four',          'UsersFour'],        c: ['ph-users-three',         'UsersThree'] },
+  { lucide: 'Wifi',           name: 'Wifi',            a: ['ph-wifi-high',           'WifiHigh'],           b: ['ph-wifi-medium',         'WifiMedium'],       c: ['ph-broadcast',           'Broadcast'] },
+  { lucide: 'WifiOff',        name: 'WifiOff',         a: ['ph-wifi-slash',          'WifiSlash'],          b: ['ph-wifi-x',              'WifiX'],            c: ['ph-cell-signal-slash',   'CellSignalSlash'] },
+  { lucide: 'Wrench',         name: 'Wrench',          a: ['ph-wrench',              'Wrench'],             b: ['ph-wrench-screwdriver',  'WrenchScrewdriver'], c: ['ph-hammer',             'Hammer'] },
+  { lucide: 'X',              name: 'X',               a: ['ph-x',                   'X'],                  b: ['ph-x-circle',            'XCircle'],          c: ['ph-x-square',            'XSquare'] },
+  { lucide: 'Zap',            name: 'Zap',             a: ['ph-lightning',           'Lightning'],          b: ['ph-lightning-slash',     'LightningSlash'],   c: ['ph-plug',                'Plug'] },
+  { lucide: 'ZoomIn',         name: 'ZoomIn',          a: ['ph-magnifying-glass-plus','MagnifyingGlassPlus'],b:['ph-magnifying-glass',     'MagnifyingGlass'],  c: ['ph-zoom-in',             'ZoomIn'] },
+];
+
+const choices = {};
+
+function buildTable(data) {
+  const tbody = document.getElementById('table-body');
+  tbody.innerHTML = '';
+  
+  data.forEach((row, i) => {
+    const tr = document.createElement('tr');
+    tr.dataset.lucide = row.lucide;
+    
+    tr.innerHTML = `
+      <td class="row-num">${(i+1).toString().padStart(3,'0')}</td>
+      <td><span class="icon-name">${row.name}</span></td>
+      <td>
+        <div class="icon-cell">
+          <div class="icon-box current-box" title="Huidig: ${row.lucide}">
+            <i data-lucide="${row.lucide.toLowerCase().replace(/([A-Z])/g,'-$1').replace(/^-/,'').toLowerCase()}"></i>
+          </div>
+          <span style="font-size:10px;color:var(--muted)">Lucide</span>
+        </div>
+      </td>
+      <td>
+        <div class="option-wrap">
+          <div class="icon-box opt-box ${choices[row.lucide] === 'A' ? 'selected' : ''}" 
+               onclick="choose('${row.lucide}','A','${row.a[0]}','${row.a[1]}')" 
+               title="Optie A: ${row.a[1]}">
+            <i class="ph ${row.a[0]}"></i>
+          </div>
+          <span class="option-label">A: ${row.a[1]}</span>
+        </div>
+      </td>
+      <td>
+        <div class="option-wrap">
+          <div class="icon-box opt-box ${choices[row.lucide] === 'B' ? 'selected' : ''}" 
+               onclick="choose('${row.lucide}','B','${row.b[0]}','${row.b[1]}')" 
+               title="Optie B: ${row.b[1]}">
+            <i class="ph ${row.b[0]}"></i>
+          </div>
+          <span class="option-label">B: ${row.b[1]}</span>
+        </div>
+      </td>
+      <td>
+        <div class="option-wrap">
+          <div class="icon-box opt-box ${choices[row.lucide] === 'C' ? 'selected' : ''}" 
+               onclick="choose('${row.lucide}','C','${row.c[0]}','${row.c[1]}')" 
+               title="Optie C: ${row.c[1]}">
+            <i class="ph ${row.c[0]}"></i>
+          </div>
+          <span class="option-label">C: ${row.c[1]}</span>
+        </div>
+      </td>
+      <td id="choice-${row.lucide}">
+        ${choices[row.lucide] 
+          ? `<span class="chosen-text">✓ Optie ${choices[row.lucide]}</span>` 
+          : `<span class="chosen-none">—</span>`}
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+  
+  // Re-init lucide icons
+  if (window.lucide) lucide.createIcons();
+  updateCount();
+  document.getElementById('total-count').textContent = data.length;
+}
+
+function choose(lucideName, option, phosphorClass, phosphorName) {
+  choices[lucideName] = option;
+  
+  // Update row visuals
+  const rows = document.querySelectorAll(`tr[data-lucide="${lucideName}"] .opt-box`);
+  rows.forEach((box, i) => {
+    box.classList.toggle('selected', ['A','B','C'][i] === option);
+  });
+  
+  document.getElementById(`choice-${lucideName}`).innerHTML = 
+    `<span class="chosen-text">✓ Optie ${option}: <span style="font-family:monospace;font-size:11px">${phosphorClass}</span></span>`;
+  
+  updateCount();
+}
+
+function updateCount() {
+  const n = Object.keys(choices).length;
+  document.getElementById('chosen-count').textContent = n;
+  document.getElementById('panel-count').textContent = n;
+}
+
+function selectAll(opt) {
+  ICON_MAP.forEach(row => {
+    const key = opt === 'A' ? 'a' : opt === 'B' ? 'b' : 'c';
+    choices[row.lucide] = opt;
+  });
+  buildTable(currentData);
+}
+
+function selectNone() { 
+  Object.keys(choices).forEach(k => delete choices[k]); 
+  buildTable(currentData); 
+}
+
+function filterIcons() {
+  const q = document.getElementById('search').value.toLowerCase();
+  currentData = ICON_MAP.filter(r => r.name.toLowerCase().includes(q));
+  buildTable(currentData);
+}
+
+function exportChoices() {
+  const result = {};
+  ICON_MAP.forEach(row => {
+    if (choices[row.lucide]) {
+      const opt = choices[row.lucide];
+      const key = opt.toLowerCase();
+      result[row.lucide] = {
+        option: opt,
+        phosphorClass: row[key][0],
+        phosphorName: row[key][1]
+      };
+    }
+  });
+  const pre = document.getElementById('export-output');
+  pre.style.display = 'block';
+  pre.textContent = JSON.stringify(result, null, 2);
+  pre.scrollIntoView({ behavior: 'smooth' });
+}
+
+let currentData = [...ICON_MAP];
+buildTable(currentData);
+</script>
+</body>
+</html>

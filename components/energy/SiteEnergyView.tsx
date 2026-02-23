@@ -6,7 +6,7 @@ import {
   ChevronRight, Download, History, BarChart2,
   // Removed non-existent ArrowDownZap import to fix build error
   Layout, FlaskConical, Activity, Gauge, ShieldAlert, AlertTriangle
-} from 'lucide-react';
+} from '../../icons';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
   ResponsiveContainer, ReferenceLine

@@ -8,7 +8,7 @@ import { machineService } from '../../services/db/machineService';
 import { 
     Briefcase, Search, ArrowRight, PlayCircle, StopCircle, 
     Monitor, ExternalLink
-} from 'lucide-react';
+} from '../../icons';
 import { useNavigate } from 'react-router-dom';
 
 interface JobSectionProps {

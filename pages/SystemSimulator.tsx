@@ -25,7 +25,7 @@ import {
     X,
     Plus,
     CheckCircle
-} from 'lucide-react';
+} from '../icons';
 
 interface ConsoleLog {
     id: string;

@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="nl">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Factory Manager — Icon Keuzetool</title>
+  <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    body {
+      background: #0D1117;
+      color: #E6EDF3;
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+      font-size: 14px
+    }
+
+    header {
+      background: #161B22;
+      border-bottom: 1px solid #30363D;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100
+    }
+
+    header h1 {
+      font-size: 14px;
+      font-weight: 600
+    }
+
+    header p {
+      font-size: 12px;
+      color: #8B949E
+    }
+
+    .toolbar {
+      background: #161B22;
+      border-bottom: 1px solid #30363D;
+      padding: 10px 24px;
+      display: flex;
+      gap: 8px;
+      align-items: center
+    }
+
+    .toolbar input {
+      background: #1C2128;
+      border: 1px solid #30363D;
+      border-radius: 8px;
+      padding: 6px 12px;
+      color: #E6EDF3;
+      font-size: 13px;
+      width: 220px;
+      outline: none
+    }
+
+    .toolbar input:focus {
+      border-color: #0A84FF
+    }
+
+    .btn {
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 1px solid #30363D;
+      background: #1C2128;
+      color: #E6EDF3;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all .15s
+    }
+
+    .btn:hover {
+      border-color: #0A84FF;
+      color: #0A84FF
+    }
+
+    .btn-blue {
+      background: #0A84FF;
+      border-color: #0A84FF;
+      color: #fff
+    }
+
+    .btn-blue:hover {
+      background: #0070E0;
+      color: #fff
+    }
+
+    .count {
+      margin-left: auto;
+      font-size: 12px;
+      color: #8B949E
+    }
+
+    .count strong {
+      color: #3FB950
+    }
+
+    .wrap {
+      padding: 20px 24px
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse
+    }
+
+    thead th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      color: #8B949E;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      padding: 0 10px 10px;
+      border-bottom: 1px solid #30363D
+    }
+
+    th:first-child {
+      width: 44px
+    }
+
+    th:nth-child(2) {
+      width: 180px
+    }
+
+    tbody tr {
+      border-bottom: 1px solid #21262D;
+      transition: background .1s
+    }
+
+    tbody tr:hover {
+      background: rgba(255, 255, 255, .02)
+    }
+
+    td {
+      padding: 10px 10px;
+      vertical-align: middle
+    }
+
+    .num {
+      color: #6B7280;
+      font-size: 11px;
+      font-family: monospace;
+      text-align: right
+    }
+
+    .iname {
+      font-family: 'SF Mono', monospace;
+      font-size: 12px;
+      color: #E6EDF3
+    }
+
+    .ilib {
+      font-size: 10px;
+      color: #6B7280;
+      margin-top: 2px
+    }
+
+    .ibox {
+      width: 38px;
+      height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      background: #1C2128;
+      border: 1px solid #30363D;
+      cursor: pointer;
+      transition: all .15s;
+      position: relative;
+      flex-shrink: 0
+    }
+
+    .ibox:hover {
+      border-color: #0A84FF;
+      background: #0D2044
+    }
+
+    .ibox.sel {
+      border-color: #0A84FF;
+      background: #0D2044
+    }
+
+    .ibox.sel::after {
+      content: '✓';
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: #0A84FF;
+      color: #fff;
+      font-size: 8px;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      line-height: 13px;
+      text-align: center
+    }
+
+    .iconify {
+      color: #8B949E;
+      width: 20px;
+      height: 20px
+    }
+
+    .ibox.sel .iconify {
+      color: #0A84FF
+    }
+
+    .ibox:hover .iconify {
+      color: #E6EDF3
+    }
+
+    .olabel {
+      font-size: 10px;
+      color: #6B7280;
+      text-align: center;
+      margin-top: 2px;
+      max-width: 72px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap
+    }
+
+    .owrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center
+    }
+
+    .opts {
+      display: flex;
+      gap: 6px
+    }
+
+    .chosen {
+      font-size: 11px;
+      color: #3FB950;
+      font-family: monospace
+    }
+
+    .none-lbl {
+      font-size: 11px;
+      color: #6B7280
+    }
+
+    .footer {
+      position: fixed;
+      bottom: 20px;
+      right: 24px;
+      background: #161B22;
+      border: 1px solid #30363D;
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .5)
+    }
+
+    .footer span {
+      font-size: 12px;
+      color: #8B949E
+    }
+
+    .footer .n {
+      color: #3FB950;
+      font-weight: 600
+    }
+
+    pre {
+      display: none;
+      background: #1C2128;
+      border: 1px solid #30363D;
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 11px;
+      color: #E6EDF3;
+      overflow-x: auto;
+      margin-top: 16px;
+      white-space: pre-wrap
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>🎨 Icon Keuzetool — Factory Manager</h1>
+    <p>Klik A / B / C per rij om te kiezen. Huidig = Lucide &nbsp;|&nbsp; Alternatieven = Phosphor Icons</p>
+  </header>
+  <div class="toolbar">
+    <input id="q" placeholder="🔍 Zoek icoon..." oninput="render()">
+    <button class="btn" onclick="all('A')">Alles → A</button>
+    <button class="btn" onclick="all('B')">Alles → B</button>
+    <button class="btn" onclick="reset()">Reset</button>
+    <button class="btn btn-blue" onclick="exportJSON()">📋 Exporteer JSON</button>
+    <span class="count">Gekozen: <strong id="cc">0</strong> / <span id="tc">0</span></span>
+  </div>
+  <div class="wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Lucide (huidig)</th>
+          <th>Huidig</th>
+          <th>Optie A</th>
+          <th>Optie B</th>
+          <th>Optie C</th>
+          <th>Keuze</th>
+        </tr>
+      </thead>
+      <tbody id="tb"></tbody>
+    </table>
+    <pre id="out"></pre>
+  </div>
+  <div class="footer">
+    <span>Geselecteerd:</span><span class="n" id="fn">0</span><span>iconen</span>
+    <button class="btn btn-blue" onclick="exportJSON()">Exporteer JSON</button>
+  </div>
+  <script>
+    const DATA = [
+      { l: 'Activity', a: ['ph:activity', 'activity'], b: ['ph:chart-line-up', 'chart-line-up'], c: ['ph:pulse', 'pulse'] },
+      { l: 'AlertCircle', a: ['ph:warning-circle', 'warning-circle'], b: ['ph:seal-warning', 'seal-warning'], c: ['ph:x-circle', 'x-circle'] },
+      { l: 'AlertTriangle', a: ['ph:warning', 'warning'], b: ['ph:warning-diamond', 'warning-diamond'], c: ['ph:triangle', 'triangle'] },
+      { l: 'Archive', a: ['ph:archive-box', 'archive-box'], b: ['ph:archive', 'archive'], c: ['ph:tray-arrow-down', 'tray-arrow-down'] },
+      { l: 'ArrowLeft', a: ['ph:arrow-left', 'arrow-left'], b: ['ph:caret-left', 'caret-left'], c: ['ph:arrow-bend-up-left', 'bend-up-left'] },
+      { l: 'ArrowRight', a: ['ph:arrow-right', 'arrow-right'], b: ['ph:caret-right', 'caret-right'], c: ['ph:arrow-circle-right', 'circle-right'] },
+      { l: 'BarChart', a: ['ph:chart-bar', 'chart-bar'], b: ['ph:chart-bar-horizontal', 'chart-bar-h'], c: ['ph:chart-line', 'chart-line'] },
+      { l: 'BarChart2', a: ['ph:chart-bar', 'chart-bar'], b: ['ph:equalizer', 'equalizer'], c: ['ph:chart-column', 'chart-column'] },
+      { l: 'Beaker', a: ['ph:flask', 'flask'], b: ['ph:test-tube', 'test-tube'], c: ['ph:beaker', 'beaker'] },
+      { l: 'Bell', a: ['ph:bell', 'bell'], b: ['ph:bell-simple', 'bell-simple'], c: ['ph:bell-ringing', 'bell-ringing'] },
+      { l: 'BellRing', a: ['ph:bell-ringing', 'bell-ringing'], b: ['ph:alarm', 'alarm'], c: ['ph:bell-simple-ringing', 'bell-s-ringing'] },
+      { l: 'Book', a: ['ph:book', 'book'], b: ['ph:book-open', 'book-open'], c: ['ph:books', 'books'] },
+      { l: 'BookOpen', a: ['ph:book-open', 'book-open'], b: ['ph:book-open-text', 'book-open-text'], c: ['ph:read-cv-logo', 'read-cv'] },
+      { l: 'Box', a: ['ph:cube', 'cube'], b: ['ph:package', 'package'], c: ['ph:box', 'box'] },
+      { l: 'Briefcase', a: ['ph:briefcase', 'briefcase'], b: ['ph:briefcase-metal', 'briefcase-metal'], c: ['ph:bag-simple', 'bag-simple'] },
+      { l: 'Building2', a: ['ph:buildings', 'buildings'], b: ['ph:factory', 'factory'], c: ['ph:warehouse', 'warehouse'] },
+      { l: 'Calculator', a: ['ph:calculator', 'calculator'], b: ['ph:math-operations', 'math-ops'], c: ['ph:equals', 'equals'] },
+      { l: 'Calendar', a: ['ph:calendar', 'calendar'], b: ['ph:calendar-blank', 'calendar-blank'], c: ['ph:calendar-dots', 'calendar-dots'] },
+      { l: 'CalendarClock', a: ['ph:calendar-check', 'calendar-check'], b: ['ph:timer', 'timer'], c: ['ph:calendar-clock', 'calendar-clock'] },
+      { l: 'Camera', a: ['ph:camera', 'camera'], b: ['ph:camera-plus', 'camera-plus'], c: ['ph:image-square', 'image-square'] },
+      { l: 'Check', a: ['ph:check', 'check'], b: ['ph:check-fat', 'check-fat'], c: ['ph:check-circle', 'check-circle'] },
+      { l: 'CheckCircle', a: ['ph:check-circle', 'check-circle'], b: ['ph:seal-check', 'seal-check'], c: ['ph:shield-check', 'shield-check'] },
+      { l: 'CheckSquare', a: ['ph:check-square', 'check-square'], b: ['ph:list-checks', 'list-checks'], c: ['ph:check-square-offset', 'check-sq-off'] },
+      { l: 'ChevronDown', a: ['ph:caret-down', 'caret-down'], b: ['ph:arrow-down', 'arrow-down'], c: ['ph:chevron-down', 'chevron-down'] },
+      { l: 'ChevronLeft', a: ['ph:caret-left', 'caret-left'], b: ['ph:arrow-left', 'arrow-left'], c: ['ph:chevron-left', 'chevron-left'] },
+      { l: 'ChevronRight', a: ['ph:caret-right', 'caret-right'], b: ['ph:arrow-right', 'arrow-right'], c: ['ph:chevron-right', 'chevron-right'] },
+      { l: 'ChevronUp', a: ['ph:caret-up', 'caret-up'], b: ['ph:arrow-up', 'arrow-up'], c: ['ph:chevron-up', 'chevron-up'] },
+      { l: 'ClipboardList', a: ['ph:clipboard-text', 'clipboard-text'], b: ['ph:note', 'note'], c: ['ph:clipboard-list', 'clipboard-list'] },
+      { l: 'Clock', a: ['ph:clock', 'clock'], b: ['ph:clock-afternoon', 'clock-afternoon'], c: ['ph:clock-countdown', 'clock-countdown'] },
+      { l: 'Cloud', a: ['ph:cloud', 'cloud'], b: ['ph:cloud-arrow-up', 'cloud-arrow-up'], c: ['ph:cloud-fog', 'cloud-fog'] },
+      { l: 'CloudDownload', a: ['ph:cloud-arrow-down', 'cloud-arrow-down'], b: ['ph:download-simple', 'download-simple'], c: ['ph:cloud-check', 'cloud-check'] },
+      { l: 'CloudUpload', a: ['ph:cloud-arrow-up', 'cloud-arrow-up'], b: ['ph:upload-simple', 'upload-simple'], c: ['ph:cloud', 'cloud'] },
+      { l: 'Code', a: ['ph:code', 'code'], b: ['ph:code-simple', 'code-simple'], c: ['ph:brackets-curly', 'brackets-curly'] },
+      { l: 'Copy', a: ['ph:copy', 'copy'], b: ['ph:copy-simple', 'copy-simple'], c: ['ph:files', 'files'] },
+      { l: 'Cpu', a: ['ph:cpu', 'cpu'], b: ['ph:circuit-board', 'circuit-board'], c: ['ph:hard-drives', 'hard-drives'] },
+      { l: 'Database', a: ['ph:database', 'database'], b: ['ph:cylinder', 'cylinder'], c: ['ph:hard-drive', 'hard-drive'] },
+      { l: 'Download', a: ['ph:download-simple', 'download-simple'], b: ['ph:download', 'download'], c: ['ph:arrow-line-down', 'arrow-line-down'] },
+      { l: 'Droplet', a: ['ph:drop', 'drop'], b: ['ph:drop-half', 'drop-half'], c: ['ph:tint', 'tint'] },
+      { l: 'Edit', a: ['ph:pencil-simple', 'pencil-simple'], b: ['ph:note-pencil', 'note-pencil'], c: ['ph:pen', 'pen'] },
+      { l: 'Edit2', a: ['ph:pencil', 'pencil'], b: ['ph:pen-nib', 'pen-nib'], c: ['ph:pencil-line', 'pencil-line'] },
+      { l: 'Euro', a: ['ph:currency-eur', 'currency-eur'], b: ['ph:money', 'money'], c: ['ph:coins', 'coins'] },
+      { l: 'ExternalLink', a: ['ph:arrow-square-out', 'arrow-sq-out'], b: ['ph:arrow-up-right', 'arrow-up-right'], c: ['ph:link-simple', 'link-simple'] },
+      { l: 'Eye', a: ['ph:eye', 'eye'], b: ['ph:binoculars', 'binoculars'], c: ['ph:eye-slash', 'eye-slash'] },
+      { l: 'EyeOff', a: ['ph:eye-slash', 'eye-slash'], b: ['ph:eye-closed', 'eye-closed'], c: ['ph:eye', 'eye'] },
+      { l: 'Factory', a: ['ph:factory', 'factory'], b: ['ph:buildings', 'buildings'], c: ['ph:warehouse', 'warehouse'] },
+      { l: 'File', a: ['ph:file', 'file'], b: ['ph:file-dashed', 'file-dashed'], c: ['ph:paper', 'paper'] },
+      { l: 'FileText', a: ['ph:file-text', 'file-text'], b: ['ph:article', 'article'], c: ['ph:note-blank', 'note-blank'] },
+      { l: 'FileUp', a: ['ph:file-arrow-up', 'file-arrow-up'], b: ['ph:upload-simple', 'upload-simple'], c: ['ph:file-cloud', 'file-cloud'] },
+      { l: 'Filter', a: ['ph:funnel', 'funnel'], b: ['ph:funnel-simple', 'funnel-simple'], c: ['ph:sliders', 'sliders'] },
+      { l: 'Folder', a: ['ph:folder', 'folder'], b: ['ph:folder-simple', 'folder-simple'], c: ['ph:folder-notch', 'folder-notch'] },
+      { l: 'FolderOpen', a: ['ph:folder-open', 'folder-open'], b: ['ph:folder-notch-open', 'notch-open'], c: ['ph:folder-minus', 'folder-minus'] },
+      { l: 'Gauge', a: ['ph:gauge', 'gauge'], b: ['ph:speedometer', 'speedometer'], c: ['ph:chart-pie-slice', 'chart-pie-slice'] },
+      { l: 'GitBranch', a: ['ph:git-branch', 'git-branch'], b: ['ph:git-commit', 'git-commit'], c: ['ph:git-fork', 'git-fork'] },
+      { l: 'Hammer', a: ['ph:hammer', 'hammer'], b: ['ph:wrench', 'wrench'], c: ['ph:tool', 'tool'] },
+      { l: 'HardDrive', a: ['ph:hard-drive', 'hard-drive'], b: ['ph:database', 'database'], c: ['ph:hard-drives', 'hard-drives'] },
+      { l: 'HelpCircle', a: ['ph:question', 'question'], b: ['ph:question-mark', 'question-mark'], c: ['ph:info', 'info'] },
+      { l: 'History', a: ['ph:clock-counter-clockwise', 'clock-ccw'], b: ['ph:arrow-counter-clockwise', 'arrow-ccw'], c: ['ph:calendar', 'calendar'] },
+      { l: 'Info', a: ['ph:info', 'info'], b: ['ph:question', 'question'], c: ['ph:seal-question', 'seal-question'] },
+      { l: 'Layers', a: ['ph:stack', 'stack'], b: ['ph:squares-four', 'squares-four'], c: ['ph:copy', 'copy'] },
+      { l: 'LayoutDashboard', a: ['ph:squares-four', 'squares-four'], b: ['ph:layout', 'layout'], c: ['ph:grid-four', 'grid-four'] },
+      { l: 'LayoutGrid', a: ['ph:grid-four', 'grid-four'], b: ['ph:table', 'table'], c: ['ph:circles-four', 'circles-four'] },
+      { l: 'Link', a: ['ph:link', 'link'], b: ['ph:link-simple', 'link-simple'], c: ['ph:link-simple-horizontal', 'link-h'] },
+      { l: 'List', a: ['ph:list', 'list'], b: ['ph:list-bullets', 'list-bullets'], c: ['ph:rows', 'rows'] },
+      { l: 'ListChecks', a: ['ph:list-checks', 'list-checks'], b: ['ph:clipboard-text', 'clipboard-text'], c: ['ph:check-square', 'check-square'] },
+      { l: 'Lock', a: ['ph:lock-simple', 'lock-simple'], b: ['ph:lock-key', 'lock-key'], c: ['ph:lock', 'lock'] },
+      { l: 'LogOut', a: ['ph:sign-out', 'sign-out'], b: ['ph:arrow-square-right', 'arrow-sq-right'], c: ['ph:door-open', 'door-open'] },
+      { l: 'Mail', a: ['ph:envelope', 'envelope'], b: ['ph:envelope-simple', 'envelope-simple'], c: ['ph:at', 'at'] },
+      { l: 'MapPin', a: ['ph:map-pin', 'map-pin'], b: ['ph:map-pin-simple', 'map-pin-simple'], c: ['ph:navigation-arrow', 'navigation-arrow'] },
+      { l: 'Megaphone', a: ['ph:megaphone', 'megaphone'], b: ['ph:megaphone-simple', 'megaphone-simple'], c: ['ph:speaker-high', 'speaker-high'] },
+      { l: 'MessageSquare', a: ['ph:chat-square-text', 'chat-sq-text'], b: ['ph:chat', 'chat'], c: ['ph:comment', 'comment'] },
+      { l: 'Monitor', a: ['ph:monitor', 'monitor'], b: ['ph:desktop', 'desktop'], c: ['ph:display', 'display'] },
+      { l: 'Moon', a: ['ph:moon', 'moon'], b: ['ph:moon-stars', 'moon-stars'], c: ['ph:cloud-moon', 'cloud-moon'] },
+      { l: 'Network', a: ['ph:network', 'network'], b: ['ph:graph', 'graph'], c: ['ph:tree-structure', 'tree-structure'] },
+      { l: 'Package', a: ['ph:package', 'package'], b: ['ph:cube', 'cube'], c: ['ph:box', 'box'] },
+      { l: 'PieChart', a: ['ph:chart-pie', 'chart-pie'], b: ['ph:chart-donut', 'chart-donut'], c: ['ph:chart-pie-slice', 'chart-pie-slice'] },
+      { l: 'Play', a: ['ph:play', 'play'], b: ['ph:play-circle', 'play-circle'], c: ['ph:caret-right', 'caret-right'] },
+      { l: 'Plug', a: ['ph:plug', 'plug'], b: ['ph:plugs', 'plugs'], c: ['ph:plugs-connected', 'plugs-connected'] },
+      { l: 'Plus', a: ['ph:plus', 'plus'], b: ['ph:plus-circle', 'plus-circle'], c: ['ph:plus-square', 'plus-square'] },
+      { l: 'Power', a: ['ph:power', 'power'], b: ['ph:switch', 'switch'], c: ['ph:lightning', 'lightning'] },
+      { l: 'RefreshCcw', a: ['ph:arrow-counter-clockwise', 'arrow-ccw'], b: ['ph:arrows-counter-clockwise', 'arrows-ccw'], c: ['ph:recycle', 'recycle'] },
+      { l: 'RefreshCw', a: ['ph:arrow-clockwise', 'arrow-clockwise'], b: ['ph:arrows-clockwise', 'arrows-clockwise'], c: ['ph:recycle', 'recycle'] },
+      { l: 'Save', a: ['ph:floppy-disk', 'floppy-disk'], b: ['ph:cloud-check', 'cloud-check'], c: ['ph:check-circle', 'check-circle'] },
+      { l: 'Search', a: ['ph:magnifying-glass', 'mag-glass'], b: ['ph:magnifying-glass-plus', 'mag-plus'], c: ['ph:binoculars', 'binoculars'] },
+      { l: 'Send', a: ['ph:paper-plane-tilt', 'paper-plane-tilt'], b: ['ph:paper-plane-right', 'paper-plane-right'], c: ['ph:arrow-right', 'arrow-right'] },
+      { l: 'Server', a: ['ph:server', 'server'], b: ['ph:database', 'database'], c: ['ph:hard-drives', 'hard-drives'] },
+      { l: 'Settings', a: ['ph:gear', 'gear'], b: ['ph:sliders-horizontal', 'sliders-h'], c: ['ph:gear-six', 'gear-six'] },
+      { l: 'Shield', a: ['ph:shield', 'shield'], b: ['ph:lock', 'lock'], c: ['ph:shield-slash', 'shield-slash'] },
+      { l: 'ShieldAlert', a: ['ph:shield-warning', 'shield-warning'], b: ['ph:shield-slash', 'shield-slash'], c: ['ph:warning-circle', 'warning-circle'] },
+      { l: 'ShieldCheck', a: ['ph:shield-check', 'shield-check'], b: ['ph:seal-check', 'seal-check'], c: ['ph:check-circle', 'check-circle'] },
+      { l: 'Star', a: ['ph:star', 'star'], b: ['ph:star-four', 'star-four'], c: ['ph:sparkle', 'sparkle'] },
+      { l: 'Sun', a: ['ph:sun', 'sun'], b: ['ph:sun-dim', 'sun-dim'], c: ['ph:sun-horizon', 'sun-horizon'] },
+      { l: 'SunMoon', a: ['ph:sun-horizon', 'sun-horizon'], b: ['ph:cloud-sun', 'cloud-sun'], c: ['ph:moon-stars', 'moon-stars'] },
+      { l: 'Target', a: ['ph:target', 'target'], b: ['ph:crosshair-simple', 'crosshair-simple'], c: ['ph:crosshair', 'crosshair'] },
+      { l: 'Timer', a: ['ph:timer', 'timer'], b: ['ph:stopwatch', 'stopwatch'], c: ['ph:clock', 'clock'] },
+      { l: 'Trash2', a: ['ph:trash', 'trash'], b: ['ph:trash-simple', 'trash-simple'], c: ['ph:x-circle', 'x-circle'] },
+      { l: 'TrendingUp', a: ['ph:trend-up', 'trend-up'], b: ['ph:chart-line-up', 'chart-line-up'], c: ['ph:arrow-up-right', 'arrow-up-right'] },
+      { l: 'Truck', a: ['ph:truck', 'truck'], b: ['ph:van', 'van'], c: ['ph:package', 'package'] },
+      { l: 'Upload', a: ['ph:upload-simple', 'upload-simple'], b: ['ph:cloud-arrow-up', 'cloud-arrow-up'], c: ['ph:arrow-up', 'arrow-up'] },
+      { l: 'User', a: ['ph:user', 'user'], b: ['ph:user-circle', 'user-circle'], c: ['ph:person', 'person'] },
+      { l: 'UserCheck', a: ['ph:user-check', 'user-check'], b: ['ph:seal-check', 'seal-check'], c: ['ph:user-circle-check', 'user-circle-check'] },
+      { l: 'UserCircle', a: ['ph:user-circle', 'user-circle'], b: ['ph:user-focus', 'user-focus'], c: ['ph:user-circle-gear', 'user-circle-gear'] },
+      { l: 'UserPlus', a: ['ph:user-plus', 'user-plus'], b: ['ph:users-three', 'users-three'], c: ['ph:user-circle-plus', 'user-circle-plus'] },
+      { l: 'Users', a: ['ph:users', 'users'], b: ['ph:users-four', 'users-four'], c: ['ph:users-three', 'users-three'] },
+      { l: 'Wifi', a: ['ph:wifi-high', 'wifi-high'], b: ['ph:wifi-medium', 'wifi-medium'], c: ['ph:broadcast', 'broadcast'] },
+      { l: 'WifiOff', a: ['ph:wifi-slash', 'wifi-slash'], b: ['ph:wifi-x', 'wifi-x'], c: ['ph:cell-signal-slash', 'cell-sig-slash'] },
+      { l: 'Wrench', a: ['ph:wrench', 'wrench'], b: ['ph:wrench-screwdriver', 'wrench-screwdriver'], c: ['ph:hammer', 'hammer'] },
+      { l: 'X', a: ['ph:x', 'x'], b: ['ph:x-circle', 'x-circle'], c: ['ph:x-square', 'x-square'] },
+      { l: 'Zap', a: ['ph:lightning', 'lightning'], b: ['ph:lightning-slash', 'lightning-slash'], c: ['ph:plug', 'plug'] },
+      { l: 'ZoomIn', a: ['ph:magnifying-glass-plus', 'mag-plus'], b: ['ph:magnifying-glass', 'mag-glass'], c: ['ph:zoom-in', 'zoom-in'] },
+    ];
+
+    function lId(n) { return 'lucide:' + n.replace(/([A-Z])/g, m => '-' + m.toLowerCase()).replace(/^-/, ''); }
+
+    const choices = {};
+    let cur = [...DATA];
+
+    function ib(icon, onclick, sel) {
+      return `<div class="ibox${sel ? ' sel' : ''}" onclick="${onclick}" title="${icon}">
+    <span class="iconify" data-icon="${icon}" data-width="20" data-height="20"></span></div>`;
+    }
+
+    function render() {
+      const q = document.getElementById('q').value.toLowerCase();
+      cur = DATA.filter(r => r.l.toLowerCase().includes(q));
+      document.getElementById('tc').textContent = cur.length;
+      document.getElementById('tb').innerHTML = cur.map((r, i) => `
+    <tr id="row-${r.l}">
+      <td class="num">${String(i + 1).padStart(3, '0')}</td>
+      <td><div class="iname">${r.l}</div><div class="ilib">lucide-react</div></td>
+      <td>${ib(lId(r.l), '', false)}</td>
+      <td><div class="owrap">${ib(r.a[0], `pick('${r.l}','A','${r.a[0]}','${r.a[1]}')`, choices[r.l] === 'A')}
+        <div class="olabel">A: ${r.a[1]}</div></div></td>
+      <td><div class="owrap">${ib(r.b[0], `pick('${r.l}','B','${r.b[0]}','${r.b[1]}')`, choices[r.l] === 'B')}
+        <div class="olabel">B: ${r.b[1]}</div></div></td>
+      <td><div class="owrap">${ib(r.c[0], `pick('${r.l}','C','${r.c[0]}','${r.c[1]}')`, choices[r.l] === 'C')}
+        <div class="olabel">C: ${r.c[1]}</div></div></td>
+      <td id="ch-${r.l}">${choices[r.l]
+          ? `<span class="chosen">✓ ${choices[r.l]}: ${choices[r.l] === 'A' ? r.a[1] : choices[r.l] === 'B' ? r.b[1] : r.c[1]}</span>`
+          : '<span class="none-lbl">—</span>'}</td>
+    </tr>`).join('');
+    }
+
+    function pick(l, opt, iconId, iconName) {
+      choices[l] = opt;
+      const boxes = document.querySelectorAll(`#row-${l} .ibox`);
+      ['A', 'B', 'C'].forEach((o, i) => boxes[i + 1] && boxes[i + 1].classList.toggle('sel', o === opt));
+      document.getElementById('ch-' + l).innerHTML = `<span class="chosen">✓ ${opt}: ${iconName}</span>`;
+      updateCt();
+    }
+
+    function updateCt() {
+      const n = Object.keys(choices).length;
+      document.getElementById('cc').textContent = n;
+      document.getElementById('fn').textContent = n;
+    }
+
+    function all(opt) { DATA.forEach(r => { choices[r.l] = opt; }); render(); updateCt(); }
+    function reset() { Object.keys(choices).forEach(k => delete choices[k]); render(); updateCt(); }
+
+    function exportJSON() {
+      const out = {};
+      DATA.forEach(r => {
+        if (choices[r.l]) { const o = choices[r.l].toLowerCase(); out[r.l] = { option: choices[r.l], iconify: r[o][0], name: r[o][1] }; }
+      });
+      const el = document.getElementById('out');
+      el.style.display = 'block';
+      el.textContent = JSON.stringify(out, null, 2);
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    render();
+  </script>
+</body>
+
+</html>
