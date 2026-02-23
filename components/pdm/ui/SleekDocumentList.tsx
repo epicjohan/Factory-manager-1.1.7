@@ -2,6 +2,31 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Upload, Eye, Download, Trash2, FileText, Camera, Hammer, UserCircle, Image, Table, ClipboardList, Ruler, BarChart, FileCode, Terminal, Archive, Box } from '../../../icons';
 import { ArticleFile, DocumentCategory } from '../../../types';
 import { db } from '../../../services/storage';
+import { useDocumentUrl } from '../../../hooks/useDocumentUrl';
+
+// --- Sub-component for async rendering ---
+const DocumentThumbnail: React.FC<{ file: ArticleFile, getRoleIcon: (code: string) => any, onPreview: (f: ArticleFile) => void }> = ({ file, getRoleIcon, onPreview }) => {
+    // We assume serverUrl is not strictly needed for local DEV if base64 is in IDB, but passed if available
+    const { url, loading } = useDocumentUrl(file);
+
+    const isImage = file.type?.startsWith('image/');
+
+    return (
+        <div className="p-2.5 rounded-lg shrink-0 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm flex items-center justify-center relative overflow-hidden h-10 w-10 cursor-zoom-in" onClick={() => onPreview(file)}>
+            {isImage ? (
+                loading ? (
+                    <div className="animate-pulse w-full h-full bg-slate-200 dark:bg-slate-700 rounded" />
+                ) : url ? (
+                    <img src={url} className="absolute inset-0 w-full h-full object-cover" alt="Preview thumbnail" />
+                ) : (
+                    getRoleIcon(file.fileRole)
+                )
+            ) : (
+                getRoleIcon(file.fileRole)
+            )}
+        </div>
+    );
+};
 
 interface SleekDocumentListProps {
     title: React.ReactNode;
@@ -161,13 +186,7 @@ export const SleekDocumentList: React.FC<SleekDocumentListProps> = ({
 
                             <div className="flex flex-1 items-center gap-4 overflow-hidden pr-4" onClick={() => onPreview(file)} style={{ cursor: 'zoom-in' }}>
                                 {/* Shared icon/thumbnail area */}
-                                <div className="p-2.5 rounded-lg shrink-0 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm flex items-center justify-center relative overflow-hidden h-10 w-10">
-                                    {file.type?.startsWith('image/') ? (
-                                        <img src={file.url} className="absolute inset-0 w-full h-full object-cover" alt="Preview thumbnail" />
-                                    ) : (
-                                        getRoleIcon(file.fileRole)
-                                    )}
-                                </div>
+                                <DocumentThumbnail file={file} getRoleIcon={getRoleIcon} onPreview={onPreview} />
                                 <div className="truncate min-w-0">
                                     <div className="font-bold text-sm text-slate-800 dark:text-white truncate" title={file.name}>{file.name}</div>
                                     <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">

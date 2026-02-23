@@ -35,8 +35,14 @@ export interface ArticleStep {
   required: boolean;
 }
 
-export interface ArticleFile extends UploadedDocument {
-  id: string;
+export interface ArticleFile {
+  id: string; // Internal relation ID
+  documentId?: string; // Links to DMSDocument
+  // Legacy fields (will be gradually replaced or used as fallback if documentId is missing)
+  url?: string;
+  name?: string;
+  type?: string;
+
   uploadedBy: string;
   uploadDate: string;
   fileRole: FileRole | string; // Can be a custom DocumentCategory code
@@ -44,6 +50,17 @@ export interface ArticleFile extends UploadedDocument {
   setupId?: string;        // Koppeling aan specifieke machine-setup
   lockedBy?: string;       // Alleen voor PRODUCTIE bestanden
   lockedAt?: string;
+}
+
+export interface DMSDocument {
+  id: string;
+  name: string;
+  type: string;
+  size?: number;
+  url: string; // Base64 locally, or PocketBase URL when synced
+  uploadedBy: string;
+  uploadDate: string;
+  isSynced?: boolean;
 }
 
 export interface ArticleFixture {

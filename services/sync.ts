@@ -35,7 +35,8 @@ const TABLE_MAP: Record<string, string> = {
     [KEYS.MKG_OPERATIONS]: 'mkg_operations',
     [KEYS.ARTICLES]: 'articles',
     [KEYS.SETUP_TEMPLATES]: 'setup_templates',
-    [KEYS.DOCUMENT_CATEGORIES]: 'document_categories'
+    [KEYS.DOCUMENT_CATEGORIES]: 'document_categories',
+    [KEYS.DOCUMENTS]: 'documents'
 };
 
 const COLLECTION_TO_KEY = Object.fromEntries(
@@ -46,7 +47,7 @@ const COLLECTION_TO_KEY = Object.fromEntries(
 // created/updated meesturen veroorzaakt stille validatiefouten of onjuiste overwrite.
 const AUTO_DATE_COLLECTIONS = new Set([
     'articles', 'mkg_operations', 'setup_templates', 'energy_historical',
-    'system_audit_logs', 'energy_settings', 'system_config'
+    'system_audit_logs', 'energy_settings', 'system_config', 'documents'
 ]);
 
 const sanitizeDataForServer = (data: any, collection?: string): any => {
@@ -434,8 +435,21 @@ export const SyncService = {
             const formData = new FormData();
             let hasBinaryContent = false;
 
-            // 1. ARTICLES LOGIC (Split metadata vs blobs)
-            if (entry.table === KEYS.ARTICLES) {
+            // 1. DOCUMENTS LOGIC (New relational DMS flow)
+            if (entry.table === KEYS.DOCUMENTS) {
+                // Documents contain their own heavy base64 url
+                if (cleanData.url && cleanData.url.startsWith('data:')) {
+                    const blob = dataURLtoBlob(cleanData.url);
+                    if (blob) {
+                        formData.append('file', blob, cleanData.name);
+                        hasBinaryContent = true;
+                    }
+                    delete cleanData.url; // Never send base64 as text
+                }
+            }
+
+            // 2. ARTICLES LOGIC (Legacy / Partial split metadata vs blobs)
+            else if (entry.table === KEYS.ARTICLES) {
                 // files -> filesMeta (JSON) + documents (FormData)
                 if (cleanData.files && Array.isArray(cleanData.files)) {
                     const filesMeta: any[] = [];
@@ -445,24 +459,29 @@ export const SyncService = {
 
                         // Check of er nieuwe Base64 data is (url begint met data:)
                         if (metaClone.url && metaClone.url.startsWith('data:')) {
+                            // FALLBACK / LEGACY: Only for old-style direct Article uploads.
+                            // We shouldn't hit this much with the new documentService, 
+                            // but we keep it so the old UI components don't crash before they are fully migrated
                             const blob = dataURLtoBlob(metaClone.url);
                             if (blob) {
                                 formData.append('documents', blob, metaClone.name);
                                 hasBinaryContent = true;
+                                delete metaClone.url; // Prevent sending base64 strings in JSON
                             }
-                            // Strip de zware data uit de metadata, bewaar alleen referentie
-                            // PocketBase bestandsnaam is doorgaans geformatteerd, maar we vertrouwen op id match of filename
-                            metaClone.url = ''; // Clear base64 payload
+                        } else if (metaClone.url && metaClone.url.startsWith('http')) {
+                            // Verwijder url voor externe of bestaande PB urls uit de JSON metadata om string-bloat te voorkomen
+                            // Wordt gereconstrueerd in resolveFileUrl()
+                            delete metaClone.url;
                         }
+
                         filesMeta.push(metaClone);
                     });
 
-                    // Hernoem files -> filesMeta voor de PB JSON kolom
-                    cleanData.filesMeta = filesMeta;
-                    delete cleanData.files;
+                    // Sla de schone metadata array als string op in 'filesMeta' text veld!
+                    cleanData.filesMeta = JSON.stringify(filesMeta);
+                    delete cleanData.files; // Verwijder de originele geneste array
                 }
-            }
-            // 2. MACHINES & TICKETS LOGIC (Simpler)
+            }// 2. MACHINES & TICKETS LOGIC (Simpler)
             else if (['image', 'invoice'].some(k => cleanData[k])) {
                 ['image', 'invoice'].forEach(key => {
                     const val = cleanData[key];

@@ -8,6 +8,7 @@ import { ArticleFile, FileRole, SetupVariant, SetupChangeEntry, SetupStatus, Doc
 import { generateId } from '../../../services/db/core';
 import { ImageProcessor } from '../../../services/db/imageProcessor';
 import { db } from '../../../services/storage';
+import { documentService } from '../../../services/db/documentService';
 import { SleekDocumentList } from '../ui/SleekDocumentList';
 
 interface SetupProgTabProps {
@@ -156,48 +157,57 @@ export const SetupProgTab: React.FC<SetupProgTabProps> = ({
         reader.onload = async () => {
             const content = reader.result as string;
 
-            const existingIdx = allFiles.findIndex(f => f.setupId === setup.id && f.fileRole === role);
+            try {
+                // Sla fysiek bestand op in het Relational DMS
+                const doc = await documentService.addDocumentFromBase64(file.name, file.type, content, file.size);
 
-            const newFile: ArticleFile = {
-                id: existingIdx !== -1 ? allFiles[existingIdx].id : generateId(),
-                setupId: setup.id,
-                name: file.name,
-                type: file.type,
-                url: content,
-                uploadedBy: user?.name || 'Onbekend',
-                uploadDate: new Date().toISOString(),
-                fileRole: role,
-                version: existingIdx !== -1 ? (allFiles[existingIdx].version || 1) + 1 : 1,
-                lockedBy: undefined,
-                lockedAt: undefined
-            };
+                const existingIdx = allFiles.findIndex(f => f.setupId === setup.id && f.fileRole === role);
 
-            let updatedList;
-            if (existingIdx !== -1) {
-                updatedList = [...allFiles];
-                updatedList[existingIdx] = newFile;
-            } else {
-                updatedList = [...allFiles, newFile];
-            }
-            onUpdateFiles(updatedList);
-
-            // LOG THE CHANGE IF REASON PROVIDED
-            if (reason && onUpdateSetup) {
-                const changeEntry: SetupChangeEntry = {
-                    id: generateId(),
-                    date: new Date().toISOString(),
-                    user: user?.name || 'Unknown',
-                    type: role === FileRole.NC ? 'NC' : 'CAM',
-                    description: `Nieuwe versie upload: ${file.name}`,
-                    reason: reason
+                const newFile: ArticleFile = {
+                    id: existingIdx !== -1 ? allFiles[existingIdx].id : generateId(),
+                    documentId: doc.id, // Koppel via ID
+                    setupId: setup.id,
+                    name: file.name,
+                    type: file.type,
+                    url: '',            // VERWIJDER zware Base64 uit de Artikel state
+                    uploadedBy: user?.name || 'Onbekend',
+                    uploadDate: new Date().toISOString(),
+                    fileRole: role,
+                    version: existingIdx !== -1 ? (allFiles[existingIdx].version || 1) + 1 : 1,
+                    lockedBy: undefined,
+                    lockedAt: undefined
                 };
 
-                // Increment setup revision
-                const newRev = (setup.revision || 0) + 1;
-                onUpdateSetup({
-                    changeLog: [changeEntry, ...(setup.changeLog || [])],
-                    revision: newRev
-                });
+                let updatedList;
+                if (existingIdx !== -1) {
+                    updatedList = [...allFiles];
+                    updatedList[existingIdx] = newFile;
+                } else {
+                    updatedList = [...allFiles, newFile];
+                }
+                onUpdateFiles(updatedList);
+
+                // LOG THE CHANGE IF REASON PROVIDED
+                if (reason && onUpdateSetup) {
+                    const changeEntry: SetupChangeEntry = {
+                        id: generateId(),
+                        date: new Date().toISOString(),
+                        user: user?.name || 'Unknown',
+                        type: role === FileRole.NC ? 'NC' : 'CAM',
+                        description: `Nieuwe versie upload: ${file.name}`,
+                        reason: reason
+                    };
+
+                    // Increment setup revision
+                    const newRev = (setup.revision || 0) + 1;
+                    onUpdateSetup({
+                        changeLog: [changeEntry, ...(setup.changeLog || [])],
+                        revision: newRev
+                    });
+                }
+            } catch (err) {
+                console.error("Fout bij opslaan document", err);
+                alert("Er ging iets mis bij het opslaan van het document.");
             }
         };
         reader.readAsDataURL(file);
@@ -241,9 +251,10 @@ export const SetupProgTab: React.FC<SetupProgTabProps> = ({
         onUpdateFiles(updatedFiles);
 
         // 2. Download kopie
+        // Voor Legacy bestanden hebben we camFile.url, voor relationele DMS moeten we eigenlijk resolveFileUrl() gebruiken
         const link = document.createElement('a');
-        link.href = camFile.url;
-        link.download = camFile.name;
+        link.href = camFile.url || '';
+        link.download = camFile.name || 'download';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -506,8 +517,8 @@ export const SetupProgTab: React.FC<SetupProgTabProps> = ({
 
 const handleDownload = (file: ArticleFile) => {
     const link = document.createElement('a');
-    link.href = file.url;
-    link.download = file.name;
+    link.href = file.url || '';
+    link.download = file.name || 'download';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

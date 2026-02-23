@@ -4,6 +4,7 @@ import { ArticleTool, SetupTemplate, ArticleFile } from '../../../types';
 import { SearchableSelect } from '../../ui/SearchableSelect';
 import { SleekDocumentList } from '../ui/SleekDocumentList';
 import { generateId } from '../../../services/db/core';
+import { documentService } from '../../../services/db/documentService';
 import { useAuth } from '../../../contexts/AuthContext';
 
 interface ToolBlockProps {
@@ -41,25 +42,35 @@ export const ToolBlock: React.FC<ToolBlockProps> = ({ tool, onUpdate, onDelete, 
             filesArray.map((file) => {
                 return new Promise<ArticleFile>((resolve) => {
                     const reader = new FileReader();
-                    reader.onload = () => {
-                        resolve({
-                            id: generateId(),
-                            name: file.name,
-                            type: file.type,
-                            url: reader.result as string,
-                            uploadedBy: user?.name || 'Onbekend',
-                            uploadDate: new Date().toISOString(),
-                            fileRole: role,
-                            version: 1
-                        });
+                    reader.onload = async () => {
+                        const content = reader.result as string;
+                        try {
+                            const doc = await documentService.addDocumentFromBase64(file.name, file.type, content, file.size);
+                            resolve({
+                                id: generateId(),
+                                documentId: doc.id,
+                                name: file.name,
+                                type: file.type,
+                                url: '', // Removed Base64 from tool data
+                                uploadedBy: user?.name || 'Onbekend',
+                                uploadDate: new Date().toISOString(),
+                                fileRole: role,
+                                version: 1
+                            });
+                        } catch (e) {
+                            console.error('File storage failed', e);
+                            resolve({} as any);
+                        }
                     };
                     reader.readAsDataURL(file);
                 });
             })
         );
 
+        const validFiles = addedFiles.filter(f => f.id);
+
         onUpdate({
-            files: [...(tool.files || []), ...addedFiles]
+            files: [...(tool.files || []), ...validFiles]
         });
     };
 
@@ -73,11 +84,11 @@ export const ToolBlock: React.FC<ToolBlockProps> = ({ tool, onUpdate, onDelete, 
     };
 
     const handlePreviewFile = (file: ArticleFile) => {
-        if (file.type === 'application/pdf' || file.type.startsWith('image/')) {
+        if (file.type === 'application/pdf' || file.type?.startsWith('image/')) {
             const newWindow = window.open();
             if (newWindow) {
                 newWindow.document.write(
-                    `<iframe width='100%' height='100%' src='${file.url}' style='border:none; margin:0; padding:0;'></iframe>`
+                    `<iframe width='100%' height='100%' src='${file.url || ''}' style='border:none; margin:0; padding:0;'></iframe>`
                 );
             }
         }
@@ -85,8 +96,8 @@ export const ToolBlock: React.FC<ToolBlockProps> = ({ tool, onUpdate, onDelete, 
 
     const handleDownloadFile = (file: ArticleFile) => {
         const link = document.createElement('a');
-        link.href = file.url;
-        link.download = file.name;
+        link.href = file.url || '';
+        link.download = file.name || 'download';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

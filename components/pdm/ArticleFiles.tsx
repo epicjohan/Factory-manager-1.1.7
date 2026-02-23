@@ -4,6 +4,7 @@ import { FileText, AlertTriangle } from '../../icons';
 import { ArticleFile } from '../../types';
 import { generateId } from '../../services/db/core';
 import { ImageProcessor } from '../../services/db/imageProcessor';
+import { documentService } from '../../services/db/documentService';
 import { SleekDocumentList } from './ui/SleekDocumentList';
 
 interface ArticleFilesProps {
@@ -44,11 +45,15 @@ export const ArticleFiles: React.FC<ArticleFilesProps> = ({ files, isLocked, onU
                             } catch (e) { console.warn('Compression failed', e); }
                         }
 
+                        // Sla daadwerkelijke data op in Documents store
+                        const doc = await documentService.addDocumentFromBase64(file.name, file.type, result, file.size);
+
                         resolve({
                             id: generateId(),
+                            documentId: doc.id,
                             name: file.name,
                             type: file.type,
-                            url: result,
+                            url: '', // We bewaren de raw Base64 NIET in het Article object!
                             uploadedBy: user?.name || 'Onbekend',
                             uploadDate: new Date().toISOString(),
                             fileRole: role,
@@ -86,8 +91,8 @@ export const ArticleFiles: React.FC<ArticleFilesProps> = ({ files, isLocked, onU
 
     const handleDownload = (file: ArticleFile) => {
         const link = document.createElement('a');
-        link.href = file.url;
-        link.download = file.name;
+        link.href = file.url || '';
+        link.download = file.name || 'download';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

@@ -35,7 +35,8 @@ export const KEYS = {
     ARTICLES: 'fm_table_articles',
     MKG_OPERATIONS: 'fm_table_mkg_operations',
     SETUP_TEMPLATES: 'fm_table_setup_templates',
-    DOCUMENT_CATEGORIES: 'fm_table_document_categories'
+    DOCUMENT_CATEGORIES: 'fm_table_document_categories',
+    DOCUMENTS: 'fm_table_documents'
 };
 
 export const DB_NAME = 'FactoryManagerDB';
