@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { FileText, AlertTriangle } from '../../icons';
-import { ArticleFile } from '../../types';
+import { ArticleFile, DMSDocument } from '../../types';
 import { generateId } from '../../services/db/core';
 import { ImageProcessor } from '../../services/db/imageProcessor';
 import { documentService } from '../../services/db/documentService';
@@ -77,6 +77,25 @@ export const ArticleFiles: React.FC<ArticleFilesProps> = ({ files, isLocked, onU
         onUpdate(newFilesList);
     };
 
+    const handleSelectLibraryDoc = async (doc: DMSDocument, role: string) => {
+        if (isLocked) return;
+
+        const newFile: ArticleFile = {
+            id: generateId(),
+            documentId: doc.id,
+            name: doc.name,
+            type: doc.type,
+            url: '', // Local reference only
+            uploadedBy: user?.name || 'Onbekend',
+            uploadDate: new Date().toISOString(),
+            fileRole: role,
+            version: 1
+        };
+
+        const newFilesList = [...files, newFile];
+        onUpdate(newFilesList);
+    };
+
     const handleDeleteClick = (id: string) => {
         if (isLocked) return;
         const file = sourceFiles.find(f => f.id === id);
@@ -111,6 +130,7 @@ export const ArticleFiles: React.FC<ArticleFilesProps> = ({ files, isLocked, onU
                 onDelete={handleDeleteClick}
                 onPreview={onPreview}
                 onDownload={handleDownload}
+                onLinkDocument={handleSelectLibraryDoc}
             />
 
             {sourceFiles.length === 0 && isLocked && (

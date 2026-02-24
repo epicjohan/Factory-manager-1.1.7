@@ -9,6 +9,8 @@ import { SetupInstructionsTab } from './tabs/SetupInstructionsTab';
 import { SetupProgTab } from './tabs/SetupProgTab';
 import { ImageProcessor } from '../../services/db/imageProcessor';
 import { generateId } from '../../services/db/core';
+import { documentService } from '../../services/db/documentService';
+import { DMSDocument } from '../../types';
 
 interface SetupDocumentViewProps {
     article: Article;
@@ -271,7 +273,6 @@ export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
                             isProcessSetup={!!isProcessSetup}
                             hasMachine={!!setup.machineId}
                             onUpdateTemplateData={(k, v) => handleUpdateSetupWrapper({ templateData: { ...setup.templateData, [k]: v } })}
-                            onSyncTemplate={() => { }}
                             onUploadImage={async (files: FileList | File[], role: string) => {
                                 if (!files || files.length === 0) return;
 
@@ -290,12 +291,17 @@ export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
                                                         result = await ImageProcessor.compress(result);
                                                     } catch (err) { console.warn('Compression failed', err); }
                                                 }
+
+                                                // Use Relational DMS instead of raw Base64 injection
+                                                const doc = await documentService.addDocumentFromBase64(file.name, file.type, result, file.size);
+
                                                 resolve({
                                                     id: generateId(),
+                                                    documentId: doc.id,
                                                     setupId: setup.id,
                                                     name: file.name,
                                                     type: file.type,
-                                                    url: result,
+                                                    url: '', // Clean architecture
                                                     uploadedBy: user?.name || 'Onbekend',
                                                     uploadDate: new Date().toISOString(),
                                                     version: 1,

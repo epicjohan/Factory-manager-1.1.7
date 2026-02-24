@@ -1,8 +1,9 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArticleFile, FileRole } from '../../types';
 import { FileText, Maximize, X } from '../../icons';
 import { usePdfBlobUrl } from '../../hooks/usePdfBlobUrl';
+import { documentService } from '../../services/db/documentService';
 
 interface PDFContextPanelProps {
     file: ArticleFile | null;
@@ -11,6 +12,42 @@ interface PDFContextPanelProps {
 }
 
 export const PDFContextPanel: React.FC<PDFContextPanelProps> = ({ file, onClose, onMaximize }) => {
+    const [fileUrl, setFileUrl] = useState<string | null>(null);
+    const [isLoadingUrl, setIsLoadingUrl] = useState(false);
+
+    useEffect(() => {
+        if (!file) {
+            setFileUrl(null);
+            return;
+        }
+
+        if (file.documentId && !file.url) {
+            setIsLoadingUrl(true);
+            documentService.getDocumentById(file.documentId)
+                .then(doc => {
+                    if (doc && doc.url) {
+                        setFileUrl(doc.url);
+                    } else {
+                        setFileUrl(file.url || null);
+                    }
+                })
+                .catch(err => {
+                    console.error("Failed to load document data:", err);
+                    setFileUrl(file.url || null);
+                })
+                .finally(() => {
+                    setIsLoadingUrl(false);
+                });
+        } else {
+            setFileUrl(file.url || null);
+            setIsLoadingUrl(false);
+        }
+    }, [file]);
+
+    const isImage = file?.type?.startsWith('image/') || false;
+    const isPdf = file?.type === 'application/pdf';
+    const safePdfUrl = usePdfBlobUrl(isPdf ? fileUrl : null);
+
     if (!file) {
         return (
             <div className="h-full flex flex-col items-center justify-center text-slate-500 p-8 text-center">
@@ -20,10 +57,6 @@ export const PDFContextPanel: React.FC<PDFContextPanelProps> = ({ file, onClose,
             </div>
         );
     }
-
-    const isImage = file.type.startsWith('image/');
-    const isPdf = file.type === 'application/pdf';
-    const safePdfUrl = usePdfBlobUrl(isPdf ? file.url : null);
 
     return (
         <div className="flex flex-col h-full bg-slate-900">
@@ -50,8 +83,13 @@ export const PDFContextPanel: React.FC<PDFContextPanelProps> = ({ file, onClose,
 
             {/* CONTENT */}
             <div className="flex-1 bg-black/50 relative overflow-hidden flex items-center justify-center">
-                {isImage ? (
-                    <img src={file.url} className="max-w-full max-h-full object-contain" alt="Preview" />
+                {isLoadingUrl ? (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-slate-400">
+                        <div className="w-8 h-8 border-4 border-slate-800 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+                        <span className="text-xs uppercase tracking-widest font-bold">Document inladen...</span>
+                    </div>
+                ) : isImage ? (
+                    <img src={fileUrl || ''} className="max-w-full max-h-full object-contain" alt="Preview" />
                 ) : (
                     safePdfUrl ? (
                         <iframe
@@ -61,7 +99,7 @@ export const PDFContextPanel: React.FC<PDFContextPanelProps> = ({ file, onClose,
                         />
                     ) : (
                         <div className="w-full h-full flex flex-col items-center justify-center bg-white text-slate-500">
-                            Laden...
+                            Laden of bestandstype onbekend...
                         </div>
                     )
                 )}

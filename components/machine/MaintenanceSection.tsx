@@ -20,7 +20,7 @@ export const MaintenanceSection: React.FC<MaintenanceSectionProps> = ({ machine 
     const { tickets, refresh } = useMaintenance(machine.id);
     const { data: allMachineParts } = useTable<MachinePart>(KEYS.PARTS_MACHINE);
     const { data: generalParts } = useTable<GeneralPart>(KEYS.PARTS_GENERAL);
-    
+
     const [serverUrl, setServerUrl] = useState<string | undefined>(undefined);
     const [searchTerm, setSearchTerm] = useState('');
     const [showTicketForm, setShowTicketForm] = useState(false);
@@ -34,9 +34,9 @@ export const MaintenanceSection: React.FC<MaintenanceSectionProps> = ({ machine 
         db.getServerSettings().then(cfg => setServerUrl(cfg.url));
     }, []);
 
-    const filteredTickets = tickets.filter(t => 
-        t.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        t.description.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    const filteredTickets = tickets.filter(t =>
+        t.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        t.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
         t.reportedBy.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -50,41 +50,41 @@ export const MaintenanceSection: React.FC<MaintenanceSectionProps> = ({ machine 
         }
         await db.deleteMaintenanceTicket(ticketId);
         if (expandedTicketId === ticketId) setExpandedTicketId(null);
-        refresh(); 
+        refresh();
     };
 
     return (
-        <div className="space-y-6 text-left"> 
+        <div className="space-y-6 text-left">
             {!showTicketForm ? (
                 !machine.isArchived && hasPermission(Permission.CREATE_TICKET) && (
-                    <button 
-                        onClick={() => setShowTicketForm(true)} 
-                        className="w-full py-3 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl text-slate-500 hover:text-blue-600 hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-colors flex items-center justify-center gap-2 font-bold"
+                    <button
+                        onClick={() => setShowTicketForm(true)}
+                        className="w-full py-4 border-[3px] border-dashed border-slate-300 dark:border-slate-600 rounded-[2rem] text-slate-500 hover:text-blue-600 hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-colors flex items-center justify-center gap-3 font-black uppercase tracking-widest text-sm"
                     >
-                        <Plus size={20} className="shrink-0" /> Nieuwe Melding Maken
+                        <Plus size={24} className="shrink-0" /> Nieuwe Melding Maken
                     </button>
                 )
-            ) : ( 
-                <CreateTicketForm 
-                    machineId={machine.id} 
-                    onClose={() => setShowTicketForm(false)} 
+            ) : (
+                <CreateTicketForm
+                    machineId={machine.id}
+                    onClose={() => setShowTicketForm(false)}
                 />
-            )} 
-            
-            <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 shrink-0" size={16} />
-                <input 
-                    type="text" 
-                    placeholder="Zoek op titel, melder of inhoud..." 
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all" 
-                    value={searchTerm} 
-                    onChange={e => setSearchTerm(e.target.value)} 
-                />
-            </div> 
+            )}
 
-            <div className="space-y-3"> 
+            <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 shrink-0" size={18} />
+                <input
+                    type="text"
+                    placeholder="Zoek op titel, melder of inhoud..."
+                    className="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-sm"
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                />
+            </div>
+
+            <div className="space-y-3">
                 {filteredTickets.map(ticket => (
-                    <TicketRow 
+                    <TicketRow
                         key={ticket.id}
                         ticket={ticket}
                         machine={machine}
@@ -96,11 +96,11 @@ export const MaintenanceSection: React.FC<MaintenanceSectionProps> = ({ machine 
                     />
                 ))}
                 {filteredTickets.length === 0 && (
-                    <div className="text-center py-20 text-slate-400 italic bg-white dark:bg-slate-800 rounded-xl border border-dashed border-slate-200 dark:border-slate-700"> 
-                        Geen meldingen gevonden. 
+                    <div className="text-center py-20 text-slate-400 italic font-bold uppercase tracking-widest text-xs bg-white dark:bg-slate-800 rounded-[2rem] border-2 border-dashed border-slate-200 dark:border-slate-700">
+                        Geen meldingen gevonden.
                     </div>
                 )}
-            </div> 
+            </div>
         </div>
     );
 };

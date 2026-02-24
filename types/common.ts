@@ -18,13 +18,13 @@ export enum Permission {
   USE_TOOLGUARD = 'USE_TOOLGUARD',
   // Legacy PDM permission
   MANAGE_ARTICLES = 'MANAGE_ARTICLES',
-  
+
   // Nieuwe Granulaire PDM Rechten
-  PDM_VIEW = 'PDM_VIEW',           
-  PDM_CREATE = 'PDM_CREATE',       
-  PDM_EDIT_OWN = 'PDM_EDIT_OWN',   
-  PDM_EDIT_ALL = 'PDM_EDIT_ALL',   
-  PDM_RELEASE = 'PDM_RELEASE'      
+  PDM_VIEW = 'PDM_VIEW',
+  PDM_CREATE = 'PDM_CREATE',
+  PDM_EDIT_OWN = 'PDM_EDIT_OWN',
+  PDM_EDIT_ALL = 'PDM_EDIT_ALL',
+  PDM_RELEASE = 'PDM_RELEASE'
 }
 
 export enum AssetType {
@@ -33,7 +33,7 @@ export enum AssetType {
   CMM = 'CMM',
   CLIMATE = 'CLIMATE',
   OTHER = 'OTHER',
-  PROCESS = 'PROCESS' 
+  PROCESS = 'PROCESS'
 }
 
 export enum AppModule {
@@ -103,5 +103,6 @@ export interface UploadedDocument {
   name: string;
   type: string;
   url: string;
+  documentId?: string; // Optioneel voor backwards compatibility, verwijst naar fm_table_documents
   category?: string;
 }

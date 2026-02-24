@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Trash2, Edit2, Eye, RotateCcw, AlertTriangle, ShieldCheck, Wrench } from '../../../icons';
-import { ArticleTool, SetupTemplate, ArticleFile } from '../../../types';
+import { ArticleTool, SetupTemplate, ArticleFile, DMSDocument } from '../../../types';
 import { SearchableSelect } from '../../ui/SearchableSelect';
 import { SleekDocumentList } from '../ui/SleekDocumentList';
 import { generateId } from '../../../services/db/core';
@@ -38,39 +38,58 @@ export const ToolBlock: React.FC<ToolBlockProps> = ({ tool, onUpdate, onDelete, 
         if (disabled || isReplaced) return;
 
         const filesArray = Array.from(newFiles);
-        const addedFiles: ArticleFile[] = await Promise.all(
-            filesArray.map((file) => {
-                return new Promise<ArticleFile>((resolve) => {
-                    const reader = new FileReader();
-                    reader.onload = async () => {
-                        const content = reader.result as string;
-                        try {
-                            const doc = await documentService.addDocumentFromBase64(file.name, file.type, content, file.size);
-                            resolve({
-                                id: generateId(),
-                                documentId: doc.id,
-                                name: file.name,
-                                type: file.type,
-                                url: '', // Removed Base64 from tool data
-                                uploadedBy: user?.name || 'Onbekend',
-                                uploadDate: new Date().toISOString(),
-                                fileRole: role,
-                                version: 1
-                            });
-                        } catch (e) {
-                            console.error('File storage failed', e);
-                            resolve({} as any);
-                        }
-                    };
-                    reader.readAsDataURL(file);
-                });
-            })
-        );
+        const addedFiles: ArticleFile[] = [];
 
-        const validFiles = addedFiles.filter(f => f.id);
+        for (const file of filesArray) {
+            const addedFile = await new Promise<ArticleFile>((resolve) => {
+                const reader = new FileReader();
+                reader.onload = async () => {
+                    const content = reader.result as string;
+                    try {
+                        const doc = await documentService.addDocumentFromBase64(file.name, file.type, content, file.size);
+                        resolve({
+                            id: generateId(),
+                            documentId: doc.id,
+                            name: file.name,
+                            type: file.type,
+                            url: '', // Removed Base64 from tool data
+                            uploadedBy: user?.name || 'Onbekend',
+                            uploadDate: new Date().toISOString(),
+                            fileRole: role,
+                            version: 1
+                        });
+                    } catch (e) {
+                        console.error('File storage failed', e);
+                        resolve({} as any);
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+            if (addedFile.id) addedFiles.push(addedFile);
+        }
 
         onUpdate({
-            files: [...(tool.files || []), ...validFiles]
+            files: [...(tool.files || []), ...addedFiles]
+        });
+    };
+
+    const handleSelectLibraryDoc = async (doc: DMSDocument, role: string) => {
+        if (disabled || isReplaced) return;
+
+        const newFile: ArticleFile = {
+            id: generateId(),
+            documentId: doc.id,
+            name: doc.name,
+            type: doc.type,
+            url: '', // Removed Base64 from tool data
+            uploadedBy: user?.name || 'Onbekend',
+            uploadDate: new Date().toISOString(),
+            fileRole: role,
+            version: 1
+        };
+
+        onUpdate({
+            files: [...(tool.files || []), newFile]
         });
     };
 
@@ -324,6 +343,7 @@ export const ToolBlock: React.FC<ToolBlockProps> = ({ tool, onUpdate, onDelete, 
                             onDelete={handleDeleteFile}
                             onPreview={handlePreviewFile}
                             onDownload={handleDownloadFile}
+                            onLinkDocument={handleSelectLibraryDoc}
                         />
                     </div>
                 </div>

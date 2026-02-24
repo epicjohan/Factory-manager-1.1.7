@@ -40,7 +40,7 @@ export const KEYS = {
 };
 
 export const DB_NAME = 'FactoryManagerDB';
-export const CURRENT_DB_VERSION = 2;
+export const CURRENT_DB_VERSION = 3;
 
 export const generateId = (length: number = 15): string => {
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';

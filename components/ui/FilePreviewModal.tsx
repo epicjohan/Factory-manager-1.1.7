@@ -1,8 +1,8 @@
-
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Download, FileText, ZoomIn, ExternalLink } from '../../icons';
 import { ArticleFile } from '../../types';
 import { usePdfBlobUrl } from '../../hooks/usePdfBlobUrl';
+import { documentService } from '../../services/db/documentService';
 
 interface FilePreviewModalProps {
     file: ArticleFile | null;
@@ -10,6 +10,8 @@ interface FilePreviewModalProps {
 }
 
 export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClose }) => {
+    const [fileUrl, setFileUrl] = useState<string | null>(null);
+    const [isLoadingUrl, setIsLoadingUrl] = useState(false);
 
     // Sluit bij druk op ESC
     useEffect(() => {
@@ -20,9 +22,38 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClos
         return () => window.removeEventListener('keydown', handleEsc);
     }, [onClose]);
 
-    const isImage = file?.type.startsWith('image/');
+    useEffect(() => {
+        if (!file) {
+            setFileUrl(null);
+            return;
+        }
+
+        if (file.documentId && !file.url) {
+            setIsLoadingUrl(true);
+            documentService.getDocumentById(file.documentId)
+                .then(doc => {
+                    if (doc && doc.url) {
+                        setFileUrl(doc.url);
+                    } else {
+                        setFileUrl(file.url || null);
+                    }
+                })
+                .catch(err => {
+                    console.error("Failed to load document data:", err);
+                    setFileUrl(file.url || null);
+                })
+                .finally(() => {
+                    setIsLoadingUrl(false);
+                });
+        } else {
+            setFileUrl(file.url || null);
+            setIsLoadingUrl(false);
+        }
+    }, [file]);
+
+    const isImage = file?.type?.startsWith('image/') || false;
     const isPdf = file?.type === 'application/pdf';
-    const safePdfUrl = usePdfBlobUrl((isPdf && file) ? file.url : null);
+    const safePdfUrl = usePdfBlobUrl(isPdf ? fileUrl : null);
 
     if (!file) return null;
 
@@ -38,7 +69,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClos
                 </div>
                 <div className="flex gap-4">
                     <a
-                        href={file.url}
+                        href={fileUrl || '#'}
                         download={file.name}
                         className="p-4 bg-slate-800 hover:bg-slate-700 rounded-2xl text-white transition-all border border-slate-700"
                         title="Downloaden"
@@ -61,9 +92,14 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClos
                     className="relative w-full h-full flex items-center justify-center p-2 md:p-4"
                     onClick={(e) => e.stopPropagation()}
                 >
-                    {isImage ? (
+                    {isLoadingUrl ? (
+                        <div className="flex flex-col items-center justify-center text-slate-400">
+                            <div className="w-8 h-8 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+                            <span className="text-sm font-bold tracking-widest uppercase">Document inladen...</span>
+                        </div>
+                    ) : isImage ? (
                         <img
-                            src={file.url}
+                            src={fileUrl || ''}
                             alt={file.name}
                             className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
                         />
@@ -77,7 +113,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClos
                             />
                         ) : (
                             <div className="w-full h-full flex flex-col items-center justify-center bg-white text-slate-500 rounded-lg" style={{ minHeight: '80vh' }}>
-                                Laden...
+                                Laden of bestandstype onbekend...
                             </div>
                         )
                     ) : (
@@ -86,7 +122,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClos
                             <h3 className="text-xl font-bold mb-2">Voorbeeld niet beschikbaar</h3>
                             <p className="text-slate-400 mb-6">Dit bestandstype kan niet direct worden weergegeven.</p>
                             <a
-                                href={file.url}
+                                href={fileUrl || '#'}
                                 download={file.name}
                                 className="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-bold inline-flex items-center gap-2 uppercase tracking-widest text-sm shadow-xl"
                             >

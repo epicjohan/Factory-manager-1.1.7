@@ -42,7 +42,7 @@ export const SettingsDocs: React.FC = () => {
 
     const [newName, setNewName] = useState('');
     const [newCode, setNewCode] = useState('');
-    const [newApplicableTo, setNewApplicableTo] = useState<'ARTICLE' | 'SETUP' | 'BOTH'>('ARTICLE');
+    const [newApplicableTo, setNewApplicableTo] = useState<DocumentCategory['applicableTo']>('ARTICLE');
     const [newIcon, setNewIcon] = useState('FileText');
     const [newColor, setNewColor] = useState('text-blue-500');
 
@@ -174,54 +174,54 @@ export const SettingsDocs: React.FC = () => {
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-            <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800 p-4 rounded-xl flex gap-3">
-                <HelpCircle className="text-blue-500 shrink-0" size={20} />
+            <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800 p-6 rounded-[2rem] flex gap-4 shadow-sm items-center">
+                <HelpCircle className="text-blue-500 shrink-0" size={24} />
                 <div>
-                    <h4 className="text-sm font-bold text-blue-800 dark:text-blue-300 uppercase tracking-tight">Document Categorieën</h4>
-                    <div className="text-xs text-blue-700 dark:text-blue-400 mt-1 leading-relaxed">
+                    <h4 className="text-xs font-black text-blue-800 dark:text-blue-300 uppercase tracking-widest">Document Categorieën</h4>
+                    <div className="text-sm font-bold text-blue-600 dark:text-blue-400 mt-1 leading-relaxed">
                         Definieer flexibele document categorieën (bijv. Meetrapport, Certificaat). Je kunt per categorie bepalen of deze beschikbaar is bij Artikelbeheer, CAM/NC Setups, of beide. Systeemcategorieën kunnen aangepast worden qua naam, kleur en icoon, maar de code blijft vaststaan.
                     </div>
                 </div>
             </div>
 
-            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+            <div className="bg-white dark:bg-slate-800 rounded-[2rem] border border-slate-200 dark:border-slate-700 p-8 shadow-sm">
 
                 <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-lg font-black text-slate-900 dark:text-white">Beheer Categorieën</h3>
+                    <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest">Beheer Categorieën</h3>
                     {!isFormOpen && (
-                        <button onClick={handleOpenCreate} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 shadow-sm transition-all active:scale-95">
+                        <button onClick={handleOpenCreate} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-sm transition-all active:scale-95">
                             <Plus size={16} /> Nieuw Toevoegen
                         </button>
                     )}
                 </div>
 
                 {isFormOpen && (
-                    <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 mb-8 space-y-4">
-                        <div className="flex justify-between items-center mb-2">
-                            <h4 className="font-bold text-slate-900 dark:text-white uppercase tracking-tight text-sm">
+                    <div className="bg-slate-50 dark:bg-slate-900/50 p-8 rounded-[2rem] border border-slate-200 dark:border-slate-700 mb-8 space-y-6 shadow-inner">
+                        <div className="flex justify-between items-center mb-4">
+                            <h4 className="font-black text-slate-900 dark:text-white uppercase tracking-widest text-[10px] bg-slate-200 dark:bg-slate-800 px-4 py-2 rounded-full">
                                 {editingId ? 'Categorie Bewerken' : 'Nieuwe Categorie Aanmaken'}
                             </h4>
-                            <button onClick={resetForm} className="text-slate-400 hover:text-slate-700 bg-white dark:bg-slate-800 p-1 rounded-full"><X size={16} /></button>
+                            <button onClick={resetForm} className="text-slate-400 hover:text-red-500 bg-white dark:bg-slate-800 p-2 rounded-xl transition-colors"><X size={16} /></button>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-widest">Weergavenaam</label>
+                                <label className="block text-[10px] font-black text-slate-500 mb-2 ml-1 uppercase tracking-widest">Weergavenaam</label>
                                 <input
                                     type="text"
-                                    className="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full p-4 rounded-2xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 font-bold text-sm transition-all"
                                     placeholder="Bijv. Meetrapport"
                                     value={newName}
                                     onChange={e => autoGenerateCode(e.target.value)}
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-widest">
+                                <label className="block text-[10px] font-black text-slate-500 mb-2 ml-1 uppercase tracking-widest">
                                     Unieke Code {isSystemEdit && '(Vast voor systeem)'}
                                 </label>
                                 <input
                                     type="text"
-                                    className={`w-full p-3 rounded-xl border border-slate-300 dark:border-slate-600 outline-none focus:ring-2 focus:ring-blue-500 uppercase font-mono text-sm ${isSystemEdit ? 'bg-slate-100 dark:bg-slate-800/50 text-slate-500 cursor-not-allowed' : 'bg-white dark:bg-slate-800 dark:text-white'}`}
+                                    className={`w-full p-4 rounded-2xl border border-slate-300 dark:border-slate-600 outline-none focus:ring-2 focus:ring-blue-500 uppercase font-mono text-sm font-bold transition-all ${isSystemEdit ? 'bg-slate-100 dark:bg-slate-800/50 text-slate-500 cursor-not-allowed' : 'bg-white dark:bg-slate-800 dark:text-white'}`}
                                     placeholder="Bijv. REPORT"
                                     value={newCode}
                                     disabled={isSystemEdit}
@@ -231,11 +231,11 @@ export const SettingsDocs: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-widest">Beschikbaar Bij</label>
+                                <label className="block text-[10px] font-black text-slate-500 mb-2 ml-1 uppercase tracking-widest">Beschikbaar Bij</label>
                                 <select
-                                    className="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full p-4 rounded-2xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 font-bold text-sm transition-all"
                                     value={newApplicableTo}
                                     onChange={e => setNewApplicableTo(e.target.value as any)}
                                 >
@@ -245,13 +245,13 @@ export const SettingsDocs: React.FC = () => {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-widest">Icoon</label>
+                                <label className="block text-[10px] font-black text-slate-500 mb-2 ml-1 uppercase tracking-widest">Icoon</label>
                                 <div className="flex gap-2 flex-wrap">
                                     {AVAILABLE_ICONS.map(i => (
                                         <button
                                             key={i.id}
                                             onClick={() => setNewIcon(i.id)}
-                                            className={`p-3 rounded-xl border transition-all ${newIcon === i.id ? 'bg-blue-100 border-blue-500 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-white border-slate-200 text-slate-500 dark:bg-slate-800 dark:border-slate-700'}`}
+                                            className={`p-4 rounded-2xl border transition-all ${newIcon === i.id ? 'bg-blue-100 border-blue-500 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-white border-slate-200 text-slate-500 dark:bg-slate-800 dark:border-slate-700 hover:scale-[1.05]'}`}
                                             title={i.label}
                                         >
                                             <i.icon size={18} />
@@ -260,43 +260,43 @@ export const SettingsDocs: React.FC = () => {
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-widest">Kleur</label>
+                                <label className="block text-[10px] font-black text-slate-500 mb-2 ml-1 uppercase tracking-widest">Kleur</label>
                                 <div className="flex gap-2 flex-wrap">
                                     {AVAILABLE_COLORS.map(c => (
                                         <button
                                             key={c.class}
                                             onClick={() => setNewColor(c.class)}
-                                            className={`w-10 h-10 mb-2 rounded-xl border-2 transition-all flex items-center justify-center ${c.bg} ${c.class} ${newColor === c.class ? 'border-current scale-110 shadow-sm' : 'border-transparent'}`}
+                                            className={`w-12 h-12 mb-2 rounded-full border-2 transition-all flex items-center justify-center ${c.bg} ${c.class} ${newColor === c.class ? 'border-current scale-110 shadow-md' : 'border-transparent hover:scale-105'}`}
                                             title={c.label}
                                         >
-                                            <span className="w-4 h-4 rounded-full bg-current"></span>
+                                            <span className="w-5 h-5 rounded-full bg-current"></span>
                                         </button>
                                     ))}
                                 </div>
                             </div>
                         </div>
 
-                        <div className="flex justify-end pt-2">
+                        <div className="flex justify-end pt-4">
                             <button
                                 onClick={handleSubmitForm}
                                 disabled={!newName || !newCode}
-                                className="bg-slate-900 hover:bg-black text-white px-6 py-3 rounded-xl font-bold flex items-center justify-center shadow-lg transition-all active:scale-95 disabled:opacity-50"
+                                className="bg-slate-900 hover:bg-black text-white px-8 py-4 rounded-[2rem] font-black uppercase tracking-widest text-[10px] flex items-center justify-center shadow-lg transition-all active:scale-95 disabled:opacity-50"
                             >
                                 {editingId ? (
-                                    <><Save size={18} className="mr-2" /> Wijziging Opslaan</>
+                                    <><Save size={16} className="mr-3" /> Wijziging Opslaan</>
                                 ) : (
-                                    <><Plus size={18} className="mr-2" /> Categorie Toevoegen</>
+                                    <><Plus size={16} className="mr-3" /> Categorie Toevoegen</>
                                 )}
                             </button>
                         </div>
                     </div>
                 )}
 
-                <div className="space-y-3">
+                <div className="space-y-4">
                     {categories.map(cat => (
-                        <div key={cat.id} className={`flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-200 dark:border-slate-700 ${cat.isSystem ? 'bg-slate-100/50 dark:bg-slate-800/50' : ''}`}>
-                            <div className="flex items-center gap-4">
-                                <div className={`p-3 rounded-lg bg-white dark:bg-slate-800 shadow-sm ${cat.color || 'text-slate-500'}`}>
+                        <div key={cat.id} className={`flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:border-blue-300 dark:hover:border-blue-800 ${cat.isSystem ? 'bg-slate-100/50 dark:bg-slate-800/50' : ''}`}>
+                            <div className="flex items-center gap-5">
+                                <div className={`p-4 rounded-xl shadow-inner ${cat.color || 'bg-slate-100 text-slate-500'} bg-white dark:bg-slate-800`}>
                                     {renderIcon(cat.icon)}
                                 </div>
                                 <div>

@@ -10,7 +10,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { useTable } from '../hooks/useTable';
 import { FilePreviewModal } from '../components/ui/FilePreviewModal';
-import { ArrowLeft, BookOpen, Plus, LayoutPanelLeft } from '../icons';
+import { ArrowLeft, BookOpen, Plus, LayoutPanelLeft, ShieldAlert } from '../icons';
 import { articleService } from '../services/db/articleService';
 
 // NEW LAYOUT COMPONENTS
@@ -71,9 +71,12 @@ export const ArticleManagement: React.FC = () => {
     });
 
     // Permissions
+    const canViewPdm = hasPermission(Permission.PDM_VIEW) || hasPermission(Permission.MANAGE_ARTICLES);
     const canCreate = hasPermission(Permission.PDM_CREATE) || hasPermission(Permission.MANAGE_ARTICLES);
     const canEditAll = hasPermission(Permission.PDM_EDIT_ALL) || hasPermission(Permission.MANAGE_ARTICLES);
     const canEditOwn = hasPermission(Permission.PDM_EDIT_OWN);
+    const canRelease = hasPermission(Permission.PDM_RELEASE) || hasPermission(Permission.MANAGE_ARTICLES);
+
     const canManageCatalog = canEditAll;
     const isOwner = editingArticle?.createdBy === user?.name;
     const hasEditRights = canEditAll || (canEditOwn && isOwner) || (!editingArticle && canCreate);
@@ -91,6 +94,21 @@ export const ArticleManagement: React.FC = () => {
     }, [editingArticle]);
 
     // --- ACTIONS ---
+
+    if (!canViewPdm) {
+        return (
+            <div className="h-screen flex flex-col items-center justify-center p-8 text-center bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
+                <ShieldAlert size={80} className="text-red-500/20 mb-6" />
+                <h2 className="text-3xl font-black text-slate-800 dark:text-white uppercase italic tracking-tighter mb-4">Toegang Geweigerd</h2>
+                <p className="text-slate-500 font-bold max-w-md mx-auto leading-relaxed">
+                    Je bezit niet de vereiste PDM-rechten (<span className="text-blue-500">PDM_VIEW</span>) om de Artikel database in te zien. Neem contact op met je applicatiebeheerder.
+                </p>
+                <button onClick={() => window.history.back()} className="mt-8 px-6 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-xs uppercase text-slate-600 dark:text-slate-300 shadow-sm hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
+                    Terug naar Dashboard
+                </button>
+            </div>
+        );
+    }
 
     const updateCurrentArticle = async (transform: (art: Article) => Article, logMessage?: string) => {
         if (!editingArticle) return;
@@ -224,7 +242,7 @@ export const ArticleManagement: React.FC = () => {
             const newArticle = {
                 id: generateId(), articleCode: data.articleCode || '', revision: 'A', name: data.name || '',
                 status: ArticleStatus.DRAFT, operations: [], bomItems: [], files: [],
-                auditTrail: [auditEntry], createdBy: user.name, created: new Date().toISOString(), updated: new Date().toISOString(), updatedBy: user.name, ...baseData
+                auditTrail: [auditEntry], createdBy: user.name, created: new Date().toISOString(), updated: new Date().toISOString(), ...baseData
             } as Article;
             await db.addArticle(newArticle);
             setEditingArticle(newArticle);
@@ -460,7 +478,7 @@ export const ArticleManagement: React.FC = () => {
         if (!editingArticle) {
             return (
                 <div className="p-8 h-full overflow-y-auto">
-                    <ArticleHeader article={null} isLocked={false} canEdit={true} canRelease={false} onSave={handleSaveHeader} user={user} />
+                    <ArticleHeader article={null} isLocked={false} canEdit={canCreate} canRelease={canRelease} onSave={handleSaveHeader} user={user} />
                 </div>
             );
         }
@@ -473,7 +491,7 @@ export const ArticleManagement: React.FC = () => {
                         article={editingArticle}
                         isLocked={isLocked}
                         canEdit={hasEditRights}
-                        canRelease={hasPermission(Permission.PDM_RELEASE)}
+                        canRelease={canRelease}
                         onSave={handleSaveHeader}
                         user={user}
                         onChangeStatus={async (s) => { const upd = await articleService.updateArticleStatus(editingArticle.id, s); if (upd) setEditingArticle(upd); }}

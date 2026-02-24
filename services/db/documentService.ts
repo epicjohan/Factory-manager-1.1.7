@@ -24,9 +24,17 @@ export const documentService = {
 
     addDocumentFromBase64: async (name: string, type: string, base64Url: string, size?: number): Promise<DMSDocument> => {
         const now = getNowISO();
+        const items = await loadTable<DMSDocument[]>(KEYS.DOCUMENTS, []);
+
+        // Bepaal volgend documentnummer (DOC-YYYY-XXXX)
+        const currentYear = new Date().getFullYear().toString();
+        const currentDocsThisYear = items.filter(d => d.documentNumber?.includes(currentYear)).length;
+        const nextNum = (currentDocsThisYear + 1).toString().padStart(4, '0');
+        const documentNumber = `DOC-${currentYear}-${nextNum}`;
 
         const doc: DMSDocument = {
             id: generateId(),
+            documentNumber,
             name,
             type,
             size,
@@ -36,9 +44,7 @@ export const documentService = {
             isSynced: false
         };
 
-        const items = await loadTable<DMSDocument[]>(KEYS.DOCUMENTS, []);
         items.push(doc);
-
         await saveTable(KEYS.DOCUMENTS, items);
 
         // Let PocketBase sync handle the actual file upload conversion

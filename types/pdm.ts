@@ -24,7 +24,7 @@ export interface DocumentCategory {
   icon?: string;       // E.g. "FileText", "Receipt", "Certificate"
   color?: string;      // E.g. "blue", "green", "purple"
   isSystem: boolean;   // If true, cannot be deleted (e.g. DRAWING, MODEL, CAM, NC)
-  applicableTo: 'ARTICLE' | 'SETUP' | 'BOTH';
+  applicableTo: 'ARTICLE' | 'SETUP' | 'MACHINE' | 'BOTH' | 'ALL';
   order?: number;
 }
 
@@ -38,6 +38,7 @@ export interface ArticleStep {
 export interface ArticleFile {
   id: string; // Internal relation ID
   documentId?: string; // Links to DMSDocument
+  previousVersions?: string[]; // Array of past documentIds for history tracing
   // Legacy fields (will be gradually replaced or used as fallback if documentId is missing)
   url?: string;
   name?: string;
@@ -54,6 +55,7 @@ export interface ArticleFile {
 
 export interface DMSDocument {
   id: string;
+  documentNumber?: string; // Logical naming (e.g. DOC-2026-001) for future proof library searching
   name: string;
   type: string;
   size?: number;

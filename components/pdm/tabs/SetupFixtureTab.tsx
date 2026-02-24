@@ -1,6 +1,6 @@
 import React from 'react';
 import { AlertTriangle, Info, RefreshCcw, Link, Camera, Plus, X, Upload, FileText, FolderOpen, Hammer, UserCircle, Trash2 } from '../../../icons';
-import { SetupFieldDefinition, ArticleFile, DocumentCategory } from '../../../types';
+import { SetupFieldDefinition, ArticleFile, DocumentCategory, DMSDocument } from '../../../types';
 import { SearchableSelect } from '../../ui/SearchableSelect';
 import { SleekDocumentList } from '../ui/SleekDocumentList';
 
@@ -14,15 +14,15 @@ interface SetupFixtureTabProps {
     isProcessSetup: boolean;
     hasMachine: boolean;
     onUpdateTemplateData: (key: string, value: any) => void;
-    onSyncTemplate: () => void;
     onUploadImage: (files: FileList | File[], role: string) => void;
     onDeleteImage: (id: string) => void;
     onPreviewImage: (file: ArticleFile) => void;
+    onLinkImage?: (doc: DMSDocument, role: string) => void;
 }
 
 export const SetupFixtureTab: React.FC<SetupFixtureTabProps> = ({
     fields, templateName, updateStatus, templateData, images, isLocked, isProcessSetup, hasMachine,
-    onUpdateTemplateData, onSyncTemplate, onUploadImage, onDeleteImage, onPreviewImage
+    onUpdateTemplateData, onUploadImage, onDeleteImage, onPreviewImage, onLinkImage
 }) => {
 
     const renderFields = () => {
@@ -130,8 +130,8 @@ export const SetupFixtureTab: React.FC<SetupFixtureTabProps> = ({
 
     const handleDownload = (file: ArticleFile) => {
         const link = document.createElement('a');
-        link.href = file.url;
-        link.download = file.name;
+        link.href = file.url || '';
+        link.download = file.name || 'download';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -154,6 +154,7 @@ export const SetupFixtureTab: React.FC<SetupFixtureTabProps> = ({
                     onDelete={onDeleteImage}
                     onPreview={onPreviewImage}
                     onDownload={handleDownload}
+                    onLinkDocument={onLinkImage}
                 />
             </div>
         </div>

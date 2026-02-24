@@ -1,14 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Upload, Eye, Download, Trash2, FileText, Camera, Hammer, UserCircle, Image, Table, ClipboardList, Ruler, BarChart, FileCode, Terminal, Archive, Box } from '../../../icons';
-import { ArticleFile, DocumentCategory } from '../../../types';
+import { ArticleFile, DocumentCategory, DMSDocument } from '../../../types';
 import { db } from '../../../services/storage';
-import { useDocumentUrl } from '../../../hooks/useDocumentUrl';
+import { useDocumentMap } from '../../../hooks/useDocumentMap';
+import { DocumentLibraryModal } from '../modals/DocumentLibraryModal';
+import { DocumentRenameModal } from '../modals/DocumentRenameModal';
 
 // --- Sub-component for async rendering ---
-const DocumentThumbnail: React.FC<{ file: ArticleFile, getRoleIcon: (code: string) => any, onPreview: (f: ArticleFile) => void }> = ({ file, getRoleIcon, onPreview }) => {
-    // We assume serverUrl is not strictly needed for local DEV if base64 is in IDB, but passed if available
-    const { url, loading } = useDocumentUrl(file);
-
+const DocumentThumbnail: React.FC<{ file: ArticleFile, getRoleIcon: (code: string) => any, onPreview: (f: ArticleFile) => void, url?: string, loading?: boolean }> = ({ file, getRoleIcon, onPreview, url, loading }) => {
     const isImage = file.type?.startsWith('image/');
 
     return (
@@ -32,7 +31,7 @@ interface SleekDocumentListProps {
     title: React.ReactNode;
     subtitle: string;
     files: ArticleFile[];
-    applicableTo: 'ARTICLE' | 'SETUP' | 'BOTH';
+    applicableTo: 'ARTICLE' | 'SETUP' | 'MACHINE' | 'BOTH' | 'ALL';
     excludedCategories?: string[]; // e.g., CAM, NC
     defaultCategoryCode?: string; // Fallback category if none selected
     isLocked: boolean;
@@ -40,6 +39,7 @@ interface SleekDocumentListProps {
     onDelete: (id: string) => void;
     onPreview: (file: ArticleFile) => void;
     onDownload: (file: ArticleFile) => void;
+    onLinkDocument?: (doc: DMSDocument, role: string) => void;
     className?: string; // Container custom class instead of forcing border-t
 }
 
@@ -55,22 +55,31 @@ export const SleekDocumentList: React.FC<SleekDocumentListProps> = ({
     onDelete,
     onPreview,
     onDownload,
+    onLinkDocument,
     className = ""
 }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isDragging, setIsDragging] = useState(false);
+    const [showLibraryModal, setShowLibraryModal] = useState(false);
+    const [pendingUploads, setPendingUploads] = useState<{ files: File[], role: string } | null>(null);
     const [selectedRole, setSelectedRole] = useState<string>(defaultCategoryCode);
     const [categories, setCategories] = useState<DocumentCategory[]>([
         { id: '1', name: 'Document', code: 'OTHER', isSystem: true, applicableTo: 'BOTH', icon: 'FileText', color: 'text-slate-500' }
     ]);
+    const { urlMap, loadingMap } = useDocumentMap(files);
 
     useEffect(() => {
         db.getSystemSettings().then(settings => {
             if (settings.documentCategories && settings.documentCategories.length > 0) {
                 // Filter available categories based on applicableTo and exclusions
+                // BOTH is for Article & Setup, ALL is for everything
                 const availableCats = settings.documentCategories.filter(
-                    c => (c.applicableTo === applicableTo || c.applicableTo === 'BOTH') &&
-                        !excludedCategories.includes(c.code)
+                    c => {
+                        const isMatch = c.applicableTo === applicableTo ||
+                            c.applicableTo === 'ALL' ||
+                            (c.applicableTo === 'BOTH' && (applicableTo === 'ARTICLE' || applicableTo === 'SETUP'));
+                        return isMatch && !excludedCategories.includes(c.code);
+                    }
                 );
 
                 if (availableCats.length > 0) {
@@ -151,14 +160,14 @@ export const SleekDocumentList: React.FC<SleekDocumentListProps> = ({
                             e.preventDefault();
                             setIsDragging(false);
                             if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                                onUpload(Array.from(e.dataTransfer.files), selectedRole);
+                                setPendingUploads({ files: Array.from(e.dataTransfer.files), role: selectedRole });
                             }
                         }}
                         onClick={() => fileInputRef.current?.click()}
                     >
                         <input type="file" multiple ref={fileInputRef} className="hidden" accept="image/*,application/pdf" onChange={(e) => {
                             if (e.target.files && e.target.files.length > 0) {
-                                onUpload(Array.from(e.target.files), selectedRole);
+                                setPendingUploads({ files: Array.from(e.target.files), role: selectedRole });
                             }
                             e.target.value = ''; // Reset input
                         }} />
@@ -180,13 +189,30 @@ export const SleekDocumentList: React.FC<SleekDocumentListProps> = ({
                     </div>
                 )}
 
+                {onLinkDocument && !isLocked && (
+                    <div className="flex justify-end mt-2 mb-4">
+                        <button
+                            onClick={() => setShowLibraryModal(true)}
+                            className="bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 dark:bg-slate-800/50 dark:hover:bg-blue-600/20 dark:text-slate-400 dark:hover:text-blue-400 rounded-xl px-4 py-2 font-black uppercase text-[10px] tracking-widest shadow-sm border border-slate-200 dark:border-slate-700 hover:border-blue-200 dark:hover:border-blue-800/50 transition-all flex items-center justify-center gap-2"
+                        >
+                            <Archive size={14} /> Kies uit Bibliotheek
+                        </button>
+                    </div>
+                )}
+
                 <div className="flex flex-col gap-2">
                     {files.map(file => (
                         <div key={file.id} className="group flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md transition-all">
 
                             <div className="flex flex-1 items-center gap-4 overflow-hidden pr-4" onClick={() => onPreview(file)} style={{ cursor: 'zoom-in' }}>
                                 {/* Shared icon/thumbnail area */}
-                                <DocumentThumbnail file={file} getRoleIcon={getRoleIcon} onPreview={onPreview} />
+                                <DocumentThumbnail
+                                    file={file}
+                                    getRoleIcon={getRoleIcon}
+                                    onPreview={onPreview}
+                                    url={urlMap[file.id]}
+                                    loading={loadingMap[file.id]}
+                                />
                                 <div className="truncate min-w-0">
                                     <div className="font-bold text-sm text-slate-800 dark:text-white truncate" title={file.name}>{file.name}</div>
                                     <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">
@@ -228,6 +254,29 @@ export const SleekDocumentList: React.FC<SleekDocumentListProps> = ({
                     )}
                 </div>
             </div>
+
+            {/* DOCUMENT LIBRARY MODAL */}
+            {showLibraryModal && onLinkDocument && (
+                <DocumentLibraryModal
+                    onClose={() => setShowLibraryModal(false)}
+                    onSelect={(doc) => {
+                        onLinkDocument(doc, selectedRole);
+                        setShowLibraryModal(false);
+                    }}
+                />
+            )}
+
+            {pendingUploads && (
+                <DocumentRenameModal
+                    files={pendingUploads.files}
+                    role={pendingUploads.role}
+                    onClose={() => setPendingUploads(null)}
+                    onConfirm={(renamedFiles) => {
+                        onUpload(renamedFiles, pendingUploads.role);
+                        setPendingUploads(null);
+                    }}
+                />
+            )}
         </div>
     );
 };
