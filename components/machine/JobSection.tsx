@@ -106,7 +106,7 @@ export const JobSection: React.FC<JobSectionProps> = ({ machine }) => {
                                 <span className="bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-2 py-1 rounded">{opt.setup.name}</span>
                             </div>
 
-                            <button className="w-full py-3 bg-blue-600 group-hover:bg-blue-500 text-white rounded-xl font-black uppercase text-xs tracking-widest flex items-center justify-center gap-2 transition-all">
+                            <button className="w-full py-3 bg-blue-600 group-hover:bg-blue-500 text-white rounded-[2rem] font-black uppercase text-xs tracking-widest flex items-center justify-center gap-2 transition-all">
                                 <PlayCircle size={16} /> Start Setup
                             </button>
                         </div>

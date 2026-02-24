@@ -74,7 +74,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
                         notifications.map(notif => (
                             <div 
                                 key={notif.id} 
-                                className={`p-4 rounded-lg border border-slate-100 dark:border-slate-700 transition-all ${getBgColor(notif.type, notif.read)}`}
+                                className={`p-4 rounded-2xl border border-slate-100 dark:border-slate-700 transition-all ${getBgColor(notif.type, notif.read)}`}
                                 onClick={() => markAsRead(notif.id)}
                             >
                                 <div className="flex gap-3">

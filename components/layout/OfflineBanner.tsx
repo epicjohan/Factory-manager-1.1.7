@@ -14,7 +14,7 @@ export const OfflineBanner: React.FC<OfflineBannerProps> = ({ show }) => {
     return (
         <div className="bg-red-600 text-white px-6 py-3 flex items-center justify-between shadow-2xl sticky top-0 z-50 animate-in slide-in-from-top duration-500 border-b-2 border-red-800">
             <div className="flex items-center gap-4">
-                <div className="p-2 bg-white/20 rounded-lg animate-pulse">
+                <div className="p-2 bg-white/20 rounded-2xl animate-pulse">
                     <AlertTriangle size={24} />
                 </div>
                 <div>

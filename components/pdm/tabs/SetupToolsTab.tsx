@@ -111,7 +111,7 @@ export const SetupToolsTab: React.FC<SetupToolsTabProps> = ({
     return (
         <div className="space-y-6 animate-in fade-in">
             {template && template.toolFields && template.toolFields.length > 0 && (
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-900 mb-4 flex items-center gap-3">
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-[2rem] border border-blue-100 dark:border-blue-900 mb-4 flex items-center gap-3">
                     <Info className="text-blue-500 shrink-0" size={18} />
                     <div>
                         <h4 className="font-bold text-blue-800 dark:text-blue-300 text-xs">Tools geconfigureerd via sjabloon: {template.name}</h4>
@@ -125,13 +125,13 @@ export const SetupToolsTab: React.FC<SetupToolsTabProps> = ({
                     
                     <button 
                         onClick={() => setShowHistory(!showHistory)}
-                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all ${showHistory ? 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-2xl text-[9px] font-bold uppercase tracking-widest transition-all ${showHistory ? 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
                     >
                         <History size={12} /> {showHistory ? 'Verberg Historie' : 'Toon Historie'}
                     </button>
                 </div>
                 {!isLocked && (
-                    <button onClick={onAddTool} className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl font-black text-[11px] uppercase shadow-lg shadow-blue-500/20 transition-all hover:scale-105 active:scale-95"><Plus size={16}/> Tool Toevoegen</button>
+                    <button onClick={onAddTool} className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-[2rem] font-black text-[11px] uppercase shadow-lg shadow-blue-500/20 transition-all hover:scale-105 active:scale-95"><Plus size={16}/> Tool Toevoegen</button>
                 )}
             </div>
             
@@ -193,7 +193,7 @@ export const SetupToolsTab: React.FC<SetupToolsTabProps> = ({
                                 <input 
                                     autoFocus
                                     type="text"
-                                    className="w-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-bold outline-none focus:border-orange-500 transition-all text-sm"
+                                    className="w-full p-4 rounded-[2rem] border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-bold outline-none focus:border-orange-500 transition-all text-sm"
                                     value={newDescription}
                                     onChange={e => setNewDescription(e.target.value)}
                                 />
@@ -202,7 +202,7 @@ export const SetupToolsTab: React.FC<SetupToolsTabProps> = ({
                                 <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">Reden van wijziging *</label>
                                 <textarea 
                                     rows={3}
-                                    className="w-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-medium outline-none focus:border-orange-500 transition-all text-sm"
+                                    className="w-full p-4 rounded-[2rem] border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-medium outline-none focus:border-orange-500 transition-all text-sm"
                                     placeholder="Bijv. Niet leverbaar, alternatief merk, breuk..."
                                     value={replaceReason}
                                     onChange={e => setReplaceReason(e.target.value)}
@@ -211,8 +211,8 @@ export const SetupToolsTab: React.FC<SetupToolsTabProps> = ({
                         </div>
 
                         <div className="flex gap-3">
-                            <button onClick={() => setReplaceModal({isOpen: false, toolId: null})} className="flex-1 py-3 text-slate-500 font-bold uppercase text-xs rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Annuleren</button>
-                            <button onClick={confirmReplace} disabled={!replaceReason.trim()} className="flex-2 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-black uppercase text-xs tracking-widest shadow-lg disabled:opacity-50 transition-all">Vervangen & Loggen</button>
+                            <button onClick={() => setReplaceModal({isOpen: false, toolId: null})} className="flex-1 py-3 text-slate-500 font-bold uppercase text-xs rounded-[2rem] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Annuleren</button>
+                            <button onClick={confirmReplace} disabled={!replaceReason.trim()} className="flex-2 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-[2rem] font-black uppercase text-xs tracking-widest shadow-lg disabled:opacity-50 transition-all">Vervangen & Loggen</button>
                         </div>
                     </div>
                 </div>

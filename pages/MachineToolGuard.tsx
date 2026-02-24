@@ -308,7 +308,7 @@ export const MachineToolGuard: React.FC = () => {
                                         className={`p-4 rounded-[2rem] border-2 transition-all text-left relative overflow-hidden group hover:scale-[1.03] active:scale-95 flex flex-col justify-between h-32 ${getToolColors(stat)} ${isCurrent ? 'ring-2 ring-white/20' : 'opacity-80 hover:opacity-100'}`}
                                     >
                                         <div className="flex justify-between items-start">
-                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xl ${isCurrent ? 'bg-white text-slate-950 shadow-lg' : 'bg-black/20 text-current'}`}>T{stat.toolNumber}</div>
+                                            <div className={`w-10 h-10 rounded-[2rem] flex items-center justify-center font-black text-xl ${isCurrent ? 'bg-white text-slate-950 shadow-lg' : 'bg-black/20 text-current'}`}>T{stat.toolNumber}</div>
                                             {stat.status === 'LEARNING' && <RefreshCw size={14} className="animate-spin opacity-50" />}
                                             {stat.status === 'WARNING' && <ShieldAlert size={20} className="text-red-500 animate-bounce" />}
                                         </div>

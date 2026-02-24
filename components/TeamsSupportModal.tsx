@@ -115,7 +115,7 @@ export const TeamsSupportModal: React.FC<TeamsSupportModalProps> = ({ isOpen, on
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
                     {/* Status Feedback */}
                     {status && (
-                        <div className={`p-3 rounded-lg text-sm font-bold flex items-center gap-2 ${status.success ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        <div className={`p-3 rounded-2xl text-sm font-bold flex items-center gap-2 ${status.success ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                             {status.success ? <Info size={16} /> : <AlertTriangle size={16} />}
                             {status.msg}
                         </div>
@@ -126,7 +126,7 @@ export const TeamsSupportModal: React.FC<TeamsSupportModalProps> = ({ isOpen, on
                         <div className="relative">
                             <User size={16} className="absolute left-3 top-3.5 text-slate-400" />
                             <select 
-                                className="w-full pl-9 p-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white outline-none focus:border-purple-500"
+                                className="w-full pl-9 p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white outline-none focus:border-purple-500"
                                 value={targetManager}
                                 onChange={e => setTargetManager(e.target.value)}
                             >
@@ -142,7 +142,7 @@ export const TeamsSupportModal: React.FC<TeamsSupportModalProps> = ({ isOpen, on
                         <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Onderwerp</label>
                         <select 
                             required
-                            className="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white outline-none focus:border-purple-500"
+                            className="w-full p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white outline-none focus:border-purple-500"
                             value={subject}
                             onChange={e => setSubject(e.target.value)}
                         >
@@ -156,7 +156,7 @@ export const TeamsSupportModal: React.FC<TeamsSupportModalProps> = ({ isOpen, on
                         <div className="relative">
                             <Monitor size={16} className="absolute left-3 top-3.5 text-slate-400" />
                             <select 
-                                className="w-full pl-9 p-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white outline-none focus:border-purple-500"
+                                className="w-full pl-9 p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white outline-none focus:border-purple-500"
                                 value={selectedMachineId}
                                 onChange={e => setSelectedMachineId(e.target.value)}
                             >
@@ -173,7 +173,7 @@ export const TeamsSupportModal: React.FC<TeamsSupportModalProps> = ({ isOpen, on
                         <textarea 
                             required
                             rows={4}
-                            className="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-transparent dark:text-white outline-none focus:border-purple-500"
+                            className="w-full p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-transparent dark:text-white outline-none focus:border-purple-500"
                             placeholder="Typ hier uw bericht..."
                             value={message}
                             onChange={e => setMessage(e.target.value)}
@@ -186,7 +186,7 @@ export const TeamsSupportModal: React.FC<TeamsSupportModalProps> = ({ isOpen, on
                             <MapPin size={16} className="absolute left-3 top-3.5 text-slate-400" />
                             <input 
                                 type="text"
-                                className="w-full pl-9 p-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-transparent dark:text-white outline-none focus:border-purple-500"
+                                className="w-full pl-9 p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-transparent dark:text-white outline-none focus:border-purple-500"
                                 placeholder="Bijv. Hal 3, Stelling A"
                                 value={location}
                                 onChange={e => setLocation(e.target.value)}
@@ -200,14 +200,14 @@ export const TeamsSupportModal: React.FC<TeamsSupportModalProps> = ({ isOpen, on
                             <button
                                 type="button" 
                                 onClick={() => setUrgency('NORMAL')}
-                                className={`flex-1 p-3 rounded-xl border-2 font-bold transition-all ${urgency === 'NORMAL' ? 'bg-blue-50 border-blue-500 text-blue-700 dark:bg-blue-900/20 dark:text-blue-200' : 'border-slate-200 dark:border-slate-600 text-slate-500'}`}
+                                className={`flex-1 p-3 rounded-[2rem] border-2 font-bold transition-all ${urgency === 'NORMAL' ? 'bg-blue-50 border-blue-500 text-blue-700 dark:bg-blue-900/20 dark:text-blue-200' : 'border-slate-200 dark:border-slate-600 text-slate-500'}`}
                             >
                                 <span className="flex justify-center items-center gap-2"><Info size={16} /> Normaal</span>
                             </button>
                             <button
                                 type="button" 
                                 onClick={() => setUrgency('HIGH')}
-                                className={`flex-1 p-3 rounded-xl border-2 font-bold transition-all ${urgency === 'HIGH' ? 'bg-red-50 border-red-500 text-red-700 dark:bg-red-900/20 dark:text-blue-200' : 'border-slate-200 dark:border-slate-600 text-slate-500'}`}
+                                className={`flex-1 p-3 rounded-[2rem] border-2 font-bold transition-all ${urgency === 'HIGH' ? 'bg-red-50 border-red-500 text-red-700 dark:bg-red-900/20 dark:text-blue-200' : 'border-slate-200 dark:border-slate-600 text-slate-500'}`}
                             >
                                 <span className="flex justify-center items-center gap-2"><AlertTriangle size={16} /> Spoed</span>
                             </button>
@@ -218,7 +218,7 @@ export const TeamsSupportModal: React.FC<TeamsSupportModalProps> = ({ isOpen, on
                         <button 
                             type="submit" 
                             disabled={isSending}
-                            className="w-full py-3 bg-[#464EB8] hover:bg-[#3b429c] text-white font-bold rounded-xl shadow-lg shadow-purple-500/20 flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+                            className="w-full py-3 bg-[#464EB8] hover:bg-[#3b429c] text-white font-bold rounded-[2rem] shadow-lg shadow-purple-500/20 flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
                         >
                             {isSending ? 'Verzenden...' : <><Send size={18} /> Verstuur naar Teams & Opslaan</>}
                         </button>

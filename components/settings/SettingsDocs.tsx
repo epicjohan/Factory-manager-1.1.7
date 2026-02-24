@@ -201,7 +201,7 @@ export const SettingsDocs: React.FC = () => {
                             <h4 className="font-black text-slate-900 dark:text-white uppercase tracking-widest text-[10px] bg-slate-200 dark:bg-slate-800 px-4 py-2 rounded-full">
                                 {editingId ? 'Categorie Bewerken' : 'Nieuwe Categorie Aanmaken'}
                             </h4>
-                            <button onClick={resetForm} className="text-slate-400 hover:text-red-500 bg-white dark:bg-slate-800 p-2 rounded-xl transition-colors"><X size={16} /></button>
+                            <button onClick={resetForm} className="text-slate-400 hover:text-red-500 bg-white dark:bg-slate-800 p-2 rounded-[2rem] transition-colors"><X size={16} /></button>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -296,13 +296,13 @@ export const SettingsDocs: React.FC = () => {
                     {categories.map(cat => (
                         <div key={cat.id} className={`flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:border-blue-300 dark:hover:border-blue-800 ${cat.isSystem ? 'bg-slate-100/50 dark:bg-slate-800/50' : ''}`}>
                             <div className="flex items-center gap-5">
-                                <div className={`p-4 rounded-xl shadow-inner ${cat.color || 'bg-slate-100 text-slate-500'} bg-white dark:bg-slate-800`}>
+                                <div className={`p-4 rounded-[2rem] shadow-inner ${cat.color || 'bg-slate-100 text-slate-500'} bg-white dark:bg-slate-800`}>
                                     {renderIcon(cat.icon)}
                                 </div>
                                 <div>
                                     <div className="flex items-center gap-2">
                                         <h5 className="font-bold text-slate-900 dark:text-white text-sm">{cat.name}</h5>
-                                        {cat.isSystem && <span className="text-[9px] uppercase tracking-widest font-black bg-blue-100 text-blue-600 px-2 py-0.5 rounded-md">Systeem</span>}
+                                        {cat.isSystem && <span className="text-[9px] uppercase tracking-widest font-black bg-blue-100 text-blue-600 px-2 py-0.5 rounded-[2rem]">Systeem</span>}
                                     </div>
                                     <div className="flex items-center gap-3 mt-1 text-xs text-slate-500">
                                         <span className="font-mono bg-slate-200 dark:bg-slate-800 px-1.5 rounded">{cat.code}</span>
@@ -315,12 +315,12 @@ export const SettingsDocs: React.FC = () => {
                             </div>
 
                             <div className="flex items-center gap-1">
-                                <button onClick={() => handleOpenEdit(cat)} className="text-slate-400 hover:text-blue-600 hover:bg-blue-50 p-2 rounded-lg transition-colors" title="Bewerken">
+                                <button onClick={() => handleOpenEdit(cat)} className="text-slate-400 hover:text-blue-600 hover:bg-blue-50 p-2 rounded-2xl transition-colors" title="Bewerken">
                                     <Edit size={18} />
                                 </button>
 
                                 {!cat.isSystem && (
-                                    <button onClick={() => handleRemove(cat.id, !!cat.isSystem)} className="text-slate-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors" title="Verwijderen">
+                                    <button onClick={() => handleRemove(cat.id, !!cat.isSystem)} className="text-slate-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-2xl transition-colors" title="Verwijderen">
                                         <X size={18} />
                                     </button>
                                 )}
@@ -336,7 +336,7 @@ export const SettingsDocs: React.FC = () => {
             <div className="flex justify-end pt-4">
                 <button
                     onClick={handleSave}
-                    className={`px-8 py-3 rounded-xl shadow-lg font-bold flex items-center gap-2 transition-all ${saveStatus === 'saved' ? 'bg-green-600 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                    className={`px-8 py-3 rounded-[2rem] shadow-lg font-bold flex items-center gap-2 transition-all ${saveStatus === 'saved' ? 'bg-green-600 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
                 >
                     {saveStatus === 'saved' ? <CheckCircle size={20} /> : <Save size={20} />}
                     <span>{saveStatus === 'saved' ? 'Configuratie Opslaan' : 'Wijzigingen in DB Opslaan'}</span>

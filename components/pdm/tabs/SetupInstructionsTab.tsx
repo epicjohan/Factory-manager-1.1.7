@@ -54,7 +54,7 @@ export const SetupInstructionsTab: React.FC<SetupInstructionsTabProps> = ({
              <div className="flex justify-between items-center px-2">
                 <h4 className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic flex items-center gap-2"><ClipboardList size={14} className="text-teal-500" /> Werkinstructies</h4>
                 {!isLocked && (
-                    <button onClick={onAddStep} className="flex items-center gap-2 px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-black text-[11px] uppercase shadow-lg shadow-teal-500/20 transition-all"><Plus size={16}/> Stap Toevoegen</button>
+                    <button onClick={onAddStep} className="flex items-center gap-2 px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-[2rem] font-black text-[11px] uppercase shadow-lg shadow-teal-500/20 transition-all"><Plus size={16}/> Stap Toevoegen</button>
                 )}
             </div>
             <div className="space-y-3 pb-10">
@@ -76,7 +76,7 @@ export const SetupInstructionsTab: React.FC<SetupInstructionsTabProps> = ({
                         {!isLocked && (
                             <button 
                                 onClick={() => onDeleteStep(step.id)} 
-                                className="p-3 text-slate-200 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all opacity-0 group-hover/step:opacity-100 self-start"
+                                className="p-3 text-slate-200 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-[2rem] transition-all opacity-0 group-hover/step:opacity-100 self-start"
                             >
                                 <Trash2 size={20}/>
                             </button>

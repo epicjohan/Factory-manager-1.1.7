@@ -126,12 +126,12 @@ export const ToolBlock: React.FC<ToolBlockProps> = ({ tool, onUpdate, onDelete, 
     const isReplaced = tool.status === 'REPLACED';
 
     return (
-        <div className={`bg-white dark:bg-slate-800 border-2 rounded-xl overflow-hidden transition-all duration-200 ${isExpanded ? 'shadow-lg border-blue-500 dark:border-blue-500' : 'shadow-sm border-slate-200 dark:border-slate-700 hover:border-blue-300'} ${isReplaced ? 'opacity-60 grayscale-[0.8] border-slate-100 bg-slate-50' : ''}`}>
+        <div className={`bg-white dark:bg-slate-800 border-2 rounded-[2rem] overflow-hidden transition-all duration-200 ${isExpanded ? 'shadow-lg border-blue-500 dark:border-blue-500' : 'shadow-sm border-slate-200 dark:border-slate-700 hover:border-blue-300'} ${isReplaced ? 'opacity-60 grayscale-[0.8] border-slate-100 bg-slate-50' : ''}`}>
 
             {/* COMPACT ROW HEADER */}
             <div className="flex items-center gap-4 p-3 pr-4">
                 {/* LEFT: T-Number */}
-                <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-black text-sm shrink-0 shadow-sm ${disabled || isReplaced ? 'bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400' : 'bg-blue-600 text-white'}`}>
+                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-sm shrink-0 shadow-sm ${disabled || isReplaced ? 'bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400' : 'bg-blue-600 text-white'}`}>
                     T{tool.order}
                 </div>
 
@@ -164,7 +164,7 @@ export const ToolBlock: React.FC<ToolBlockProps> = ({ tool, onUpdate, onDelete, 
                         // LOCKED / RELEASED / REPLACED STATE -> VIEW ONLY
                         <button
                             onClick={() => setIsExpanded(!isExpanded)}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors ${isExpanded ? 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300' : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100'}`}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-bold uppercase tracking-wider transition-colors ${isExpanded ? 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300' : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100'}`}
                         >
                             <Eye size={14} /> Bekijken
                         </button>
@@ -173,14 +173,14 @@ export const ToolBlock: React.FC<ToolBlockProps> = ({ tool, onUpdate, onDelete, 
                         <>
                             <button
                                 onClick={() => setIsExpanded(!isExpanded)}
-                                className={`p-2 rounded-lg transition-colors ${isExpanded ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400' : 'text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700'}`}
+                                className={`p-2 rounded-2xl transition-colors ${isExpanded ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400' : 'text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700'}`}
                                 title="Bewerken"
                             >
                                 <Edit2 size={16} />
                             </button>
                             <button
                                 onClick={(e) => { e.stopPropagation(); onDelete(); }}
-                                className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-2xl transition-colors"
                                 title="Verwijderen"
                             >
                                 <Trash2 size={16} />
@@ -198,11 +198,11 @@ export const ToolBlock: React.FC<ToolBlockProps> = ({ tool, onUpdate, onDelete, 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div className="space-y-1">
                             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Omschrijving / Type</label>
-                            <input disabled={disabled || isReplaced} type="text" className="w-full p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-sm font-bold outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-60 disabled:border-transparent dark:text-white transition-all" value={tool.description} onChange={e => handleLegacyChange('description', e.target.value)} placeholder="Bijv. VHM Frees D10" />
+                            <input disabled={disabled || isReplaced} type="text" className="w-full p-3 rounded-[2rem] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-sm font-bold outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-60 disabled:border-transparent dark:text-white transition-all" value={tool.description} onChange={e => handleLegacyChange('description', e.target.value)} placeholder="Bijv. VHM Frees D10" />
                         </div>
                         <div className="space-y-1">
                             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Standtijd (ToolGuard)</label>
-                            <input disabled={disabled || isReplaced} type="text" className="w-full p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-sm font-bold text-orange-600 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-60 disabled:border-transparent disabled:text-slate-600" value={tool.lifeTime} onChange={e => handleLegacyChange('lifeTime', e.target.value)} placeholder="Min. / St." />
+                            <input disabled={disabled || isReplaced} type="text" className="w-full p-3 rounded-[2rem] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-sm font-bold text-orange-600 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-60 disabled:border-transparent disabled:text-slate-600" value={tool.lifeTime} onChange={e => handleLegacyChange('lifeTime', e.target.value)} placeholder="Min. / St." />
                         </div>
                     </div>
 
@@ -216,7 +216,7 @@ export const ToolBlock: React.FC<ToolBlockProps> = ({ tool, onUpdate, onDelete, 
 
                                 const spanClass = `col-span-12 md:col-span-${field.colSpan || 6}`;
 
-                                const inputBaseClass = "w-full p-3 rounded-xl border outline-none transition-all disabled:opacity-60 disabled:border-transparent";
+                                const inputBaseClass = "w-full p-3 rounded-[2rem] border outline-none transition-all disabled:opacity-60 disabled:border-transparent";
                                 const highlightClass = isHighlightActive
                                     ? "bg-amber-50 dark:bg-amber-900/30 border-amber-500 text-amber-900 dark:text-amber-100 font-black"
                                     : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-800 dark:text-white font-bold focus:border-blue-500";
@@ -232,7 +232,7 @@ export const ToolBlock: React.FC<ToolBlockProps> = ({ tool, onUpdate, onDelete, 
                                             <button
                                                 disabled={disabled || isReplaced}
                                                 onClick={() => handleDynamicChange(field.key, !val)}
-                                                className={`w-full p-3 rounded-xl border-2 font-black text-[10px] uppercase transition-all ${val ? 'bg-blue-50 border-blue-500 text-blue-600 shadow-inner' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-400'} disabled:opacity-60`}
+                                                className={`w-full p-3 rounded-[2rem] border-2 font-black text-[10px] uppercase transition-all ${val ? 'bg-blue-50 border-blue-500 text-blue-600 shadow-inner' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-400'} disabled:opacity-60`}
                                             >
                                                 {val ? 'JA' : 'NEE'}
                                             </button>
@@ -286,43 +286,43 @@ export const ToolBlock: React.FC<ToolBlockProps> = ({ tool, onUpdate, onDelete, 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
                             <div className="space-y-1">
                                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Snijlengte</label>
-                                <input disabled={disabled || isReplaced} type="text" className="w-full p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-sm font-bold outline-none focus:border-blue-500 disabled:opacity-60 disabled:border-transparent dark:text-white" value={tool.cuttingLength || ''} onChange={e => handleLegacyChange('cuttingLength', e.target.value)} />
+                                <input disabled={disabled || isReplaced} type="text" className="w-full p-3 rounded-[2rem] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-sm font-bold outline-none focus:border-blue-500 disabled:opacity-60 disabled:border-transparent dark:text-white" value={tool.cuttingLength || ''} onChange={e => handleLegacyChange('cuttingLength', e.target.value)} />
                             </div>
                             <div className="space-y-1">
                                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Vrijloop</label>
-                                <input disabled={disabled || isReplaced} type="text" className="w-full p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-sm font-bold outline-none focus:border-blue-500 disabled:opacity-60 disabled:border-transparent dark:text-white" value={tool.clearance || ''} onChange={e => handleLegacyChange('clearance', e.target.value)} />
+                                <input disabled={disabled || isReplaced} type="text" className="w-full p-3 rounded-[2rem] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-sm font-bold outline-none focus:border-blue-500 disabled:opacity-60 disabled:border-transparent dark:text-white" value={tool.clearance || ''} onChange={e => handleLegacyChange('clearance', e.target.value)} />
                             </div>
                             <div className="space-y-1">
                                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Interne Koeling</label>
-                                <button disabled={disabled || isReplaced} type="button" onClick={() => handleLegacyChange('internalCooling', !tool.internalCooling)} className={`w-full p-3 rounded-xl border-2 font-black text-[10px] uppercase transition-all ${tool.internalCooling ? 'bg-blue-50 border-blue-500 text-blue-600 shadow-inner' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-400'} disabled:opacity-60`}>
+                                <button disabled={disabled || isReplaced} type="button" onClick={() => handleLegacyChange('internalCooling', !tool.internalCooling)} className={`w-full p-3 rounded-[2rem] border-2 font-black text-[10px] uppercase transition-all ${tool.internalCooling ? 'bg-blue-50 border-blue-500 text-blue-600 shadow-inner' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-400'} disabled:opacity-60`}>
                                     {tool.internalCooling ? 'Ja (AAN)' : 'Nee (UIT)'}
                                 </button>
                             </div>
                             <div className="space-y-1">
                                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Matrix Code</label>
-                                <input disabled={disabled || isReplaced} type="text" className="w-full p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-sm font-mono font-bold text-blue-600 outline-none focus:border-blue-500 disabled:opacity-60 disabled:border-transparent disabled:text-slate-500" value={tool.matrixCode || ''} onChange={e => handleLegacyChange('matrixCode', e.target.value)} />
+                                <input disabled={disabled || isReplaced} type="text" className="w-full p-3 rounded-[2rem] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-sm font-mono font-bold text-blue-600 outline-none focus:border-blue-500 disabled:opacity-60 disabled:border-transparent disabled:text-slate-500" value={tool.matrixCode || ''} onChange={e => handleLegacyChange('matrixCode', e.target.value)} />
                             </div>
                             <div className="space-y-1">
                                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Uitsteek Lengte</label>
-                                <input disabled={disabled || isReplaced} type="text" className="w-full p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-sm font-bold outline-none focus:border-blue-500 disabled:opacity-60 disabled:border-transparent dark:text-white" value={tool.overhangLength || ''} onChange={e => handleLegacyChange('overhangLength', e.target.value)} />
+                                <input disabled={disabled || isReplaced} type="text" className="w-full p-3 rounded-[2rem] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-sm font-bold outline-none focus:border-blue-500 disabled:opacity-60 disabled:border-transparent dark:text-white" value={tool.overhangLength || ''} onChange={e => handleLegacyChange('overhangLength', e.target.value)} />
                             </div>
                             <div className="space-y-1">
                                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Houder</label>
-                                <input disabled={disabled || isReplaced} type="text" className="w-full p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-sm font-bold outline-none focus:border-blue-500 disabled:opacity-60 disabled:border-transparent dark:text-white" value={tool.holder || ''} onChange={e => handleLegacyChange('holder', e.target.value)} />
+                                <input disabled={disabled || isReplaced} type="text" className="w-full p-3 rounded-[2rem] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-sm font-bold outline-none focus:border-blue-500 disabled:opacity-60 disabled:border-transparent dark:text-white" value={tool.holder || ''} onChange={e => handleLegacyChange('holder', e.target.value)} />
                             </div>
                         </div>
                     )}
 
                     {/* Special Locked Actions Area */}
                     {disabled && !isReplaced && onReplace && (
-                        <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700 flex flex-col md:flex-row items-center justify-between gap-4 bg-orange-50/50 dark:bg-orange-900/10 p-4 rounded-xl">
+                        <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700 flex flex-col md:flex-row items-center justify-between gap-4 bg-orange-50/50 dark:bg-orange-900/10 p-4 rounded-[2rem]">
                             <div className="flex items-center gap-3 text-orange-600 dark:text-orange-400">
                                 <AlertTriangle size={20} />
                                 <span className="text-xs font-bold">Setup is vrijgegeven (Released). Wijzigingen vereisen een revisie.</span>
                             </div>
                             <button
                                 onClick={onReplace}
-                                className="px-6 py-2 bg-white dark:bg-slate-800 text-orange-600 border border-orange-200 dark:border-orange-800 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-orange-50 dark:hover:bg-orange-900/30 transition-all flex items-center gap-2 shadow-sm"
+                                className="px-6 py-2 bg-white dark:bg-slate-800 text-orange-600 border border-orange-200 dark:border-orange-800 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-orange-50 dark:hover:bg-orange-900/30 transition-all flex items-center gap-2 shadow-sm"
                             >
                                 <RotateCcw size={14} /> Vervang Gereedschap
                             </button>

@@ -71,7 +71,7 @@ const CodeBlock = ({ children, label, language = 'PYTHON' }: React.PropsWithChil
                 </div>
                 <button 
                     onClick={handleCopy} 
-                    className={`text-[10px] font-black uppercase transition-all flex items-center gap-2 px-4 py-2 rounded-xl ${copied ? 'text-white bg-emerald-600 shadow-lg shadow-emerald-500/20' : 'text-blue-400 hover:text-white hover:bg-white/5'}`}
+                    className={`text-[10px] font-black uppercase transition-all flex items-center gap-2 px-4 py-2 rounded-[2rem] ${copied ? 'text-white bg-emerald-600 shadow-lg shadow-emerald-500/20' : 'text-blue-400 hover:text-white hover:bg-white/5'}`}
                 >
                     {copied ? <CheckCircle size={14} /> : <Copy size={14} />}
                     {copied ? 'Gekopieerd!' : 'Kopieer Script'}
@@ -143,7 +143,7 @@ const CollectionSpec = ({ name, desc, fields, icon: Icon, color }: any) => {
         <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden mb-3 shadow-sm">
             <button onClick={() => setIsOpen(!isOpen)} className="w-full p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
                 <div className="flex items-center gap-4">
-                    <div className={`p-2.5 rounded-xl ${color} text-white shadow-lg shadow-current/10`}><Icon size={20} /></div>
+                    <div className={`p-2.5 rounded-[2rem] ${color} text-white shadow-lg shadow-current/10`}><Icon size={20} /></div>
                     <div className="text-left">
                         <h4 className="font-mono font-black text-slate-900 dark:text-white uppercase tracking-tighter">{name}</h4>
                         <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{desc}</p>
@@ -209,7 +209,7 @@ export const SuperAdminHelp: React.FC = () => {
                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                  {HARDWARE_SPECS.map(spec => (
                                      <div key={spec.title} className="p-5 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start gap-4">
-                                         <div className="p-3 bg-white dark:bg-slate-800 rounded-xl shadow-sm text-blue-500"><spec.icon size={20} /></div>
+                                         <div className="p-3 bg-white dark:bg-slate-800 rounded-[2rem] shadow-sm text-blue-500"><spec.icon size={20} /></div>
                                          <div>
                                              <h4 className="font-bold text-slate-800 dark:text-slate-100">{spec.title}</h4>
                                              <div className="text-[11px] font-black text-blue-600 uppercase tracking-widest mt-1 mb-2">{spec.spec}</div>

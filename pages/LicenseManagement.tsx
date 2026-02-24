@@ -71,7 +71,7 @@ export const LicenseManagement: React.FC = () => {
                         <Layers size={24} className="text-indigo-500" />
                         Software Modules
                     </h2>
-                    <button onClick={handleSaveModules} className={`px-8 py-3 rounded-xl font-bold text-white shadow-lg transition-all ${isSaved ? 'bg-green-600 scale-95' : 'bg-blue-600 hover:bg-blue-700'}`}>
+                    <button onClick={handleSaveModules} className={`px-8 py-3 rounded-[2rem] font-bold text-white shadow-lg transition-all ${isSaved ? 'bg-green-600 scale-95' : 'bg-blue-600 hover:bg-blue-700'}`}>
                         {isSaved ? 'Instellingen Opgeslagen' : 'Wijzigingen Bevestigen'}
                     </button>
                 </div>
@@ -87,7 +87,7 @@ export const LicenseManagement: React.FC = () => {
                             className={`group flex items-center justify-between p-6 rounded-2xl border-2 transition-all cursor-pointer ${activeModules.includes(mod.id) ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/10 shadow-lg shadow-blue-500/5' : 'border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600'}`}
                         >
                             <div className="flex items-center gap-4">
-                                <div className={`p-3 rounded-xl transition-colors ${activeModules.includes(mod.id) ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'bg-slate-100 dark:bg-slate-700 text-slate-400 group-hover:bg-slate-200'}`}>
+                                <div className={`p-3 rounded-[2rem] transition-colors ${activeModules.includes(mod.id) ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'bg-slate-100 dark:bg-slate-700 text-slate-400 group-hover:bg-slate-200'}`}>
                                     <mod.icon size={24} />
                                 </div>
                                 <div className="text-left">
@@ -101,7 +101,7 @@ export const LicenseManagement: React.FC = () => {
                 </div>
 
                 <div className="mt-10 p-6 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start gap-4">
-                    <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600"><Info size={20} /></div>
+                    <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-2xl text-blue-600"><Info size={20} /></div>
                     <div className="text-sm text-slate-500 leading-relaxed">
                         <strong>Let op:</strong> Het in- of uitschakelen van modules heeft direct invloed op de UI navigatie van alle gebruikers. De <strong>CORE</strong> module kan niet worden uitgeschakeld aangezien deze de fundering van het systeem bevat.
                     </div>

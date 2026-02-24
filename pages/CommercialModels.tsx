@@ -161,16 +161,16 @@ export const CommercialModels: React.FC = () => {
             </p>
           </div>
 
-          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-full border border-slate-200 dark:border-slate-700">
               <button 
                   onClick={() => setActiveTab('PRICING')}
-                  className={`px-6 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 transition-all ${activeTab === 'PRICING' ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                  className={`px-6 py-2.5 rounded-full text-sm font-bold flex items-center gap-2 transition-all ${activeTab === 'PRICING' ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
               >
                   <Calculator size={16} /> Prijscalculator
               </button>
               <button 
                   onClick={() => setActiveTab('ROI')}
-                  className={`px-6 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 transition-all ${activeTab === 'ROI' ? 'bg-white dark:bg-slate-700 text-emerald-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                  className={`px-6 py-2.5 rounded-full text-sm font-bold flex items-center gap-2 transition-all ${activeTab === 'ROI' ? 'bg-white dark:bg-slate-700 text-emerald-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
               >
                   <TrendingUp size={16} /> ROI Tool
               </button>
@@ -181,7 +181,7 @@ export const CommercialModels: React.FC = () => {
           
           {/* LEFT COLUMN: SHARED CONFIG (ALWAYS VISIBLE) */}
           <div className="xl:col-span-3 space-y-6">
-              <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-lg">
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-700 shadow-lg">
                   <h3 className="font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-4">
                       <Settings size={20} className="text-slate-500" />
                       Scope Bepaling
@@ -199,29 +199,29 @@ export const CommercialModels: React.FC = () => {
                               type="range" min="1" max="50" 
                               value={numMachines} 
                               onChange={e => setNumMachines(parseInt(e.target.value))}
-                              className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                              className="w-full h-2 bg-slate-200 rounded-2xl appearance-none cursor-pointer accent-blue-600"
                           />
                       </div>
 
                       <div className="space-y-3">
                           <label className="block text-xs font-bold text-slate-500 uppercase">Gewenste Modules</label>
                           
-                          <label className="flex items-center justify-between p-3 border rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors border-slate-200 dark:border-slate-700">
+                          <label className="flex items-center justify-between p-3 border rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors border-slate-200 dark:border-slate-700">
                               <span className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2"><Zap size={16} className="text-yellow-500"/> Energie (P1)</span>
                               <input type="checkbox" checked={includeEnergy} onChange={e => setIncludeEnergy(e.target.checked)} className="w-5 h-5 text-blue-600 rounded" />
                           </label>
 
-                          <label className="flex items-center justify-between p-3 border rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors border-slate-200 dark:border-slate-700">
+                          <label className="flex items-center justify-between p-3 border rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors border-slate-200 dark:border-slate-700">
                               <span className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2"><Wrench size={16} className="text-orange-500"/> Planner</span>
                               <input type="checkbox" checked={includePlanning} onChange={e => setIncludePlanning(e.target.checked)} className="w-5 h-5 text-blue-600 rounded" />
                           </label>
 
-                          <label className="flex items-center justify-between p-3 border rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors border-slate-200 dark:border-slate-700">
+                          <label className="flex items-center justify-between p-3 border rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors border-slate-200 dark:border-slate-700">
                               <span className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2"><Server size={16} className="text-purple-500"/> Voorraad</span>
                               <input type="checkbox" checked={includeInventory} onChange={e => setIncludeInventory(e.target.checked)} className="w-5 h-5 text-blue-600 rounded" />
                           </label>
 
-                          <label className="flex items-center justify-between p-3 border rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors border-slate-200 dark:border-slate-700">
+                          <label className="flex items-center justify-between p-3 border rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors border-slate-200 dark:border-slate-700">
                               <span className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2"><RefreshCw size={16} className="text-teal-500"/> Andon TV</span>
                               <input type="checkbox" checked={includeAndon} onChange={e => setIncludeAndon(e.target.checked)} className="w-5 h-5 text-blue-600 rounded" />
                           </label>
@@ -230,7 +230,7 @@ export const CommercialModels: React.FC = () => {
               </div>
               
               {/* Setup Cost Explanation */}
-              <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+              <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
                   <h4 className="font-bold text-slate-700 dark:text-slate-300 text-xs uppercase mb-2 flex items-center gap-2">
                       <Box size={14} /> Hardware & Setup
                   </h4>
@@ -253,11 +253,11 @@ export const CommercialModels: React.FC = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                           
                           {/* MODEL A: SAAS */}
-                          <div className="bg-white dark:bg-slate-800 rounded-2xl border-2 border-indigo-500 shadow-xl overflow-hidden flex flex-col transform hover:-translate-y-1 transition-all">
+                          <div className="bg-white dark:bg-slate-800 rounded-[2rem] border-2 border-indigo-500 shadow-xl overflow-hidden flex flex-col transform hover:-translate-y-1 transition-all">
                               <div className="bg-indigo-600 text-white p-2 text-center text-xs font-bold uppercase tracking-widest">Aanbevolen voor MKB</div>
                               <div className="p-8 flex-1 flex flex-col">
                                   <div className="flex items-center gap-3 mb-4">
-                                      <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl text-indigo-600 dark:text-indigo-400">
+                                      <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-2xl text-indigo-600 dark:text-indigo-400">
                                           <Cloud size={32} />
                                       </div>
                                       <div>
@@ -271,7 +271,7 @@ export const CommercialModels: React.FC = () => {
                                       <span className="text-slate-500 font-medium"> / maand</span>
                                   </div>
 
-                                  <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 mb-6 border border-slate-100 dark:border-slate-700 flex-1">
+                                  <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-4 mb-6 border border-slate-100 dark:border-slate-700 flex-1">
                                       <h4 className="text-xs font-bold text-slate-400 uppercase mb-3">Prijsopbouw (Maandelijks)</h4>
                                       <PriceRow label="Basis Licentie (Core)" value={`€ ${pricing.saas.monthlyBase}`} subtext="Hosting, Updates, Backups" />
                                       <PriceRow label={`Asset Fee (${numMachines}x)`} value={`€ ${pricing.saas.monthlyAssets}`} subtext={`€ ${SAAS_PER_ASSET} per machine`} />
@@ -283,7 +283,7 @@ export const CommercialModels: React.FC = () => {
                                       </div>
                                   </div>
 
-                                  <div className="bg-indigo-50 dark:bg-indigo-900/10 p-4 rounded-xl mb-6">
+                                  <div className="bg-indigo-50 dark:bg-indigo-900/10 p-4 rounded-2xl mb-6">
                                       <h4 className="text-xs font-bold text-indigo-800 dark:text-indigo-300 uppercase mb-2">Total Cost of Ownership (TCO)</h4>
                                       <div className="flex justify-between text-sm mb-1">
                                           <span className="text-slate-600 dark:text-slate-400">Na 1 jaar:</span>
@@ -304,10 +304,10 @@ export const CommercialModels: React.FC = () => {
                           </div>
 
                           {/* MODEL B: PERPETUAL */}
-                          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-lg flex flex-col relative overflow-hidden transform hover:-translate-y-1 transition-all">
+                          <div className="bg-white dark:bg-slate-800 rounded-[2rem] border border-slate-200 dark:border-slate-700 shadow-lg flex flex-col relative overflow-hidden transform hover:-translate-y-1 transition-all">
                               <div className="p-8 flex-1 flex flex-col">
                                   <div className="flex items-center gap-3 mb-4">
-                                      <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl text-emerald-600 dark:text-emerald-400">
+                                      <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl text-emerald-600 dark:text-emerald-400">
                                           <HardDrive size={32} />
                                       </div>
                                       <div>
@@ -321,7 +321,7 @@ export const CommercialModels: React.FC = () => {
                                       <span className="text-slate-500 font-medium"> / eenmalig</span>
                                   </div>
 
-                                  <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 mb-6 border border-slate-100 dark:border-slate-700 flex-1">
+                                  <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-4 mb-6 border border-slate-100 dark:border-slate-700 flex-1">
                                       <h4 className="text-xs font-bold text-slate-400 uppercase mb-3">Prijsopbouw (Eenmalig)</h4>
                                       <PriceRow label="Software Licentie (Core)" value={`€ ${PERP_BASE_LICENSE}`} />
                                       <PriceRow label={`Asset Licenties (${numMachines}x)`} value={`€ ${numMachines * PERP_PER_ASSET}`} subtext={`€ ${PERP_PER_ASSET} per machine`} />
@@ -338,7 +338,7 @@ export const CommercialModels: React.FC = () => {
                                       </div>
                                   </div>
 
-                                  <div className="bg-emerald-50 dark:bg-emerald-900/10 p-4 rounded-xl mb-6">
+                                  <div className="bg-emerald-50 dark:bg-emerald-900/10 p-4 rounded-2xl mb-6">
                                       <h4 className="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase mb-2">Total Cost of Ownership (TCO)</h4>
                                       <div className="flex justify-between text-sm mb-1">
                                           <span className="text-slate-600 dark:text-slate-400">Na 1 jaar:</span>
@@ -360,7 +360,7 @@ export const CommercialModels: React.FC = () => {
                       </div>
 
                       {/* MODULE DESCRIPTION SECTION */}
-                      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                      <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
                           <div className="p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
                               <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
                                   <ListChecks size={20} className="text-blue-500" />
@@ -371,7 +371,7 @@ export const CommercialModels: React.FC = () => {
                           <div className="divide-y divide-slate-100 dark:divide-slate-700">
                               <div className="p-6 grid grid-cols-1 md:grid-cols-4 gap-6 hover:bg-slate-50 dark:hover:bg-slate-700/20 transition-colors">
                                   <div className="flex items-start gap-3">
-                                      <div className="bg-slate-200 dark:bg-slate-700 p-2 rounded-lg text-slate-600 dark:text-slate-300"><Layers size={24} /></div>
+                                      <div className="bg-slate-200 dark:bg-slate-700 p-2 rounded-[2rem] text-slate-600 dark:text-slate-300"><Layers size={24} /></div>
                                       <div><h4 className="font-bold text-slate-800 dark:text-white">CORE Licentie</h4><span className="text-[10px] uppercase font-bold text-slate-400">Basis (Verplicht)</span></div>
                                   </div>
                                   <div className="md:col-span-3 text-sm text-slate-600 dark:text-slate-300 space-y-2">
@@ -387,7 +387,7 @@ export const CommercialModels: React.FC = () => {
 
                               <div className="p-6 grid grid-cols-1 md:grid-cols-4 gap-6 hover:bg-slate-50 dark:hover:bg-slate-700/20 transition-colors">
                                   <div className="flex items-start gap-3">
-                                      <div className="bg-yellow-100 dark:bg-yellow-900/30 p-2 rounded-lg text-yellow-600 dark:text-yellow-400"><Zap size={24} /></div>
+                                      <div className="bg-yellow-100 dark:bg-yellow-900/30 p-2 rounded-[2rem] text-yellow-600 dark:text-yellow-400"><Zap size={24} /></div>
                                       <div><h4 className="font-bold text-slate-800 dark:text-white">Energy</h4><span className="text-[10px] uppercase font-bold text-slate-400">Module</span></div>
                                   </div>
                                   <div className="md:col-span-3 text-sm text-slate-600 dark:text-slate-300">
@@ -401,7 +401,7 @@ export const CommercialModels: React.FC = () => {
 
                               <div className="p-6 grid grid-cols-1 md:grid-cols-4 gap-6 hover:bg-slate-50 dark:hover:bg-slate-700/20 transition-colors">
                                   <div className="flex items-start gap-3">
-                                      <div className="bg-orange-100 dark:bg-orange-900/30 p-2 rounded-lg text-orange-600 dark:text-orange-400"><Wrench size={24} /></div>
+                                      <div className="bg-orange-100 dark:bg-orange-900/30 p-2 rounded-[2rem] text-orange-600 dark:text-orange-400"><Wrench size={24} /></div>
                                       <div><h4 className="font-bold text-slate-800 dark:text-white">Planner</h4><span className="text-[10px] uppercase font-bold text-slate-400">Module</span></div>
                                   </div>
                                   <div className="md:col-span-3 text-sm text-slate-600 dark:text-slate-300">
@@ -411,7 +411,7 @@ export const CommercialModels: React.FC = () => {
 
                               <div className="p-6 grid grid-cols-1 md:grid-cols-4 gap-6 hover:bg-slate-50 dark:hover:bg-slate-700/20 transition-colors">
                                   <div className="flex items-start gap-3">
-                                      <div className="bg-purple-100 dark:bg-purple-900/30 p-2 rounded-lg text-purple-600 dark:text-purple-400"><Server size={24} /></div>
+                                      <div className="bg-purple-100 dark:bg-purple-900/30 p-2 rounded-[2rem] text-purple-600 dark:text-purple-400"><Server size={24} /></div>
                                       <div><h4 className="font-bold text-slate-800 dark:text-white">Inventory</h4><span className="text-[10px] uppercase font-bold text-slate-400">Module</span></div>
                                   </div>
                                   <div className="md:col-span-3 text-sm text-slate-600 dark:text-slate-300">
@@ -421,7 +421,7 @@ export const CommercialModels: React.FC = () => {
 
                               <div className="p-6 grid grid-cols-1 md:grid-cols-4 gap-6 hover:bg-slate-50 dark:hover:bg-slate-700/20 transition-colors">
                                   <div className="flex items-start gap-3">
-                                      <div className="bg-teal-100 dark:bg-teal-900/30 p-2 rounded-lg text-teal-600 dark:text-teal-400"><RefreshCw size={24} /></div>
+                                      <div className="bg-teal-100 dark:bg-teal-900/30 p-2 rounded-[2rem] text-teal-600 dark:text-teal-400"><RefreshCw size={24} /></div>
                                       <div><h4 className="font-bold text-slate-800 dark:text-white">Andon TV</h4><span className="text-[10px] uppercase font-bold text-slate-400">Module</span></div>
                                   </div>
                                   <div className="md:col-span-3 text-sm text-slate-600 dark:text-slate-300">
@@ -438,14 +438,14 @@ export const CommercialModels: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
                       
                       {/* INPUTS */}
-                      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+                      <div className="bg-white dark:bg-slate-800 rounded-[2rem] border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
                           <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
                               <Target size={20} className="text-blue-500" />
                               Huidige Situatie (Klant)
                           </h3>
                           <div className="space-y-6">
                               
-                              <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                              <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-[2rem] border border-slate-200 dark:border-slate-700">
                                   <h4 className="font-bold text-sm text-slate-700 dark:text-slate-200 mb-3 flex items-center gap-2">
                                       <Wrench size={16} /> Machine Stilstand
                                   </h4>
@@ -465,7 +465,7 @@ export const CommercialModels: React.FC = () => {
                                   </div>
                               </div>
 
-                              <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                              <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-[2rem] border border-slate-200 dark:border-slate-700">
                                   <h4 className="font-bold text-sm text-slate-700 dark:text-slate-200 mb-3 flex items-center gap-2">
                                       <Clock size={16} /> Administratie & Planning
                                   </h4>
@@ -484,7 +484,7 @@ export const CommercialModels: React.FC = () => {
                                   </div>
                               </div>
 
-                              <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                              <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-[2rem] border border-slate-200 dark:border-slate-700">
                                   <h4 className="font-bold text-sm text-slate-700 dark:text-slate-200 mb-3 flex items-center gap-2">
                                       <Truck size={16} /> Logistiek & Ondersteuning
                                   </h4>
@@ -508,7 +508,7 @@ export const CommercialModels: React.FC = () => {
                       </div>
 
                       {/* RESULTS */}
-                      <div className="bg-emerald-50 dark:bg-emerald-900/10 rounded-2xl border-2 border-emerald-200 dark:border-emerald-800 p-6 shadow-lg flex flex-col relative overflow-hidden">
+                      <div className="bg-emerald-50 dark:bg-emerald-900/10 rounded-[2.5rem] border-2 border-emerald-200 dark:border-emerald-800 p-6 shadow-lg flex flex-col relative overflow-hidden">
                           <div className="absolute top-0 right-0 p-6 opacity-10">
                               <PieChart size={120} className="text-emerald-600" />
                           </div>
@@ -519,14 +519,14 @@ export const CommercialModels: React.FC = () => {
                           </h3>
 
                           <div className="space-y-6 flex-1">
-                              <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-emerald-100 dark:border-emerald-900 shadow-sm">
+                              <div className="bg-white dark:bg-slate-800 p-4 rounded-[2rem] border border-emerald-100 dark:border-emerald-900 shadow-sm">
                                   <div className="text-xs text-slate-500 uppercase font-bold mb-1">Huidige Verspilling (per maand)</div>
                                   <div className="text-2xl font-black text-red-500">€ {((roi.currentDowntimeCost + roi.currentAdminCost + roi.currentLogisticsCost)).toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})}</div>
                                   <div className="text-xs text-slate-400 mt-1">Stilstand + Admin + Logistiek</div>
                               </div>
 
                               <div className="flex items-center gap-4">
-                                  <div className="flex-1 bg-white dark:bg-slate-800 p-4 rounded-xl border border-emerald-100 dark:border-emerald-900 shadow-sm">
+                                  <div className="flex-1 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-emerald-100 dark:border-emerald-900 shadow-sm">
                                       <div className="text-xs text-emerald-600 uppercase font-bold mb-1">Verwachte Besparing</div>
                                       <div className="text-3xl font-black text-emerald-600">€ {roi.totalMonthlySavings.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})}</div>
                                       <div className="text-[10px] text-emerald-500 mt-1 font-medium">per maand</div>
@@ -549,7 +549,7 @@ export const CommercialModels: React.FC = () => {
                               </div>
                           </div>
 
-                          <div className="mt-8 bg-emerald-600 text-white p-6 rounded-xl shadow-lg text-center transform hover:scale-[1.02] transition-transform">
+                          <div className="mt-8 bg-emerald-600 text-white p-6 rounded-[2rem] shadow-lg text-center transform hover:scale-[1.02] transition-transform">
                               <div className="text-sm font-medium opacity-90 uppercase tracking-widest mb-1">Terugverdientijd (ROI)</div>
                               <div className="text-5xl font-black mb-2">{roi.paybackSaaS.toFixed(1)} <span className="text-2xl font-normal">maanden</span></div>
                               <div className="text-xs opacity-80 bg-emerald-700 inline-block px-3 py-1 rounded-full">

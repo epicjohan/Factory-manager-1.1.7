@@ -39,7 +39,7 @@ export const RevisionWizardModal: React.FC<RevisionWizardModalProps> = ({
                 </div>
 
                 <div className="p-8 space-y-6">
-                    <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800 flex gap-4">
+                    <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-[2rem] border border-blue-100 dark:border-blue-800 flex gap-4">
                         <AlertTriangle className="text-blue-600 shrink-0" size={24} />
                         <div className="text-xs text-blue-800 dark:text-blue-200 leading-relaxed">
                             <strong>Let op:</strong> De huidige versie wordt gearchiveerd (Old/Blauw) en is niet meer aanpasbaar. Er wordt een nieuwe kopie gemaakt met status <strong>Draft</strong> waarin u wijzigingen kunt doorvoeren.
@@ -53,7 +53,7 @@ export const RevisionWizardModal: React.FC<RevisionWizardModalProps> = ({
                         <textarea 
                             autoFocus
                             rows={3}
-                            className="w-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium text-slate-800 dark:text-white outline-none focus:border-blue-500 transition-all text-sm"
+                            className="w-full p-4 rounded-[2rem] border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium text-slate-800 dark:text-white outline-none focus:border-blue-500 transition-all text-sm"
                             placeholder="Bijv. Cyclus optimalisatie, nieuw gereedschap..."
                             value={reason}
                             onChange={(e) => setReason(e.target.value)}
@@ -62,10 +62,10 @@ export const RevisionWizardModal: React.FC<RevisionWizardModalProps> = ({
                 </div>
 
                 <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex gap-4">
-                    <button onClick={onClose} className="flex-1 py-4 text-slate-500 font-bold uppercase text-xs tracking-widest hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl transition-colors">
+                    <button onClick={onClose} className="flex-1 py-4 text-slate-500 font-bold uppercase text-xs tracking-widest hover:bg-slate-200 dark:hover:bg-slate-800 rounded-[2rem] transition-colors">
                         Annuleren
                     </button>
-                    <button onClick={handleConfirm} disabled={!reason.trim()} className="flex-[2] py-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl font-black uppercase text-xs tracking-widest shadow-xl transition-all active:scale-95">
+                    <button onClick={handleConfirm} disabled={!reason.trim()} className="flex-[2] py-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-[2rem] font-black uppercase text-xs tracking-widest shadow-xl transition-all active:scale-95">
                         Start Versie {currentVersion + 1}
                     </button>
                 </div>

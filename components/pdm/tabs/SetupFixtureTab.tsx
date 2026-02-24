@@ -30,7 +30,7 @@ export const SetupFixtureTab: React.FC<SetupFixtureTabProps> = ({
             return (
                 <>
                     {!hasMachine && !isProcessSetup && (
-                        <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-xl border border-orange-200 dark:border-orange-800 flex items-center gap-3 animate-pulse">
+                        <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-[2rem] border border-orange-200 dark:border-orange-800 flex items-center gap-3 animate-pulse">
                             <AlertTriangle className="text-orange-500 shrink-0" size={20} />
                             <p className="text-xs text-orange-800 dark:text-orange-200 font-bold">
                                 Selecteer eerst een machine in het tabblad 'Machine Info' om de specifieke setup-velden te laden.
@@ -38,7 +38,7 @@ export const SetupFixtureTab: React.FC<SetupFixtureTabProps> = ({
                         </div>
                     )}
                     {hasMachine && (
-                        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-200 dark:border-blue-800 flex items-center gap-3">
+                        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-[2rem] border border-blue-200 dark:border-blue-800 flex items-center gap-3">
                             <Info className="text-blue-500 shrink-0" size={20} />
                             <div>
                                 <p className="text-xs text-blue-800 dark:text-blue-200 font-bold">Geen velden gedefinieerd</p>
@@ -54,7 +54,7 @@ export const SetupFixtureTab: React.FC<SetupFixtureTabProps> = ({
 
         return (
             <div className="space-y-6">
-                <div className={`p-4 rounded-xl border mb-6 flex items-center justify-between gap-3 ${updateStatus !== 'NONE' ? 'bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-800' : 'bg-blue-50 border-blue-100 dark:bg-blue-900/20 dark:border-blue-900'}`}>
+                <div className={`p-4 rounded-[2rem] border mb-6 flex items-center justify-between gap-3 ${updateStatus !== 'NONE' ? 'bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-800' : 'bg-blue-50 border-blue-100 dark:bg-blue-900/20 dark:border-blue-900'}`}>
                     <div className="flex items-center gap-3">
                         {updateStatus !== 'NONE' ? <AlertTriangle className="text-orange-500 shrink-0" size={20} /> : <Info className="text-blue-500 shrink-0" size={20} />}
                         <div>
@@ -69,7 +69,7 @@ export const SetupFixtureTab: React.FC<SetupFixtureTabProps> = ({
                     {updateStatus !== 'NONE' && !isLocked && (
                         <button
                             onClick={onSyncTemplate}
-                            className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold rounded-lg flex items-center gap-2 shadow-sm transition-colors animate-pulse"
+                            className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold rounded-2xl flex items-center gap-2 shadow-sm transition-colors animate-pulse"
                         >
                             {updateStatus === 'LEGACY_INIT' ? <Link size={14} /> : <RefreshCcw size={14} />}
                             {updateStatus === 'LEGACY_INIT' ? 'Vastleggen' : 'Update Laden'}
@@ -88,14 +88,14 @@ export const SetupFixtureTab: React.FC<SetupFixtureTabProps> = ({
                         if (field.type === 'textarea') return (
                             <div key={field.key} className={spanClass + " space-y-2"}>
                                 <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">{field.label}</label>
-                                <textarea disabled={isLocked} rows={4} className="w-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 outline-none focus:border-blue-500 transition-all disabled:opacity-60 disabled:border-transparent dark:text-white" value={val} onChange={e => onUpdateTemplateData(field.key, e.target.value)} />
+                                <textarea disabled={isLocked} rows={4} className="w-full p-4 rounded-[2rem] border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 outline-none focus:border-blue-500 transition-all disabled:opacity-60 disabled:border-transparent dark:text-white" value={val} onChange={e => onUpdateTemplateData(field.key, e.target.value)} />
                             </div>
                         );
 
                         if (field.type === 'boolean') return (
                             <div key={field.key} className={spanClass + " space-y-2"}>
                                 <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">{field.label}</label>
-                                <button disabled={isLocked} type="button" onClick={() => onUpdateTemplateData(field.key, !val)} className={`w-full p-3 rounded-xl border-2 font-bold text-sm transition-all ${val ? 'bg-blue-600 border-blue-500 text-white' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500'} disabled:opacity-60`}>{val ? 'JA / AAN' : 'NEE / UIT'}</button>
+                                <button disabled={isLocked} type="button" onClick={() => onUpdateTemplateData(field.key, !val)} className={`w-full p-3 rounded-[2rem] border-2 font-bold text-sm transition-all ${val ? 'bg-blue-600 border-blue-500 text-white' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500'} disabled:opacity-60`}>{val ? 'JA / AAN' : 'NEE / UIT'}</button>
                             </div>
                         );
 
@@ -117,7 +117,7 @@ export const SetupFixtureTab: React.FC<SetupFixtureTabProps> = ({
                             <div key={field.key} className={spanClass + " space-y-2"}>
                                 <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">{field.label}</label>
                                 <div className="relative">
-                                    <input disabled={isLocked} type={field.type === 'number' ? 'number' : 'text'} className="w-full p-3.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-bold outline-none focus:border-blue-500 transition-all disabled:opacity-60 disabled:border-transparent dark:text-white" value={val} onChange={e => onUpdateTemplateData(field.key, field.type === 'number' ? parseFloat(e.target.value) : e.target.value)} />
+                                    <input disabled={isLocked} type={field.type === 'number' ? 'number' : 'text'} className="w-full p-3.5 rounded-[2rem] border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-bold outline-none focus:border-blue-500 transition-all disabled:opacity-60 disabled:border-transparent dark:text-white" value={val} onChange={e => onUpdateTemplateData(field.key, field.type === 'number' ? parseFloat(e.target.value) : e.target.value)} />
                                     {field.unit && <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">{field.unit}</span>}
                                 </div>
                             </div>

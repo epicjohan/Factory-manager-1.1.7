@@ -35,7 +35,7 @@ export const ToastContainer: React.FC = () => {
             {visibleToasts.map(toast => (
                 <div 
                     key={toast.id}
-                    className="pointer-events-auto bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 p-4 flex items-start gap-3 animate-in slide-in-from-right-10 fade-in duration-300"
+                    className="pointer-events-auto bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 p-4 flex items-start gap-3 animate-in slide-in-from-right-10 fade-in duration-300"
                 >
                     <div className="mt-0.5">
                         {toast.type === 'SUCCESS' && <CheckCircle className="text-green-500" size={20} />}

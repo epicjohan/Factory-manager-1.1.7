@@ -32,7 +32,7 @@ export const MKGCodePicker: React.FC<MKGCodePickerProps> = ({ value, options, on
 
     if (disabled) {
         return (
-            <div className="w-full p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex items-center justify-between opacity-80">
+            <div className="w-full p-2.5 rounded-[2rem] border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex items-center justify-between opacity-80">
                 <div>
                     <div className="font-mono text-xs font-black text-slate-500">{value || '-'}</div>
                     {selectedOption && <div className="text-[10px] text-slate-400 font-bold uppercase">{selectedOption.name}</div>}
@@ -47,7 +47,7 @@ export const MKGCodePicker: React.FC<MKGCodePickerProps> = ({ value, options, on
             <button 
                 type="button"
                 onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}
-                className={`w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono text-xs font-black text-blue-600 text-left flex justify-between items-center transition-all hover:border-blue-500 hover:shadow-sm`}
+                className={`w-full p-2.5 rounded-[2rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono text-xs font-black text-blue-600 text-left flex justify-between items-center transition-all hover:border-blue-500 hover:shadow-sm`}
             >
                 <div className="min-w-0">
                     <span className="truncate block">{value || '-- Selecteer Code --'}</span>
@@ -64,7 +64,7 @@ export const MKGCodePicker: React.FC<MKGCodePickerProps> = ({ value, options, on
                             autoFocus
                             type="text" 
                             placeholder="Zoek code of naam..." 
-                            className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border-none outline-none text-xs font-bold dark:text-white"
+                            className="w-full pl-9 pr-4 py-2 rounded-[2rem] bg-slate-50 dark:bg-slate-900 border-none outline-none text-xs font-bold dark:text-white"
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                         />
@@ -80,7 +80,7 @@ export const MKGCodePicker: React.FC<MKGCodePickerProps> = ({ value, options, on
                                     onSelect(opt.code);
                                     setIsOpen(false);
                                 }}
-                                className={`w-full p-3 rounded-xl text-left hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors flex flex-col gap-0.5 ${value === opt.code ? 'bg-blue-50 dark:bg-blue-900/30 ring-1 ring-blue-500' : ''}`}
+                                className={`w-full p-3 rounded-[2rem] text-left hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors flex flex-col gap-0.5 ${value === opt.code ? 'bg-blue-50 dark:bg-blue-900/30 ring-1 ring-blue-500' : ''}`}
                             >
                                 <div className="flex justify-between items-center">
                                     <div className="font-mono text-xs font-black text-blue-600">{opt.code}</div>

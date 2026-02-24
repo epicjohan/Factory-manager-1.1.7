@@ -88,14 +88,14 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({ mkgOperations, m
                                 <button 
                                     type="button"
                                     onClick={() => setCatOpType('MACHINING')}
-                                    className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${catOpType === 'MACHINING' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-700'}`}
+                                    className={`flex-1 py-3 rounded-[2rem] text-[10px] font-black uppercase tracking-widest transition-all ${catOpType === 'MACHINING' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-700'}`}
                                 >
                                     <Monitor size={14} className="inline mr-2" /> Machine
                                 </button>
                                 <button 
                                     type="button"
                                     onClick={() => setCatOpType('PROCESS')}
-                                    className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${catOpType === 'PROCESS' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-700'}`}
+                                    className={`flex-1 py-3 rounded-[2rem] text-[10px] font-black uppercase tracking-widest transition-all ${catOpType === 'PROCESS' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-700'}`}
                                 >
                                     <Box size={14} className="inline mr-2" /> Proces
                                 </button>
@@ -183,8 +183,8 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({ mkgOperations, m
                                         </td>
                                         <td className="px-8 py-5 text-right">
                                             <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button onClick={() => handleEdit(mo)} className="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl text-slate-400 hover:text-blue-500 transition-all shadow-sm"><Edit size={18}/></button>
-                                                <button onClick={() => onDelete(mo.id)} className="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl text-slate-400 hover:text-red-500 transition-all shadow-sm"><Trash2 size={18}/></button>
+                                                <button onClick={() => handleEdit(mo)} className="p-3 bg-slate-50 dark:bg-slate-900 rounded-[2rem] text-slate-400 hover:text-blue-500 transition-all shadow-sm"><Edit size={18}/></button>
+                                                <button onClick={() => onDelete(mo.id)} className="p-3 bg-slate-50 dark:bg-slate-900 rounded-[2rem] text-slate-400 hover:text-red-500 transition-all shadow-sm"><Trash2 size={18}/></button>
                                             </div>
                                         </td>
                                     </tr>

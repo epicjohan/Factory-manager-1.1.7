@@ -51,6 +51,8 @@ export interface SystemSettings {
   licenseKey?: string;
   licenseExpiry?: string;
   ncServerPath?: string; // PAD naar de NC server map voor mirroring
+  darkModeStyle?: 'OLED' | 'CLASSIC' | 'MIDNIGHT';
+  lightModeStyle?: 'CLEAN' | 'SOFT' | 'COOL';
 }
 
 export interface DataSnapshot {

@@ -72,10 +72,10 @@ export const DocumentRenameModal: React.FC<DocumentRenameModalProps> = ({ files,
                             <div key={idx} className="p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl">
                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 block ml-1">Invoernaam File {idx + 1}</label>
                                 <div className="flex items-center gap-3">
-                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border border-transparent shadow-sm ${iconData.color}`}>
+                                    <div className={`w-12 h-12 rounded-[2rem] flex items-center justify-center shrink-0 border border-transparent shadow-sm ${iconData.color}`}>
                                         {iconData.icon}
                                     </div>
-                                    <div className="flex-1 relative flex items-center bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-xl focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 overflow-hidden transition-all shadow-sm">
+                                    <div className="flex-1 relative flex items-center bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-[2rem] focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 overflow-hidden transition-all shadow-sm">
                                         <input
                                             type="text"
                                             value={item.newBaseName}
@@ -96,8 +96,8 @@ export const DocumentRenameModal: React.FC<DocumentRenameModalProps> = ({ files,
                 </div>
 
                 <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
-                    <button onClick={onClose} className="px-6 py-3 text-xs font-black uppercase tracking-widest text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all">Annuleren</button>
-                    <button onClick={handleConfirm} className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-blue-500/20 active:scale-95 transition-all">
+                    <button onClick={onClose} className="px-6 py-3 text-xs font-black uppercase tracking-widest text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-[2rem] transition-all">Annuleren</button>
+                    <button onClick={handleConfirm} className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-[2rem] text-xs font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-blue-500/20 active:scale-95 transition-all">
                         <CheckCircle2 size={16} /> Bevestigen & Upload
                     </button>
                 </div>

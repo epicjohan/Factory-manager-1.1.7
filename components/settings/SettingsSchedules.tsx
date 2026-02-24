@@ -81,13 +81,13 @@ export const SettingsSchedules: React.FC = () => {
                                 <h4 className="font-black text-slate-800 dark:text-white text-sm uppercase tracking-widest">{sched.name}</h4>
                             </div>
                             <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button onClick={() => handleOpenModal(sched)} className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition-colors"><Edit2 size={16} /></button>
-                                <button onClick={() => handleDelete(sched.id)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"><Trash2 size={16} /></button>
+                                <button onClick={() => handleOpenModal(sched)} className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-[2rem] transition-colors"><Edit2 size={16} /></button>
+                                <button onClick={() => handleDelete(sched.id)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-[2rem] transition-colors"><Trash2 size={16} /></button>
                             </div>
                         </div>
                         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
                             {sched.shifts.map((s: DailyShift) => (
-                                <div key={s.day} className={`text-[10px] px-3 py-1 rounded-lg font-black uppercase tracking-widest border ${s.enabled ? 'bg-blue-50 border-blue-200 text-blue-600 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-300 shadow-sm' : 'bg-slate-50 border-slate-100 text-slate-400 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-600'}`}>
+                                <div key={s.day} className={`text-[10px] px-3 py-1 rounded-2xl font-black uppercase tracking-widest border ${s.enabled ? 'bg-blue-50 border-blue-200 text-blue-600 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-300 shadow-sm' : 'bg-slate-50 border-slate-100 text-slate-400 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-600'}`}>
                                     {s.day.slice(0, 2)}
                                 </div>
                             ))}
@@ -101,7 +101,7 @@ export const SettingsSchedules: React.FC = () => {
                     <div className="bg-white dark:bg-slate-800 p-8 rounded-[2rem] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-slate-700">
                         <div className="flex justify-between items-center mb-6 border-b border-slate-100 dark:border-slate-700 pb-4">
                             <h3 className="text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tighter italic">{editingSchedule ? 'Rooster Bewerken' : 'Nieuw Rooster'}</h3>
-                            <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-red-500 bg-slate-100 dark:bg-slate-700 dark:hover:text-white p-2 rounded-xl transition-colors"><X size={20} /></button>
+                            <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-red-500 bg-slate-100 dark:bg-slate-700 dark:hover:text-white p-2 rounded-[2rem] transition-colors"><X size={20} /></button>
                         </div>
                         <form onSubmit={handleSave} className="space-y-6">
                             <div>
@@ -114,12 +114,12 @@ export const SettingsSchedules: React.FC = () => {
                                         <div className="w-24 font-bold text-slate-600 dark:text-slate-300 text-sm uppercase tracking-widest">{shift.label}</div>
                                         <div className="flex-1 flex gap-3">
                                             {shift.enabled && <>
-                                                <input type="time" className="p-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white text-xs font-mono font-bold" value={shift.startTime} onChange={e => { const n = [...tempShifts]; n[idx].startTime = e.target.value; setTempShifts(n); }} />
+                                                <input type="time" className="p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white text-xs font-mono font-bold" value={shift.startTime} onChange={e => { const n = [...tempShifts]; n[idx].startTime = e.target.value; setTempShifts(n); }} />
                                                 <span className="self-center text-slate-400 font-bold">-</span>
-                                                <input type="time" className="p-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white text-xs font-mono font-bold" value={shift.endTime} onChange={e => { const n = [...tempShifts]; n[idx].endTime = e.target.value; setTempShifts(n); }} />
+                                                <input type="time" className="p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white text-xs font-mono font-bold" value={shift.endTime} onChange={e => { const n = [...tempShifts]; n[idx].endTime = e.target.value; setTempShifts(n); }} />
                                             </>}
                                         </div>
-                                        <button type="button" onClick={() => { const n = [...tempShifts]; n[idx].enabled = !n[idx].enabled; setTempShifts(n); }} className={`px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${shift.enabled ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-200 text-slate-500 dark:bg-slate-700'}`}>{shift.enabled ? 'AAN' : 'UIT'}</button>
+                                        <button type="button" onClick={() => { const n = [...tempShifts]; n[idx].enabled = !n[idx].enabled; setTempShifts(n); }} className={`px-4 py-3 rounded-[2rem] text-[10px] font-black uppercase tracking-widest transition-all ${shift.enabled ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-200 text-slate-500 dark:bg-slate-700'}`}>{shift.enabled ? 'AAN' : 'UIT'}</button>
                                     </div>
                                 ))}
                             </div>

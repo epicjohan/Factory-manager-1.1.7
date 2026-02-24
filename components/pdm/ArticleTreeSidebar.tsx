@@ -58,7 +58,7 @@ export const ArticleTreeSidebar: React.FC<ArticleTreeSidebarProps> = ({
                 {/* ROOT: ARTICLE */}
                 <div 
                     onClick={() => onSelect('ARTICLE', article.id)}
-                    className={`flex items-center gap-2 p-2 rounded-xl cursor-pointer transition-all border ${isSelected(article.id) ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'border-transparent hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
+                    className={`flex items-center gap-2 p-2 rounded-[2rem] cursor-pointer transition-all border ${isSelected(article.id) ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'border-transparent hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
                 >
                     <button onClick={(e) => toggleExpand(article.id, e)} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 rounded">
                         {isExpanded(article.id) ? <ChevronDown size={14} className="text-slate-400" /> : <ChevronRight size={14} className="text-slate-400" />}
@@ -74,7 +74,7 @@ export const ArticleTreeSidebar: React.FC<ArticleTreeSidebarProps> = ({
                             <div key={op.id}>
                                 <div 
                                     onClick={() => onSelect('OPERATION', op.id)}
-                                    className={`flex items-center gap-2 p-2 rounded-xl cursor-pointer transition-all border group ${isSelected(op.id) ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800' : 'border-transparent hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
+                                    className={`flex items-center gap-2 p-2 rounded-[2rem] cursor-pointer transition-all border group ${isSelected(op.id) ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800' : 'border-transparent hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
                                 >
                                     <button onClick={(e) => toggleExpand(op.id, e)} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 rounded">
                                         {isExpanded(op.id) ? <ChevronDown size={14} className="text-slate-400" /> : <ChevronRight size={14} className="text-slate-400" />}
@@ -101,7 +101,7 @@ export const ArticleTreeSidebar: React.FC<ArticleTreeSidebarProps> = ({
                                                         <div 
                                                             key={setup.id}
                                                             onClick={() => onSelect('SETUP', setup.id, op.id)}
-                                                            className={`flex items-center gap-2 p-2 rounded-xl cursor-pointer transition-all border ${isSelected(setup.id) ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800' : 'border-transparent hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
+                                                            className={`flex items-center gap-2 p-2 rounded-[2rem] cursor-pointer transition-all border ${isSelected(setup.id) ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800' : 'border-transparent hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
                                                         >
                                                             <div className="w-4 flex justify-center"><StatusDot status={setup.status} /></div>
                                                             {setup.machineId ? <Monitor size={14} className="text-slate-400" /> : <Box size={14} className="text-slate-400" />}
@@ -127,7 +127,7 @@ export const ArticleTreeSidebar: React.FC<ArticleTreeSidebarProps> = ({
                                                                         <div 
                                                                             key={setup.id}
                                                                             onClick={() => onSelect('SETUP', setup.id, op.id)}
-                                                                            className={`flex items-center gap-2 p-2 rounded-xl cursor-pointer transition-all border opacity-60 hover:opacity-100 ${isSelected(setup.id) ? 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600' : 'border-transparent hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
+                                                                            className={`flex items-center gap-2 p-2 rounded-[2rem] cursor-pointer transition-all border opacity-60 hover:opacity-100 ${isSelected(setup.id) ? 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600' : 'border-transparent hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
                                                                         >
                                                                             <div className="w-4 flex justify-center"><StatusDot status={setup.status} /></div>
                                                                             <span className={`text-xs font-medium truncate flex-1 ${isSelected(setup.id) ? 'text-slate-900 dark:text-white font-bold' : 'text-slate-500 dark:text-slate-500'}`}>
@@ -151,7 +151,7 @@ export const ArticleTreeSidebar: React.FC<ArticleTreeSidebarProps> = ({
                         {!isLocked && (
                             <button 
                                 onClick={onAddOperation}
-                                className="flex items-center gap-2 p-2 rounded-xl text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-all text-xs font-bold w-full"
+                                className="flex items-center gap-2 p-2 rounded-[2rem] text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-all text-xs font-bold w-full"
                             >
                                 <div className="w-5 h-5 flex items-center justify-center rounded border border-dashed border-slate-300"><Plus size={12}/></div>
                                 <span>Bewerking Toevoegen</span>

@@ -95,7 +95,7 @@ export const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, isLocked,
         }
 
         return (
-            <div className={`flex items-center justify-center px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${colorClass}`}>
+            <div className={`flex items-center justify-center px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${colorClass}`}>
                 {label}
             </div>
         );
@@ -111,7 +111,7 @@ export const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, isLocked,
                     <p className="text-xs text-slate-500 font-bold">MKG Data & Lifecycle Management</p>
                 </div>
                 
-                <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 overflow-x-auto">
+                <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 p-1.5 rounded-[2rem] border border-slate-200 dark:border-slate-700 overflow-x-auto">
                     <StatusStep status={ArticleStatus.DRAFT} label="Draft" current={currentStatus} />
                     <ArrowRight size={12} className="text-slate-300" />
                     <StatusStep status={ArticleStatus.REVIEW} label="Review" current={currentStatus} />
@@ -127,17 +127,17 @@ export const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, isLocked,
                     <div className="space-y-5">
                         <div>
                             <label className="block text-[10px] font-black text-slate-500 uppercase mb-2 tracking-widest">Artikelcode MKG *</label>
-                            <input disabled={isReadOnly} required type="text" className="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 font-mono font-black text-lg disabled:opacity-60 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none uppercase" value={formCode} onChange={e => setFormCode(e.target.value)} />
+                            <input disabled={isReadOnly} required type="text" className="w-full p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 font-mono font-black text-lg disabled:opacity-60 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none uppercase" value={formCode} onChange={e => setFormCode(e.target.value)} />
                         </div>
                         
                         <div className="grid grid-cols-4 gap-4">
                             <div className="col-span-3">
                                 <label className="block text-[10px] font-black text-slate-500 uppercase mb-2 tracking-widest">Tekening Nr (PDF) *</label>
-                                <input disabled={isReadOnly} required type="text" className="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 font-bold disabled:opacity-60 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" value={formDrawing} onChange={e => setFormDrawing(e.target.value)} />
+                                <input disabled={isReadOnly} required type="text" className="w-full p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 font-bold disabled:opacity-60 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" value={formDrawing} onChange={e => setFormDrawing(e.target.value)} />
                             </div>
                             <div className="col-span-1">
                                 <label className="block text-[10px] font-black text-slate-500 uppercase mb-2 tracking-widest">Tek. Rev</label>
-                                <input disabled={isReadOnly} type="text" className="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 font-bold text-center disabled:opacity-60 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" value={formDrawingRev} onChange={e => setFormDrawingRev(e.target.value)} placeholder="-" />
+                                <input disabled={isReadOnly} type="text" className="w-full p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 font-bold text-center disabled:opacity-60 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" value={formDrawingRev} onChange={e => setFormDrawingRev(e.target.value)} placeholder="-" />
                             </div>
                         </div>
                     </div>
@@ -146,10 +146,10 @@ export const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, isLocked,
                         <div className="flex gap-4 items-start">
                             <div className="flex-1">
                                 <label className="block text-[10px] font-black text-slate-500 uppercase mb-2 tracking-widest">Omschrijving 1 (Naam) *</label>
-                                <input disabled={isReadOnly} required type="text" className="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 font-bold text-lg disabled:opacity-60 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" value={formName} onChange={e => setFormName(e.target.value)} />
+                                <input disabled={isReadOnly} required type="text" className="w-full p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 font-bold text-lg disabled:opacity-60 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" value={formName} onChange={e => setFormName(e.target.value)} />
                             </div>
                             
-                            <div className="bg-white dark:bg-slate-800 p-2 rounded-xl text-center border border-slate-200 dark:border-slate-700 min-w-[70px] shadow-sm">
+                            <div className="bg-white dark:bg-slate-800 p-2 rounded-[2rem] text-center border border-slate-200 dark:border-slate-700 min-w-[70px] shadow-sm">
                                 <div className="text-[8px] uppercase font-black text-slate-400 tracking-widest mb-0.5">PLM Rev</div>
                                 <div className="text-2xl font-black text-slate-800 dark:text-white">{formRev}</div>
                             </div>
@@ -158,11 +158,11 @@ export const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, isLocked,
                         <div className="grid grid-cols-3 gap-4">
                             <div className="col-span-2">
                                 <label className="block text-[10px] font-black text-slate-500 uppercase mb-2 tracking-widest">Omschrijving 2 (Info)</label>
-                                <input disabled={isReadOnly} type="text" className="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 font-medium disabled:opacity-60 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" value={formDesc2} onChange={e => setFormDesc2(e.target.value)} />
+                                <input disabled={isReadOnly} type="text" className="w-full p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 font-medium disabled:opacity-60 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" value={formDesc2} onChange={e => setFormDesc2(e.target.value)} />
                             </div>
                             <div>
                                 <label className="block text-[10px] font-black text-slate-500 uppercase mb-2 tracking-widest">Pos Nr</label>
-                                <input disabled={isReadOnly} type="text" className="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 font-bold text-center disabled:opacity-60 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" value={formPos} onChange={e => setFormPos(e.target.value)} />
+                                <input disabled={isReadOnly} type="text" className="w-full p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 font-bold text-center disabled:opacity-60 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" value={formPos} onChange={e => setFormPos(e.target.value)} />
                             </div>
                         </div>
                     </div>
@@ -181,7 +181,7 @@ export const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, isLocked,
                             </button>
                         )}
                         {currentStatus === ArticleStatus.RELEASED && (
-                            <div className="flex items-center gap-2 text-slate-400 text-xs font-bold bg-slate-100 dark:bg-slate-800 px-4 py-3 rounded-xl">
+                            <div className="flex items-center gap-2 text-slate-400 text-xs font-bold bg-slate-100 dark:bg-slate-800 px-4 py-3 rounded-[2rem]">
                                 <Lock size={14} /> Read-Only Mode
                             </div>
                         )}

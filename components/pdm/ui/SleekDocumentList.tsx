@@ -11,7 +11,7 @@ const DocumentThumbnail: React.FC<{ file: ArticleFile, getRoleIcon: (code: strin
     const isImage = file.type?.startsWith('image/');
 
     return (
-        <div className="p-2.5 rounded-lg shrink-0 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm flex items-center justify-center relative overflow-hidden h-10 w-10 cursor-zoom-in" onClick={() => onPreview(file)}>
+        <div className="p-2.5 rounded-2xl shrink-0 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm flex items-center justify-center relative overflow-hidden h-10 w-10 cursor-zoom-in" onClick={() => onPreview(file)}>
             {isImage ? (
                 loading ? (
                     <div className="animate-pulse w-full h-full bg-slate-200 dark:bg-slate-700 rounded" />
@@ -132,7 +132,7 @@ export const SleekDocumentList: React.FC<SleekDocumentListProps> = ({
                         <select
                             value={selectedRole}
                             onChange={(e) => setSelectedRole(e.target.value)}
-                            className="w-full appearance-none pl-10 pr-10 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white text-xs font-bold uppercase tracking-widest rounded-xl shadow-sm hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer"
+                            className="w-full appearance-none pl-10 pr-10 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white text-xs font-bold uppercase tracking-widest rounded-[2rem] shadow-sm hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer"
                         >
                             {categories.sort((a, b) => (a.order || 0) - (b.order || 0)).map(cat => (
                                 <option key={cat.code} value={cat.code}>
@@ -173,7 +173,7 @@ export const SleekDocumentList: React.FC<SleekDocumentListProps> = ({
                         }} />
 
                         <div className="flex items-center gap-4">
-                            <div className="p-3 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex items-center justify-center">
+                            <div className="p-3 bg-white dark:bg-slate-800 rounded-[2rem] shadow-sm border border-slate-200 dark:border-slate-700 flex items-center justify-center">
                                 <Upload size={20} className="text-blue-600 dark:text-blue-400" />
                             </div>
                             <div>
@@ -182,7 +182,7 @@ export const SleekDocumentList: React.FC<SleekDocumentListProps> = ({
                             </div>
                         </div>
 
-                        <div className="flex bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-3 py-1.5 rounded-lg items-center gap-2">
+                        <div className="flex bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-3 py-1.5 rounded-2xl items-center gap-2">
                             <span className="font-bold text-[10px] uppercase tracking-wider hidden sm:inline">uploaden als</span>
                             <span className="font-black text-[10px] sm:text-xs uppercase tracking-wider px-2 py-1 bg-white dark:bg-slate-800 rounded shadow-sm border border-blue-100 dark:border-blue-800">{getCategoryByCode(selectedRole).name}</span>
                         </div>
@@ -193,7 +193,7 @@ export const SleekDocumentList: React.FC<SleekDocumentListProps> = ({
                     <div className="flex justify-end mt-2 mb-4">
                         <button
                             onClick={() => setShowLibraryModal(true)}
-                            className="bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 dark:bg-slate-800/50 dark:hover:bg-blue-600/20 dark:text-slate-400 dark:hover:text-blue-400 rounded-xl px-4 py-2 font-black uppercase text-[10px] tracking-widest shadow-sm border border-slate-200 dark:border-slate-700 hover:border-blue-200 dark:hover:border-blue-800/50 transition-all flex items-center justify-center gap-2"
+                            className="bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 dark:bg-slate-800/50 dark:hover:bg-blue-600/20 dark:text-slate-400 dark:hover:text-blue-400 rounded-[2rem] px-4 py-2 font-black uppercase text-[10px] tracking-widest shadow-sm border border-slate-200 dark:border-slate-700 hover:border-blue-200 dark:hover:border-blue-800/50 transition-all flex items-center justify-center gap-2"
                         >
                             <Archive size={14} /> Kies uit Bibliotheek
                         </button>
@@ -202,7 +202,7 @@ export const SleekDocumentList: React.FC<SleekDocumentListProps> = ({
 
                 <div className="flex flex-col gap-2">
                     {files.map(file => (
-                        <div key={file.id} className="group flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md transition-all">
+                        <div key={file.id} className="group flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-[2rem] border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md transition-all">
 
                             <div className="flex flex-1 items-center gap-4 overflow-hidden pr-4" onClick={() => onPreview(file)} style={{ cursor: 'zoom-in' }}>
                                 {/* Shared icon/thumbnail area */}
@@ -233,14 +233,14 @@ export const SleekDocumentList: React.FC<SleekDocumentListProps> = ({
                             </div>
 
                             <div className="flex items-center gap-1 sm:gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus-within:opacity-100 transition-opacity shrink-0 relative z-10">
-                                <button onClick={() => onPreview(file)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors bg-slate-50 sm:bg-transparent dark:bg-slate-900 sm:dark:bg-transparent" title="Preview">
+                                <button onClick={() => onPreview(file)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-2xl transition-colors bg-slate-50 sm:bg-transparent dark:bg-slate-900 sm:dark:bg-transparent" title="Preview">
                                     <Eye size={16} />
                                 </button>
-                                <button onClick={() => onDownload(file)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors bg-slate-50 sm:bg-transparent dark:bg-slate-900 sm:dark:bg-transparent" title="Download">
+                                <button onClick={() => onDownload(file)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-2xl transition-colors bg-slate-50 sm:bg-transparent dark:bg-slate-900 sm:dark:bg-transparent" title="Download">
                                     <Download size={16} />
                                 </button>
                                 {!isLocked && (
-                                    <button onClick={() => onDelete(file.id)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors bg-slate-50 sm:bg-transparent dark:bg-slate-900 sm:dark:bg-transparent" title="Verwijderen">
+                                    <button onClick={() => onDelete(file.id)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-2xl transition-colors bg-slate-50 sm:bg-transparent dark:bg-slate-900 sm:dark:bg-transparent" title="Verwijderen">
                                         <Trash2 size={16} />
                                     </button>
                                 )}
@@ -248,7 +248,7 @@ export const SleekDocumentList: React.FC<SleekDocumentListProps> = ({
                         </div>
                     ))}
                     {files.length === 0 && (
-                        <div className="py-8 text-center text-slate-400 text-xs font-bold uppercase tracking-widest italic border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-xl">
+                        <div className="py-8 text-center text-slate-400 text-xs font-bold uppercase tracking-widest italic border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-[2rem]">
                             Nog geen bestanden geüpload in deze categorieën
                         </div>
                     )}

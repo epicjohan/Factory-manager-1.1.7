@@ -43,7 +43,7 @@ const CollapsibleSection = ({
                 className="w-full flex items-center justify-between py-4 px-6 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors group"
             >
                 <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${isOpen ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20' : 'bg-slate-100 text-slate-500 dark:bg-slate-800'}`}>
+                    <div className={`p-2 rounded-2xl ${isOpen ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20' : 'bg-slate-100 text-slate-500 dark:bg-slate-800'}`}>
                         <Icon size={18} />
                     </div>
                     <span className="font-bold text-slate-800 dark:text-white uppercase tracking-wider text-xs">{title}</span>
@@ -142,7 +142,7 @@ export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
                             {!setup.isDefault && (
                                 <button
                                     onClick={() => onSetDefault(activeOpId, setup.id)}
-                                    className="px-3 py-2 text-xs font-bold uppercase tracking-widest bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-emerald-600 hover:border-emerald-500 rounded-lg transition-all flex items-center gap-2 shadow-sm mr-2"
+                                    className="px-3 py-2 text-xs font-bold uppercase tracking-widest bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-emerald-600 hover:border-emerald-500 rounded-2xl transition-all flex items-center gap-2 shadow-sm mr-2"
                                     title="Stel in als standaard route"
                                 >
                                     <Star size={14} /> <span className="hidden sm:inline">Gebruik als Standaard</span>
@@ -150,14 +150,14 @@ export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
                             )}
                             <button
                                 onClick={() => onDuplicateSetup(activeOpId, setup)}
-                                className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-2xl transition-colors"
                                 title="Setup Dupliceren"
                             >
                                 <Copy size={20} />
                             </button>
                             <button
                                 onClick={() => onDeleteSetup(activeOpId, setup.id)}
-                                className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-2xl transition-colors"
                                 title="Setup Verwijderen"
                             >
                                 <Trash2 size={20} />
@@ -174,7 +174,7 @@ export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
                         'bg-slate-100 border-slate-200 dark:bg-slate-800 dark:border-slate-700'
                 }`}>
                 <div className="flex items-center gap-3">
-                    <div className={`p-1.5 rounded-lg ${isDraft ? 'bg-orange-100 text-orange-600' :
+                    <div className={`p-1.5 rounded-2xl ${isDraft ? 'bg-orange-100 text-orange-600' :
                         isReview ? 'bg-yellow-100 text-yellow-600' :
                             isReleased ? 'bg-green-100 text-green-600' :
                                 'bg-slate-200 text-slate-500'
@@ -197,7 +197,7 @@ export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
                     {isDraft && !isLocked && (
                         <button
                             onClick={() => changeStatus(SetupStatus.REVIEW)}
-                            className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-xs font-black uppercase tracking-widest shadow-sm transition-all active:scale-95"
+                            className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-sm transition-all active:scale-95"
                         >
                             Ter Review Aanbieden
                         </button>
@@ -208,13 +208,13 @@ export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
                         <>
                             <button
                                 onClick={() => changeStatus(SetupStatus.DRAFT)}
-                                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-600 rounded-lg text-xs font-black uppercase tracking-widest transition-all"
+                                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-600 rounded-2xl text-xs font-black uppercase tracking-widest transition-all"
                             >
                                 Afkeuren
                             </button>
                             <button
                                 onClick={() => changeStatus(SetupStatus.RELEASED)}
-                                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-black uppercase tracking-widest shadow-sm transition-all active:scale-95"
+                                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-sm transition-all active:scale-95"
                             >
                                 Goedkeuren & Vrijgeven
                             </button>
@@ -225,7 +225,7 @@ export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
                     {isReleased && !isLocked && (
                         <button
                             onClick={() => onRevision(activeOpId, setup)}
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-black uppercase tracking-widest shadow-sm flex items-center gap-2 transition-all active:scale-95"
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-sm flex items-center gap-2 transition-all active:scale-95"
                         >
                             <GitBranch size={14} /> Nieuwe Versie
                         </button>
@@ -233,7 +233,7 @@ export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
 
                     {/* ARCHIVED INFO */}
                     {isArchived && (
-                        <span className="px-3 py-1.5 bg-slate-200 text-slate-500 rounded-lg text-[10px] font-black uppercase tracking-widest">
+                        <span className="px-3 py-1.5 bg-slate-200 text-slate-500 rounded-2xl text-[10px] font-black uppercase tracking-widest">
                             Alleen Lezen
                         </span>
                     )}

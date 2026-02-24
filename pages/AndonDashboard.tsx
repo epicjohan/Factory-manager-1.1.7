@@ -217,7 +217,7 @@ export const AndonDashboard: React.FC = () => {
                             {currentTime.toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'short' })}
                         </div>
                     </div>
-                    <button onClick={toggleFullscreen} className="p-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-400 transition-all active:scale-90 shrink-0">
+                    <button onClick={toggleFullscreen} className="p-3 bg-slate-800 hover:bg-slate-700 rounded-[2rem] text-slate-400 transition-all active:scale-90 shrink-0">
                         {isFullscreen ? <Minimize size={24} /> : <Maximize size={24} />}
                     </button>
                 </div>
@@ -331,7 +331,7 @@ export const AndonDashboard: React.FC = () => {
                                 tickets.map(ticket => (
                                     <div key={ticket.id} className="bg-slate-800/50 p-5 rounded-2xl border border-slate-700 border-l-[6px] border-l-red-500 shadow-lg animate-in slide-in-from-right-4">
                                         <div className="flex justify-between items-start mb-2">
-                                            <span className="font-black text-white text-sm uppercase tracking-wider bg-red-500/20 px-2 py-0.5 rounded-lg border border-red-500/30 truncate mr-2">
+                                            <span className="font-black text-white text-sm uppercase tracking-wider bg-red-500/20 px-2 py-0.5 rounded-2xl border border-red-500/30 truncate mr-2">
                                                 {machines.find(m => m.id === ticket.machineId)?.machineNumber || '???'}
                                             </span>
                                             <span className="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-tighter shrink-0">{new Date(ticket.reportedDate).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
@@ -357,7 +357,7 @@ export const AndonDashboard: React.FC = () => {
                                 requests.map(req => (
                                     <div key={req.id} className={`bg-slate-800/50 p-5 rounded-2xl border border-slate-700 border-l-[6px] ${req.status === 'ACCEPTED' ? 'border-l-blue-500' : 'border-l-yellow-500 animate-pulse-slow'} shadow-lg`}>
                                         <div className="flex justify-between items-start mb-2">
-                                            <span className={`font-black text-white text-[10px] uppercase tracking-widest px-2 py-0.5 rounded-lg border shrink-0 ${req.status === 'ACCEPTED' ? 'bg-blue-500/20 border-blue-500/30' : 'bg-yellow-500/20 border-yellow-500/30'}`}>
+                                            <span className={`font-black text-white text-[10px] uppercase tracking-widest px-2 py-0.5 rounded-2xl border shrink-0 ${req.status === 'ACCEPTED' ? 'bg-blue-500/20 border-blue-500/30' : 'bg-yellow-500/20 border-yellow-500/30'}`}>
                                                 {req.type === 'SWARF' ? 'Spanen' : req.type === 'COOLANT' ? 'Olie' : 'Materiaal'}
                                             </span>
                                             <span className="text-[10px] font-mono font-bold text-slate-500 shrink-0 ml-2">{new Date(req.requestDate).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>

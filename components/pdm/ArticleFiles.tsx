@@ -155,10 +155,10 @@ export const ArticleFiles: React.FC<ArticleFilesProps> = ({ files, isLocked, onU
                         </div>
 
                         <div className="flex gap-3">
-                            <button onClick={() => setFileToDelete(null)} className="flex-1 py-3 text-slate-500 font-bold uppercase text-xs rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                            <button onClick={() => setFileToDelete(null)} className="flex-1 py-3 text-slate-500 font-bold uppercase text-xs rounded-[2rem] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                                 Annuleren
                             </button>
-                            <button onClick={confirmDelete} className="flex-2 px-8 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-black uppercase text-xs tracking-widest shadow-lg transition-all">
+                            <button onClick={confirmDelete} className="flex-2 px-8 py-3 bg-red-600 hover:bg-red-700 text-white rounded-[2rem] font-black uppercase text-xs tracking-widest shadow-lg transition-all">
                                 Verwijderen
                             </button>
                         </div>

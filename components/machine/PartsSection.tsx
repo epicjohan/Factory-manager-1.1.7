@@ -122,7 +122,7 @@ export const PartsSection: React.FC<PartsSectionProps> = ({ machine }) => {
                     {canManage && !showForm && (
                         <button
                             onClick={() => setShowForm(true)}
-                            className="flex-1 md:flex-none px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-sm shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2 uppercase tracking-widest"
+                            className="flex-1 md:flex-none px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-[2rem] font-black text-sm shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2 uppercase tracking-widest"
                         >
                             <Plus size={18} /> Nieuw Item
                         </button>
@@ -154,7 +154,7 @@ export const PartsSection: React.FC<PartsSectionProps> = ({ machine }) => {
                                 <input
                                     required
                                     type="text"
-                                    className="w-full p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 dark:text-white text-base font-bold outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                                    className="w-full p-3.5 rounded-[2rem] border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 dark:text-white text-base font-bold outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                                     value={formData.description}
                                     onChange={e => setFormData({ ...formData, description: e.target.value })}
                                     placeholder="Bijv: Tandriem Spindelmotor..."
@@ -165,7 +165,7 @@ export const PartsSection: React.FC<PartsSectionProps> = ({ machine }) => {
                                 <input
                                     required
                                     type="text"
-                                    className="w-full p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 dark:text-white text-base font-mono font-black outline-none focus:ring-2 focus:ring-blue-500 transition-all uppercase"
+                                    className="w-full p-3.5 rounded-[2rem] border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 dark:text-white text-base font-mono font-black outline-none focus:ring-2 focus:ring-blue-500 transition-all uppercase"
                                     value={formData.articleCode}
                                     onChange={e => setFormData({ ...formData, articleCode: e.target.value })}
                                     placeholder="SKU-8821-XJ"
@@ -178,7 +178,7 @@ export const PartsSection: React.FC<PartsSectionProps> = ({ machine }) => {
                                 <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Leverancier</label>
                                 <input
                                     type="text"
-                                    className="w-full p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 dark:text-white text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                                    className="w-full p-3.5 rounded-[2rem] border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 dark:text-white text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                                     value={formData.supplier}
                                     onChange={e => setFormData({ ...formData, supplier: e.target.value })}
                                     placeholder="Naam leverancier..."
@@ -191,7 +191,7 @@ export const PartsSection: React.FC<PartsSectionProps> = ({ machine }) => {
                                     <input
                                         type="number"
                                         step="0.01"
-                                        className="w-full pl-12 p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 dark:text-white text-lg font-mono font-black outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                                        className="w-full pl-12 p-3.5 rounded-[2rem] border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 dark:text-white text-lg font-mono font-black outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                                         value={formData.price}
                                         onChange={e => setFormData({ ...formData, price: parseFloat(e.target.value) })}
                                     />
@@ -203,7 +203,7 @@ export const PartsSection: React.FC<PartsSectionProps> = ({ machine }) => {
                                     <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><MapPin size={16} /></div>
                                     <input
                                         type="text"
-                                        className="w-full pl-12 p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 dark:text-white text-sm font-black outline-none focus:ring-2 focus:ring-blue-500 transition-all uppercase"
+                                        className="w-full pl-12 p-3.5 rounded-[2rem] border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 dark:text-white text-sm font-black outline-none focus:ring-2 focus:ring-blue-500 transition-all uppercase"
                                         value={formData.location}
                                         onChange={e => setFormData({ ...formData, location: e.target.value })}
                                         placeholder="ST-02-B"

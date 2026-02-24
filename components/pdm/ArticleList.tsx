@@ -67,7 +67,7 @@ const DrawingThumbnail: React.FC<{ article: Article; serverUrl?: string }> = ({ 
 
     if (!drawing) {
         return (
-            <div className="w-14 h-14 shrink-0 rounded-xl bg-slate-100 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-300 dark:text-slate-600">
+            <div className="w-14 h-14 shrink-0 rounded-[2rem] bg-slate-100 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-300 dark:text-slate-600">
                 <FileText size={22} />
             </div>
         );
@@ -80,7 +80,7 @@ const DrawingThumbnail: React.FC<{ article: Article; serverUrl?: string }> = ({ 
             onMouseLeave={() => setHovered(false)}
         >
             {/* Thumbnail */}
-            <div className={`w-14 h-14 rounded-xl border overflow-hidden cursor-pointer transition-all duration-200 ${hovered
+            <div className={`w-14 h-14 rounded-[2rem] border overflow-hidden cursor-pointer transition-all duration-200 ${hovered
                 ? 'border-blue-400 shadow-lg shadow-blue-500/20 scale-105'
                 : 'border-slate-200 dark:border-slate-700'
                 } bg-slate-50 dark:bg-slate-800`}>
@@ -216,7 +216,7 @@ export const ArticleList: React.FC<ArticleListProps> = ({
         const isReleased = article.status === ArticleStatus.RELEASED;
         const isReview = article.status === ArticleStatus.REVIEW;
         return (
-            <div className={`w-11 h-11 shrink-0 rounded-xl flex flex-col items-center justify-center font-black text-white ${isReleased ? 'bg-green-600' : isReview ? 'bg-orange-500' : 'bg-slate-500'
+            <div className={`w-11 h-11 shrink-0 rounded-[2rem] flex flex-col items-center justify-center font-black text-white ${isReleased ? 'bg-green-600' : isReview ? 'bg-orange-500' : 'bg-slate-500'
                 }`}>
                 <span className="text-[8px] uppercase opacity-70 leading-none">Rev</span>
                 <span className="text-sm leading-none mt-0.5">{article.revision}</span>
@@ -237,12 +237,12 @@ export const ArticleList: React.FC<ArticleListProps> = ({
                 </div>
                 <div className="flex gap-3">
                     {canManageCatalog && (
-                        <button onClick={onOpenCatalog} className="px-5 py-2.5 bg-slate-800 dark:bg-slate-700 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-slate-700 dark:hover:bg-slate-600 transition-all text-sm">
+                        <button onClick={onOpenCatalog} className="px-5 py-2.5 bg-slate-800 dark:bg-slate-700 text-white rounded-[2rem] font-bold flex items-center gap-2 hover:bg-slate-700 dark:hover:bg-slate-600 transition-all text-sm">
                             <BookOpen size={18} /> Bewerkingen Catalogus
                         </button>
                     )}
                     {canCreate && (
-                        <button onClick={onCreateNew} className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 flex items-center gap-2 transition-all text-sm">
+                        <button onClick={onCreateNew} className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-[2rem] font-bold shadow-lg shadow-blue-500/30 flex items-center gap-2 transition-all text-sm">
                             <Plus size={18} /> Nieuw Artikel
                         </button>
                     )}
@@ -283,7 +283,7 @@ export const ArticleList: React.FC<ArticleListProps> = ({
                         <Filter size={16} />
                         Filters
                         {activeFilterCount > 0 && (
-                            <span className="bg-white/25 text-white text-[10px] font-black px-1.5 py-0.5 rounded-md min-w-[20px] text-center">
+                            <span className="bg-white/25 text-white text-[10px] font-black px-1.5 py-0.5 rounded-[2rem] min-w-[20px] text-center">
                                 {activeFilterCount}
                             </span>
                         )}
@@ -338,7 +338,7 @@ export const ArticleList: React.FC<ArticleListProps> = ({
                                 <button
                                     key={dir}
                                     onClick={() => setSortDir(dir)}
-                                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold border transition-all ${sortDir === dir
+                                    className={`flex-1 py-1.5 rounded-2xl text-xs font-bold border transition-all ${sortDir === dir
                                         ? 'bg-blue-600 text-white border-blue-600'
                                         : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300'
                                         }`}
@@ -358,7 +358,7 @@ export const ArticleList: React.FC<ArticleListProps> = ({
                             </button>
                             <button
                                 onClick={() => setFilterOpen(false)}
-                                className="px-4 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-all"
+                                className="px-4 py-1.5 bg-blue-600 text-white rounded-2xl text-xs font-bold hover:bg-blue-700 transition-all"
                             >
                                 Sluiten
                             </button>
@@ -427,7 +427,7 @@ export const ArticleList: React.FC<ArticleListProps> = ({
                         </div>
 
                         {/* Status Badge */}
-                        <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest shrink-0 ${STATUS_CONFIG[article.status]?.pill || 'bg-slate-400 text-white'}`}>
+                        <span className={`px-3 py-1 rounded-2xl text-[10px] font-black uppercase tracking-widest shrink-0 ${STATUS_CONFIG[article.status]?.pill || 'bg-slate-400 text-white'}`}>
                             {STATUS_CONFIG[article.status]?.label || article.status}
                         </span>
                     </div>
@@ -451,7 +451,7 @@ export const ArticleList: React.FC<ArticleListProps> = ({
                     <button
                         onClick={() => setPage(p => Math.max(0, p - 1))}
                         disabled={page === 0}
-                        className="w-9 h-9 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 hover:border-blue-400 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                        className="w-9 h-9 flex items-center justify-center rounded-[2rem] border border-slate-200 dark:border-slate-700 text-slate-500 hover:border-blue-400 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                     >
                         ‹
                     </button>
@@ -465,7 +465,7 @@ export const ArticleList: React.FC<ArticleListProps> = ({
                             <button
                                 key={pageNum}
                                 onClick={() => setPage(pageNum)}
-                                className={`w-9 h-9 flex items-center justify-center rounded-xl text-sm font-bold transition-all ${pageNum === page
+                                className={`w-9 h-9 flex items-center justify-center rounded-[2rem] text-sm font-bold transition-all ${pageNum === page
                                     ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 border border-blue-600'
                                     : 'border border-slate-200 dark:border-slate-700 text-slate-500 hover:border-blue-400 hover:text-blue-500'
                                     }`}
@@ -477,7 +477,7 @@ export const ArticleList: React.FC<ArticleListProps> = ({
                     <button
                         onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
                         disabled={page >= totalPages - 1}
-                        className="w-9 h-9 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 hover:border-blue-400 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                        className="w-9 h-9 flex items-center justify-center rounded-[2rem] border border-slate-200 dark:border-slate-700 text-slate-500 hover:border-blue-400 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                     >
                         ›
                     </button>

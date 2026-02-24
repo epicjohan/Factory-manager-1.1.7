@@ -101,18 +101,18 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClos
                         <img
                             src={fileUrl || ''}
                             alt={file.name}
-                            className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+                            className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl"
                         />
                     ) : isPdf ? (
                         safePdfUrl ? (
                             <iframe
                                 src={safePdfUrl}
-                                className="w-full h-full bg-white rounded-lg shadow-2xl border-none"
+                                className="w-full h-full bg-white rounded-2xl shadow-2xl border-none"
                                 title="PDF Preview"
                                 style={{ minHeight: '80vh' }}
                             />
                         ) : (
-                            <div className="w-full h-full flex flex-col items-center justify-center bg-white text-slate-500 rounded-lg" style={{ minHeight: '80vh' }}>
+                            <div className="w-full h-full flex flex-col items-center justify-center bg-white text-slate-500 rounded-2xl" style={{ minHeight: '80vh' }}>
                                 Laden of bestandstype onbekend...
                             </div>
                         )

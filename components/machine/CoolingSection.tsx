@@ -218,7 +218,7 @@ export const CoolingSection: React.FC<CoolingSectionProps> = ({ machine }) => {
                                                     <AlertCircle className="text-orange-600 shrink-0 mt-0.5" size={20} />
                                                     <div>
                                                         <p className="font-bold text-orange-800 dark:text-orange-200 text-sm leading-tight">{advice}</p>
-                                                        <label className="flex items-center gap-3 mt-3 p-2 bg-white dark:bg-slate-800 rounded-xl cursor-pointer hover:bg-orange-50 transition-colors border border-orange-100 dark:border-orange-900">
+                                                        <label className="flex items-center gap-3 mt-3 p-2 bg-white dark:bg-slate-800 rounded-[2rem] cursor-pointer hover:bg-orange-50 transition-colors border border-orange-100 dark:border-orange-900">
                                                             <input type="checkbox" checked={actionConfirm} onChange={e => setActionConfirm(e.target.checked)} className="w-5 h-5 text-orange-600 rounded" />
                                                             <span className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400"> Correctie uitgevoerd</span>
                                                         </label>
@@ -242,7 +242,7 @@ export const CoolingSection: React.FC<CoolingSectionProps> = ({ machine }) => {
                                     <input
                                         required
                                         type="text"
-                                        className="w-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 dark:text-white font-bold outline-none focus:border-emerald-500"
+                                        className="w-full p-4 rounded-[2rem] border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 dark:text-white font-bold outline-none focus:border-emerald-500"
                                         placeholder="Bijv: Jaarlijkse wissel, vervuiling, geur..."
                                         value={exchangeReason}
                                         onChange={e => setExchangeReason(e.target.value)}
@@ -261,7 +261,7 @@ export const CoolingSection: React.FC<CoolingSectionProps> = ({ machine }) => {
                                                 <input
                                                     required
                                                     type="text"
-                                                    className="w-full pl-10 p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 dark:text-white font-bold outline-none focus:border-purple-500"
+                                                    className="w-full pl-10 p-4 rounded-[2rem] border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 dark:text-white font-bold outline-none focus:border-purple-500"
                                                     placeholder="Naam bedrijf..."
                                                     value={cleaningCompany}
                                                     onChange={e => setCleaningCompany(e.target.value)}
@@ -270,7 +270,7 @@ export const CoolingSection: React.FC<CoolingSectionProps> = ({ machine }) => {
                                         </div>
                                         <div className="cursor-pointer" onClick={() => setShowTankNumpad(true)}>
                                             <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1 text-left">Te reinigen liters (L)</label>
-                                            <div className="w-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 dark:text-white font-mono font-black text-xl flex justify-between items-center">
+                                            <div className="w-full p-4 rounded-[2rem] border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 dark:text-white font-mono font-black text-xl flex justify-between items-center">
                                                 <span>{tempTankCapacity} L</span>
                                                 <RefreshCw size={18} className="text-purple-500" />
                                             </div>
@@ -362,7 +362,7 @@ export const CoolingSection: React.FC<CoolingSectionProps> = ({ machine }) => {
                                     {isAdmin && (
                                         <button
                                             onClick={() => handleDeleteLog(log.id)}
-                                            className={`p-2 transition-all rounded-xl flex items-center gap-2 ${confirmDeleteLogId === log.id ? 'bg-red-600 text-white px-4' : 'bg-slate-50 dark:bg-slate-900 text-slate-300 hover:text-red-500'}`}
+                                            className={`p-2 transition-all rounded-[2rem] flex items-center gap-2 ${confirmDeleteLogId === log.id ? 'bg-red-600 text-white px-4' : 'bg-slate-50 dark:bg-slate-900 text-slate-300 hover:text-red-500'}`}
                                             title="Verwijder log"
                                         >
                                             {confirmDeleteLogId === log.id ? (
@@ -407,8 +407,8 @@ export const CoolingSection: React.FC<CoolingSectionProps> = ({ machine }) => {
                                 </div>
                             </div>
                             <div className="flex items-center gap-3">
-                                <div className="flex flex-col"> <label className="text-[10px] uppercase font-black text-slate-400 mb-1 ml-1">Periode Van</label> <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="p-2 rounded-xl border-2 border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs dark:text-white font-bold outline-none focus:border-blue-500 shadow-inner" /> </div>
-                                <div className="flex flex-col"> <label className="text-[10px] uppercase font-black text-slate-400 mb-1 ml-1">Tot</label> <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="p-2 rounded-xl border-2 border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs dark:text-white font-bold outline-none focus:border-blue-500 shadow-inner" /> </div>
+                                <div className="flex flex-col"> <label className="text-[10px] uppercase font-black text-slate-400 mb-1 ml-1">Periode Van</label> <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="p-2 rounded-[2rem] border-2 border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs dark:text-white font-bold outline-none focus:border-blue-500 shadow-inner" /> </div>
+                                <div className="flex flex-col"> <label className="text-[10px] uppercase font-black text-slate-400 mb-1 ml-1">Tot</label> <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="p-2 rounded-[2rem] border-2 border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs dark:text-white font-bold outline-none focus:border-blue-500 shadow-inner" /> </div>
                             </div>
                         </div>
                         <div className="h-80 w-full">

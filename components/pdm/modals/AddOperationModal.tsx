@@ -67,14 +67,14 @@ export const AddOperationModal: React.FC<AddOperationModalProps> = ({
                         <button 
                             type="button"
                             onClick={() => setOpType('MACHINE')}
-                            className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${opType === 'MACHINE' ? 'bg-white dark:bg-slate-700 text-orange-600 shadow-md' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`flex-1 py-3 rounded-[2rem] text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${opType === 'MACHINE' ? 'bg-white dark:bg-slate-700 text-orange-600 shadow-md' : 'text-slate-500 hover:text-slate-700'}`}
                         >
                             <Monitor size={16} /> Machine
                         </button>
                         <button 
                             type="button"
                             onClick={() => setOpType('PROCESS')}
-                            className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${opType === 'PROCESS' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-md' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`flex-1 py-3 rounded-[2rem] text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${opType === 'PROCESS' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-md' : 'text-slate-500 hover:text-slate-700'}`}
                         >
                             <Box size={16} /> Proces
                         </button>
@@ -82,7 +82,7 @@ export const AddOperationModal: React.FC<AddOperationModalProps> = ({
 
                     {/* INFO CARD */}
                     <div className={`p-4 rounded-2xl border flex gap-4 items-start ${opType === 'MACHINE' ? 'bg-orange-50 dark:bg-orange-900/10 border-orange-100 dark:border-orange-800' : 'bg-blue-50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-800'}`}>
-                        <div className={`p-2 rounded-xl shrink-0 ${opType === 'MACHINE' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600'}`}>
+                        <div className={`p-2 rounded-[2rem] shrink-0 ${opType === 'MACHINE' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600'}`}>
                             {opType === 'MACHINE' ? <Monitor size={24} /> : <Box size={24} />}
                         </div>
                         <div>
@@ -105,7 +105,7 @@ export const AddOperationModal: React.FC<AddOperationModalProps> = ({
                         </label>
                         <div className="relative">
                             <select 
-                                className="w-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-bold text-slate-800 dark:text-white outline-none focus:border-blue-500 transition-all text-sm"
+                                className="w-full p-4 rounded-[2rem] border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-bold text-slate-800 dark:text-white outline-none focus:border-blue-500 transition-all text-sm"
                                 value={selectedId}
                                 onChange={(e) => setSelectedId(e.target.value)}
                             >
@@ -131,10 +131,10 @@ export const AddOperationModal: React.FC<AddOperationModalProps> = ({
                 </div>
 
                 <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex gap-4">
-                    <button onClick={onClose} className="flex-1 py-4 text-slate-500 font-bold uppercase text-xs tracking-widest hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl transition-colors">
+                    <button onClick={onClose} className="flex-1 py-4 text-slate-500 font-bold uppercase text-xs tracking-widest hover:bg-slate-200 dark:hover:bg-slate-800 rounded-[2rem] transition-colors">
                         Annuleren
                     </button>
-                    <button onClick={handleConfirm} disabled={!selectedId} className="flex-[2] py-4 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white rounded-xl font-black uppercase text-xs tracking-widest shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2">
+                    <button onClick={handleConfirm} disabled={!selectedId} className="flex-[2] py-4 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white rounded-[2rem] font-black uppercase text-xs tracking-widest shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2">
                         <PlayCircle size={16} /> Toevoegen
                     </button>
                 </div>

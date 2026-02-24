@@ -129,7 +129,7 @@ export const Showcase: React.FC = () => {
           </div>
 
           <div className="flex-1 w-full max-w-xl">
-              <div className={`rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 relative overflow-hidden shadow-2xl print:shadow-none print:border-2 print:rounded-xl`}>
+              <div className={`rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 relative overflow-hidden shadow-2xl print:shadow-none print:border-2 print:rounded-[2rem]`}>
                   {children}
                   <div className={`absolute top-0 right-0 p-32 ${color.replace('bg-', 'bg-')} opacity-5 blur-[80px] rounded-full pointer-events-none`}></div>
               </div>
@@ -234,7 +234,7 @@ export const Showcase: React.FC = () => {
                   </div>
               </div>
 
-              <div className="p-4 bg-slate-900 text-green-400 font-mono text-xs rounded-xl border border-slate-800">
+              <div className="p-4 bg-slate-900 text-green-400 font-mono text-xs rounded-[2rem] border border-slate-800">
                   <span className="text-slate-500">{'>'}</span> STREAM_ACTIVE: 12ms latency...
               </div>
           </div>
@@ -255,7 +255,7 @@ export const Showcase: React.FC = () => {
                           <div className="text-xs font-black text-slate-400 uppercase tracking-widest">Tool T12</div>
                           <div className="text-2xl font-black text-slate-900 dark:text-white uppercase italic">Hardfrees Ø12</div>
                       </div>
-                      <div className={`px-3 py-1 rounded-lg text-xs font-black uppercase ${toolStatus === 'OK' ? 'bg-green-100 text-green-700' : toolStatus === 'WARNING' ? 'bg-orange-100 text-orange-700' : 'bg-red-600 text-white animate-pulse'}`}>
+                      <div className={`px-3 py-1 rounded-2xl text-xs font-black uppercase ${toolStatus === 'OK' ? 'bg-green-100 text-green-700' : toolStatus === 'WARNING' ? 'bg-orange-100 text-orange-700' : 'bg-red-600 text-white animate-pulse'}`}>
                           {toolStatus}
                       </div>
                   </div>
@@ -283,10 +283,10 @@ export const Showcase: React.FC = () => {
               </div>
 
               <div className="flex gap-3">
-                  <button onClick={simulateCut} disabled={toolStatus === 'BROKEN'} className="flex-1 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl shadow-lg shadow-purple-500/20 active:scale-95 transition-all disabled:opacity-50">
+                  <button onClick={simulateCut} disabled={toolStatus === 'BROKEN'} className="flex-1 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-[2rem] shadow-lg shadow-purple-500/20 active:scale-95 transition-all disabled:opacity-50">
                       <Play size={16} className="inline mr-2" /> Simuleer Snede
                   </button>
-                  <button onClick={resetTool} className="px-6 py-3 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold rounded-xl transition-all">
+                  <button onClick={resetTool} className="px-6 py-3 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold rounded-[2rem] transition-all">
                       <RefreshCw size={16} />
                   </button>
               </div>
@@ -311,17 +311,17 @@ export const Showcase: React.FC = () => {
               </div>
 
               {fluidStatus !== 'OK' && (
-                  <div className={`p-4 rounded-xl font-bold text-sm animate-in zoom-in ${fluidStatus === 'LOW' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>
+                  <div className={`p-4 rounded-[2rem] font-bold text-sm animate-in zoom-in ${fluidStatus === 'LOW' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>
                       <AlertTriangle size={16} className="inline mr-2 -mt-1" />
                       {fluidStatus === 'LOW' ? 'Concentratie te LAAG. Voeg olie toe.' : 'Concentratie te HOOG. Voeg water toe.'}
                   </div>
               )}
 
               <div className="grid grid-cols-2 gap-4">
-                  <button onClick={() => updateFluid(-0.5)} className="py-4 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 font-bold rounded-xl border border-blue-200 dark:border-blue-800 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors">
+                  <button onClick={() => updateFluid(-0.5)} className="py-4 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 font-bold rounded-[2rem] border border-blue-200 dark:border-blue-800 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors">
                       + Water
                   </button>
-                  <button onClick={() => updateFluid(0.5)} className="py-4 bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-300 font-bold rounded-xl border border-cyan-200 dark:border-cyan-800 hover:bg-cyan-200 dark:hover:bg-cyan-900/50 transition-colors">
+                  <button onClick={() => updateFluid(0.5)} className="py-4 bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-300 font-bold rounded-[2rem] border border-cyan-200 dark:border-cyan-800 hover:bg-cyan-200 dark:hover:bg-cyan-900/50 transition-colors">
                       + Olie
                   </button>
               </div>
@@ -360,13 +360,13 @@ export const Showcase: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-3 gap-2">
-                  <button onClick={() => setTicketStep(1)} disabled={ticketStep !== 0} className="p-3 bg-red-600 text-white rounded-xl font-bold text-xs hover:bg-red-700 disabled:opacity-20 transition-all">
+                  <button onClick={() => setTicketStep(1)} disabled={ticketStep !== 0} className="p-3 bg-red-600 text-white rounded-[2rem] font-bold text-xs hover:bg-red-700 disabled:opacity-20 transition-all">
                       1. Meld Storing
                   </button>
-                  <button onClick={() => setTicketStep(2)} disabled={ticketStep !== 1} className="p-3 bg-blue-600 text-white rounded-xl font-bold text-xs hover:bg-blue-700 disabled:opacity-20 transition-all">
+                  <button onClick={() => setTicketStep(2)} disabled={ticketStep !== 1} className="p-3 bg-blue-600 text-white rounded-[2rem] font-bold text-xs hover:bg-blue-700 disabled:opacity-20 transition-all">
                       2. Start Reparatie
                   </button>
-                  <button onClick={() => setTicketStep(3)} disabled={ticketStep !== 2} className="p-3 bg-green-600 text-white rounded-xl font-bold text-xs hover:bg-green-700 disabled:opacity-20 transition-all">
+                  <button onClick={() => setTicketStep(3)} disabled={ticketStep !== 2} className="p-3 bg-green-600 text-white rounded-[2rem] font-bold text-xs hover:bg-green-700 disabled:opacity-20 transition-all">
                       3. Gereedmelden
                   </button>
               </div>
@@ -395,7 +395,7 @@ export const Showcase: React.FC = () => {
               </div>
 
               {stockAlert && (
-                  <div className="bg-red-600 text-white p-4 rounded-xl font-bold text-sm flex items-center gap-3 shadow-lg animate-in slide-in-from-left">
+                  <div className="bg-red-600 text-white p-4 rounded-[2rem] font-bold text-sm flex items-center gap-3 shadow-lg animate-in slide-in-from-left">
                       <AlertTriangle size={20} />
                       <div>
                           <div>MINIMALE VOORRAAD BEREIKT</div>
@@ -405,11 +405,11 @@ export const Showcase: React.FC = () => {
               )}
 
               <div className="flex gap-4">
-                  <button onClick={consumePart} className="flex-1 py-4 bg-slate-900 dark:bg-white text-white dark:text-black rounded-xl font-bold hover:scale-[1.02] active:scale-95 transition-all">
+                  <button onClick={consumePart} className="flex-1 py-4 bg-slate-900 dark:bg-white text-white dark:text-black rounded-[2rem] font-bold hover:scale-[1.02] active:scale-95 transition-all">
                       Verbruik Onderdeel
                   </button>
                   {stockAlert && (
-                      <button onClick={restock} className="px-6 py-4 bg-green-500 text-white rounded-xl font-bold hover:bg-green-600 transition-colors animate-in zoom-in">
+                      <button onClick={restock} className="px-6 py-4 bg-green-500 text-white rounded-[2rem] font-bold hover:bg-green-600 transition-colors animate-in zoom-in">
                           <RefreshCw size={20} />
                       </button>
                   )}
@@ -445,7 +445,7 @@ export const Showcase: React.FC = () => {
                   </div>
               </div>
 
-              <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+              <div className="bg-white dark:bg-slate-800 p-4 rounded-[2rem] border border-slate-200 dark:border-slate-700">
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Simuleer Energieprijs (€/kWh)</label>
                   <input 
                       type="range" 
@@ -454,7 +454,7 @@ export const Showcase: React.FC = () => {
                       step="0.01" 
                       value={energyCost} 
                       onChange={(e) => setEnergyCost(parseFloat(e.target.value))}
-                      className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600"
+                      className="w-full h-2 bg-slate-200 rounded-2xl appearance-none cursor-pointer accent-emerald-600"
                   />
                   <div className="flex justify-between text-[10px] text-slate-400 font-mono mt-1">
                       <span>€0.10</span>

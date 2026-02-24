@@ -1,22 +1,57 @@
-
 @tailwind base;
+
+:root {
+  --color-slate-50: #fafafa;
+  --color-slate-100: #f4f4f5;
+  --color-slate-200: #e4e4e7;
+  --color-slate-800: #18181b;
+  --color-slate-900: #09090b;
+}
+
+.theme-light-soft {
+  --color-slate-50: #f5f5f4;
+  /* stone-100 warm tint */
+  --color-slate-100: #e7e5e4;
+  --color-slate-200: #d6d3d1;
+}
+
+.theme-light-cool {
+  --color-slate-50: #f1f5f9;
+  /* cool blue slate tint */
+  --color-slate-100: #e2e8f0;
+  --color-slate-200: #cbd5e1;
+}
+
+.theme-classic.dark {
+  --color-slate-800: #1e293b;
+  --color-slate-900: #0f172a;
+}
+
+.theme-midnight.dark {
+  --color-slate-800: #172554;
+  /* Diep donkerblauw */
+  --color-slate-900: #081232;
+  /* Nog dieper donkerblauw voor achtergrond */
+}
+
 @tailwind components;
 @tailwind utilities;
 
 /* Smooth scrolling and transitions */
 html {
   scroll-behavior: smooth;
-  -webkit-tap-highlight-color: transparent; 
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overscroll-behavior-y: none; 
-  user-select: none; 
+  overscroll-behavior-y: none;
+  user-select: none;
 }
 
-input, textarea {
+input,
+textarea {
   user-select: text;
 }
 
@@ -27,49 +62,86 @@ input, textarea {
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent; 
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #475569; 
+  background: #475569;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #64748b; 
+  background: #64748b;
 }
 
 /* Animations */
-.animate-shake { 
-  animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; 
+.animate-shake {
+  animation: shake 0.4s cubic-bezier(.36, .07, .19, .97) both;
 }
 
-.animate-pop { 
-  animation: pop 0.2s ease-out forwards; 
+.animate-pop {
+  animation: pop 0.2s ease-out forwards;
 }
 
-.animate-success-exit { 
-  animation: success-bounce 0.6s ease-in-out forwards; 
+.animate-success-exit {
+  animation: success-bounce 0.6s ease-in-out forwards;
 }
 
 @keyframes shake {
-  10%, 90% { transform: translate3d(-1px, 0, 0); }
-  20%, 80% { transform: translate3d(2px, 0, 0); }
-  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-  40%, 60% { transform: translate3d(4px, 0, 0); }
+
+  10%,
+  90% {
+    transform: translate3d(-1px, 0, 0);
+  }
+
+  20%,
+  80% {
+    transform: translate3d(2px, 0, 0);
+  }
+
+  30%,
+  50%,
+  70% {
+    transform: translate3d(-4px, 0, 0);
+  }
+
+  40%,
+  60% {
+    transform: translate3d(4px, 0, 0);
+  }
 }
 
 @keyframes pop {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.4); }
-  100% { transform: scale(1.25); }
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.4);
+  }
+
+  100% {
+    transform: scale(1.25);
+  }
 }
 
 @keyframes success-bounce {
-  0% { transform: scale(1); }
-  30% { transform: scale(1.1); }
-  60% { transform: scale(0.95); }
-  100% { transform: scale(1); opacity: '0'; }
+  0% {
+    transform: scale(1);
+  }
+
+  30% {
+    transform: scale(1.1);
+  }
+
+  60% {
+    transform: scale(0.95);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: '0';
+  }
 }
 
 /* Utility for no-scrollbar */

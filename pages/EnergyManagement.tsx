@@ -178,13 +178,13 @@ export const EnergyManagement: React.FC = () => {
         <div className="flex gap-3">
             <button 
                 onClick={() => navigate('/energy')}
-                className="px-6 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-white rounded-xl font-bold text-sm border border-slate-200 dark:border-slate-700 hover:bg-slate-200 transition-all flex items-center gap-2"
+                className="px-6 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-white rounded-[2rem] font-bold text-sm border border-slate-200 dark:border-slate-700 hover:bg-slate-200 transition-all flex items-center gap-2"
             >
                 <Activity size={18} /> Live Dashboard
             </button>
             <button 
                 onClick={handleSaveGlobal} 
-                className={`px-8 py-3 rounded-xl shadow-lg font-bold flex items-center gap-2 transition-all ${saveStatus === 'saved' ? 'bg-green-600 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                className={`px-8 py-3 rounded-[2rem] shadow-lg font-bold flex items-center gap-2 transition-all ${saveStatus === 'saved' ? 'bg-green-600 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
             >
                 {saveStatus === 'saved' ? <CheckCircle size={20} /> : <Save size={20} />}
                 <span>{saveStatus === 'saved' ? 'Opgeslagen' : 'Opslaan'}</span>
@@ -203,7 +203,7 @@ export const EnergyManagement: React.FC = () => {
                           <input 
                             type="number" 
                             step="0.001" 
-                            className="w-full pl-11 p-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 dark:text-white font-mono font-bold text-lg" 
+                            className="w-full pl-11 p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 dark:text-white font-mono font-bold text-lg" 
                             value={kwhPrice} 
                             onChange={e => setKwhPrice(parseFloat(e.target.value))} 
                           />
@@ -215,7 +215,7 @@ export const EnergyManagement: React.FC = () => {
                           <Zap className="absolute left-3 top-3 text-slate-400" size={20} />
                           <input 
                             type="number" 
-                            className="w-full pl-11 p-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 dark:text-white font-mono font-bold text-lg" 
+                            className="w-full pl-11 p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 dark:text-white font-mono font-bold text-lg" 
                             value={maxPowerLimit} 
                             onChange={e => setMaxPowerLimit(parseInt(e.target.value))} 
                           />
@@ -235,7 +235,7 @@ export const EnergyManagement: React.FC = () => {
                           <input 
                             type="number" 
                             step="0.1" 
-                            className="w-full pl-11 p-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 dark:text-white font-mono font-bold text-lg" 
+                            className="w-full pl-11 p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 dark:text-white font-mono font-bold text-lg" 
                             value={consumptionFactor} 
                             onChange={e => setConsumptionFactor(parseFloat(e.target.value))} 
                           />
@@ -249,7 +249,7 @@ export const EnergyManagement: React.FC = () => {
                           <input 
                             type="number" 
                             step="0.1" 
-                            className="w-full pl-11 p-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 dark:text-white font-mono font-bold text-lg" 
+                            className="w-full pl-11 p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 dark:text-white font-mono font-bold text-lg" 
                             value={productionFactor} 
                             onChange={e => setProductionFactor(parseFloat(e.target.value))} 
                           />
@@ -259,7 +259,7 @@ export const EnergyManagement: React.FC = () => {
           </div>
       </div>
 
-      <div className="bg-slate-50 dark:bg-slate-900 p-1 rounded-xl my-8"></div>
+      <div className="bg-slate-50 dark:bg-slate-900 p-1 rounded-[2rem] my-8"></div>
 
       <div className="space-y-6">
           <div>
@@ -289,7 +289,7 @@ export const EnergyManagement: React.FC = () => {
                           </div>
                           
                           {hasConfig && (
-                              <div className="mb-4 text-xs font-mono text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50 p-2 rounded-lg">
+                              <div className="mb-4 text-xs font-mono text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50 p-2 rounded-2xl">
                                   IP: {config.ipAddress || 'N/A'} <br/>
                                   Poll: {config.pollInterval}s
                               </div>
@@ -297,7 +297,7 @@ export const EnergyManagement: React.FC = () => {
 
                           <button 
                             onClick={() => openConfigModal(machine.id)}
-                            className={`w-full py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${hasConfig ? 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-200' : 'bg-white border hover:border-purple-400 text-purple-600 shadow-sm'}`}
+                            className={`w-full py-2.5 rounded-[2rem] text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${hasConfig ? 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-200' : 'bg-white border hover:border-purple-400 text-purple-600 shadow-sm'}`}
                           >
                               <Settings size={14} /> {hasConfig ? 'Configureren' : 'Meter Koppelen'}
                           </button>
@@ -321,7 +321,7 @@ export const EnergyManagement: React.FC = () => {
                       <div>
                           <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Sensor Type</label>
                           <select 
-                            className="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-white font-bold outline-none"
+                            className="w-full p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-white font-bold outline-none"
                             value={editingConfig.sensorType}
                             onChange={e => setEditingConfig({ ...editingConfig, sensorType: e.target.value as any })}
                           >
@@ -338,7 +338,7 @@ export const EnergyManagement: React.FC = () => {
                                   <label className="block text-xs font-bold text-slate-500 uppercase mb-2">IP Adres</label>
                                   <input 
                                     type="text" 
-                                    className="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-white font-mono text-sm"
+                                    className="w-full p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-white font-mono text-sm"
                                     placeholder="192.168.1.x"
                                     value={editingConfig.ipAddress || ''}
                                     onChange={e => setEditingConfig({ ...editingConfig, ipAddress: e.target.value })}
@@ -348,7 +348,7 @@ export const EnergyManagement: React.FC = () => {
                                   <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Poort (Opt.)</label>
                                   <input 
                                     type="number" 
-                                    className="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-white font-mono text-sm"
+                                    className="w-full p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-white font-mono text-sm"
                                     placeholder="80"
                                     value={editingConfig.apiPort || ''}
                                     onChange={e => setEditingConfig({ ...editingConfig, apiPort: parseInt(e.target.value) })}
@@ -362,7 +362,7 @@ export const EnergyManagement: React.FC = () => {
                               <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Vast Verbruik bij 'RUNNING' (Watt)</label>
                               <input 
                                 type="number" 
-                                className="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-white font-bold"
+                                className="w-full p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-white font-bold"
                                 placeholder="Bijv. 15000"
                                 value={editingConfig.manualPowerW || ''}
                                 onChange={e => setEditingConfig({ ...editingConfig, manualPowerW: parseInt(e.target.value) })}
@@ -376,7 +376,7 @@ export const EnergyManagement: React.FC = () => {
                           <input 
                             type="number" 
                             min="2"
-                            className="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-white font-bold"
+                            className="w-full p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 dark:text-white font-bold"
                             value={editingConfig.pollInterval || 10}
                             onChange={e => setEditingConfig({ ...editingConfig, pollInterval: parseInt(e.target.value) })}
                           />
@@ -384,14 +384,14 @@ export const EnergyManagement: React.FC = () => {
 
                       <div className="flex gap-3 pt-4 border-t border-slate-100 dark:border-slate-700">
                           {editingConfig.id && (
-                              <button type="button" onClick={handleDeleteConfig} className="p-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors">
+                              <button type="button" onClick={handleDeleteConfig} className="p-3 bg-red-50 text-red-600 rounded-[2rem] hover:bg-red-100 transition-colors">
                                   <Trash2 size={20} />
                               </button>
                           )}
-                          <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3 text-slate-500 font-bold hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors">
+                          <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3 text-slate-500 font-bold hover:bg-slate-100 dark:hover:bg-slate-700 rounded-[2rem] transition-colors">
                               Annuleren
                           </button>
-                          <button type="submit" className="flex-2 px-8 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 transition-colors">
+                          <button type="submit" className="flex-2 px-8 py-3 bg-blue-600 text-white font-bold rounded-[2rem] shadow-lg hover:bg-blue-700 transition-colors">
                               Opslaan
                           </button>
                       </div>

@@ -183,7 +183,7 @@ export const MaintenancePlanner: React.FC = () => {
                               <div
                                  key={ev.id}
                                  onClick={(e) => handleEventClick(e, ev)}
-                                 className={`text-xs px-2 py-1.5 rounded-xl truncate flex items-center gap-2 shadow-sm transition-all hover:scale-[1.02] border ${ev.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800/50 decoration-slate-400' : 'bg-white text-slate-800 border-slate-200 dark:bg-slate-800 dark:text-white dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-700'}`}
+                                 className={`text-xs px-2 py-1.5 rounded-[2rem] truncate flex items-center gap-2 shadow-sm transition-all hover:scale-[1.02] border ${ev.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800/50 decoration-slate-400' : 'bg-white text-slate-800 border-slate-200 dark:bg-slate-800 dark:text-white dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-700'}`}
                               >
                                  <div className={`shrink-0 w-2 h-2 rounded-full ${ev.status === 'COMPLETED' ? 'bg-emerald-500' : 'bg-blue-500'}`}></div>
                                  <span className="font-bold truncate">{ev.title}</span>

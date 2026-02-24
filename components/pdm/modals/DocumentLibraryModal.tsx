@@ -79,7 +79,7 @@ export const DocumentLibraryModal: React.FC<DocumentLibraryModalProps> = ({ onCl
                         filteredDocs.map(doc => (
                             <div key={doc.id} className="flex items-center justify-between p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl hover:border-blue-500 dark:hover:border-blue-500 transition-all hover:shadow-md group">
                                 <div className="flex items-center gap-4 min-w-0 pr-4">
-                                    <div className="w-12 h-12 rounded-xl bg-slate-50 dark:bg-slate-900/50 flex flex-col items-center justify-center shrink-0 border border-slate-100 dark:border-slate-700">
+                                    <div className="w-12 h-12 rounded-[2rem] bg-slate-50 dark:bg-slate-900/50 flex flex-col items-center justify-center shrink-0 border border-slate-100 dark:border-slate-700">
                                         {getIcon(doc.type || '')}
                                     </div>
                                     <div className="min-w-0">
@@ -108,7 +108,7 @@ export const DocumentLibraryModal: React.FC<DocumentLibraryModalProps> = ({ onCl
                                 </div>
                                 <button
                                     onClick={() => onSelect(doc)}
-                                    className="shrink-0 bg-slate-50 hover:bg-blue-600 text-slate-600 hover:text-white dark:bg-slate-700 dark:hover:bg-blue-600 dark:text-slate-300 rounded-xl px-4 py-3 text-xs font-black uppercase tracking-widest flex items-center gap-2 transition-all border border-slate-200 dark:border-slate-600 hover:border-blue-600 hover:shadow-lg active:scale-95"
+                                    className="shrink-0 bg-slate-50 hover:bg-blue-600 text-slate-600 hover:text-white dark:bg-slate-700 dark:hover:bg-blue-600 dark:text-slate-300 rounded-[2rem] px-4 py-3 text-xs font-black uppercase tracking-widest flex items-center gap-2 transition-all border border-slate-200 dark:border-slate-600 hover:border-blue-600 hover:shadow-lg active:scale-95"
                                 >
                                     <CheckCircle2 size={16} /> <span className="hidden sm:inline">Koppel</span>
                                 </button>

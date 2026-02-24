@@ -172,7 +172,7 @@ export const AssetEnergyView: React.FC = () => {
                         <input 
                             type="text" 
                             placeholder="Zoek machine..." 
-                            className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm outline-none focus:border-purple-500 transition-colors"
+                            className="w-full pl-10 pr-4 py-2 rounded-[2rem] bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm outline-none focus:border-purple-500 transition-colors"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -224,7 +224,7 @@ export const AssetEnergyView: React.FC = () => {
                                 <button 
                                     key={m}
                                     onClick={() => setViewMode(m)}
-                                    className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === m ? 'bg-white dark:bg-slate-700 text-purple-600 shadow-md transform scale-105' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                                    className={`px-6 py-2 rounded-[2rem] text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === m ? 'bg-white dark:bg-slate-700 text-purple-600 shadow-md transform scale-105' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
                                 >
                                     {m === 'DAY' ? 'Dag' : m === 'WEEK' ? 'Week' : m === 'MONTH' ? 'Maand' : 'Jaar'}
                                 </button>
@@ -232,11 +232,11 @@ export const AssetEnergyView: React.FC = () => {
                         </div>
                         
                         <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-900 p-1 rounded-2xl border border-slate-200 dark:border-slate-800">
-                            <button onClick={() => navigateDate('PREV')} className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-xl transition-all shadow-sm"><ChevronLeft size={16}/></button>
+                            <button onClick={() => navigateDate('PREV')} className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-[2rem] transition-all shadow-sm"><ChevronLeft size={16}/></button>
                             <span className="text-xs font-black text-slate-600 dark:text-slate-300 min-w-[100px] text-center uppercase tracking-wider">
                                 {viewMode === 'YEAR' ? selectedDate.getFullYear() : selectedDate.toLocaleDateString()}
                             </span>
-                            <button onClick={() => navigateDate('NEXT')} className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-xl transition-all shadow-sm"><ChevronRight size={16}/></button>
+                            <button onClick={() => navigateDate('NEXT')} className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-[2rem] transition-all shadow-sm"><ChevronRight size={16}/></button>
                         </div>
                     </div>
                 </div>

@@ -178,7 +178,7 @@ export const MistSection: React.FC<MistSectionProps> = ({ machine }) => {
                                 <label className="block text-[10px] font-black text-slate-500 uppercase mb-2 tracking-widest">Opmerking</label>
                                 <input
                                     type="text"
-                                    className="w-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 dark:text-white text-sm font-bold outline-none focus:border-teal-500 transition-colors"
+                                    className="w-full p-4 rounded-[2rem] border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 dark:text-white text-sm font-bold outline-none focus:border-teal-500 transition-colors"
                                     value={mistRemark}
                                     onChange={e => setMistRemark(e.target.value)}
                                     placeholder="Reden van wissel..."
@@ -205,7 +205,7 @@ export const MistSection: React.FC<MistSectionProps> = ({ machine }) => {
                                             {(log as any).isPending && <CloudCog size={16} className="text-orange-500 animate-spin-slow shrink-0" />}
                                         </div>
                                         {log.remark && (
-                                            <div className="bg-white dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700 flex items-start gap-3 mt-4 shadow-inner">
+                                            <div className="bg-white dark:bg-slate-900/60 p-4 rounded-[2rem] border border-slate-200 dark:border-slate-700 flex items-start gap-3 mt-4 shadow-inner">
                                                 <MessageSquare size={14} className="text-blue-500 shrink-0 mt-0.5" />
                                                 <p className="text-xs text-slate-600 dark:text-slate-300 font-bold leading-relaxed italic break-words whitespace-normal">
                                                     {log.remark}
@@ -218,7 +218,7 @@ export const MistSection: React.FC<MistSectionProps> = ({ machine }) => {
                                         {isAdmin && (
                                             <button
                                                 onClick={() => handleDeleteMistLog(log.id)}
-                                                className={`p-1.5 transition-all rounded-lg flex items-center gap-2 ${confirmDeleteLogId === log.id ? 'bg-red-600 text-white px-3' : 'text-slate-300 hover:text-red-500'}`}
+                                                className={`p-1.5 transition-all rounded-2xl flex items-center gap-2 ${confirmDeleteLogId === log.id ? 'bg-red-600 text-white px-3' : 'text-slate-300 hover:text-red-500'}`}
                                                 title="Verwijder wissel"
                                             >
                                                 {confirmDeleteLogId === log.id ? (

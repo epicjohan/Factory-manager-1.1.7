@@ -13,13 +13,13 @@ export const EnergyDashboard: React.FC = () => {
                 <div className="bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700 inline-flex shadow-sm">
                     <button 
                         onClick={() => setActiveView('SITE')}
-                        className={`flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeView === 'SITE' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-md transform scale-[1.02]' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                        className={`flex items-center gap-2 px-6 py-3 rounded-[2rem] text-xs font-black uppercase tracking-widest transition-all ${activeView === 'SITE' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-md transform scale-[1.02]' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
                     >
                         <Factory size={18} /> Site Grid (P1)
                     </button>
                     <button 
                         onClick={() => setActiveView('ASSETS')}
-                        className={`flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeView === 'ASSETS' ? 'bg-white dark:bg-slate-700 text-purple-600 shadow-md transform scale-[1.02]' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                        className={`flex items-center gap-2 px-6 py-3 rounded-[2rem] text-xs font-black uppercase tracking-widest transition-all ${activeView === 'ASSETS' ? 'bg-white dark:bg-slate-700 text-purple-600 shadow-md transform scale-[1.02]' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
                     >
                         <Plug size={18} /> Asset Grid (Micro)
                     </button>

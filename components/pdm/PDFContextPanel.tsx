@@ -63,7 +63,7 @@ export const PDFContextPanel: React.FC<PDFContextPanelProps> = ({ file, onClose,
             {/* HEADER */}
             <div className="flex justify-between items-center p-4 border-b border-slate-800 bg-slate-950/50">
                 <div className="flex items-center gap-3 overflow-hidden">
-                    <div className="p-2 bg-blue-600 rounded-lg text-white shrink-0">
+                    <div className="p-2 bg-blue-600 rounded-2xl text-white shrink-0">
                         <FileText size={16} />
                     </div>
                     <div className="min-w-0">
@@ -72,10 +72,10 @@ export const PDFContextPanel: React.FC<PDFContextPanelProps> = ({ file, onClose,
                     </div>
                 </div>
                 <div className="flex gap-1">
-                    <button onClick={onMaximize} className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors" title="Volledig Scherm">
+                    <button onClick={onMaximize} className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-2xl transition-colors" title="Volledig Scherm">
                         <Maximize size={16} />
                     </button>
-                    <button onClick={onClose} className="p-2 text-slate-400 hover:text-red-400 hover:bg-white/10 rounded-lg transition-colors" title="Sluiten">
+                    <button onClick={onClose} className="p-2 text-slate-400 hover:text-red-400 hover:bg-white/10 rounded-2xl transition-colors" title="Sluiten">
                         <X size={16} />
                     </button>
                 </div>

@@ -116,15 +116,15 @@ export const SettingsData: React.FC = () => {
                     {snapshots.map(snap => (
                         <div key={snap.id} className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-700 flex justify-between items-center shadow-sm">
                             <div className="flex items-center gap-5">
-                                <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl text-blue-600"><HardDrive size={20} /></div>
+                                <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-[2rem] text-blue-600"><HardDrive size={20} /></div>
                                 <div>
                                     <div className="font-black text-slate-800 dark:text-white uppercase tracking-widest text-xs mb-1">{snap.name}</div>
                                     <div className="text-[10px] font-bold text-slate-400 capitalize">{new Date(snap.timestamp).toLocaleString()} • {snap.type}</div>
                                 </div>
                             </div>
                             <div className="flex gap-2">
-                                <button onClick={() => handleRestore(snap.id, snap.name)} className="px-6 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-blue-600 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm hover:border-blue-300 dark:hover:border-blue-600 transition-all">Terugzetten</button>
-                                <button onClick={() => handleDelete(snap.id)} className="p-3 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all"><Trash2 size={16} /></button>
+                                <button onClick={() => handleRestore(snap.id, snap.name)} className="px-6 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-blue-600 rounded-[2rem] text-[10px] font-black uppercase tracking-widest shadow-sm hover:border-blue-300 dark:hover:border-blue-600 transition-all">Terugzetten</button>
+                                <button onClick={() => handleDelete(snap.id)} className="p-3 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-[2rem] transition-all"><Trash2 size={16} /></button>
                             </div>
                         </div>
                     ))}

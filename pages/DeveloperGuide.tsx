@@ -36,13 +36,13 @@ export const DeveloperGuide: React.FC = () => {
     ];
 
     const CodeBlock = ({ code }: { code: string }) => (
-        <pre className="bg-slate-950 text-blue-300 p-4 rounded-xl font-mono text-xs overflow-x-auto border border-slate-800 shadow-inner my-3">
+        <pre className="bg-slate-950 text-blue-300 p-4 rounded-[2rem] font-mono text-xs overflow-x-auto border border-slate-800 shadow-inner my-3">
             <code>{code}</code>
         </pre>
     );
 
     const InfoCard = ({ title, children, type = 'info' }: any) => (
-        <div className={`p-4 rounded-xl border mb-6 ${
+        <div className={`p-4 rounded-[2rem] border mb-6 ${
             type === 'warning' ? 'bg-orange-50 border-orange-200 dark:bg-orange-900/10 dark:border-orange-800' : 
             'bg-blue-50 border-blue-100 dark:bg-blue-900/10 dark:border-blue-800'
         }`}>
@@ -72,7 +72,7 @@ export const DeveloperGuide: React.FC = () => {
                             <button 
                                 key={s.id}
                                 onClick={() => setActiveSection(s.id)}
-                                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold transition-all ${activeSection === s.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
+                                className={`w-full flex items-center gap-3 px-3 py-2 rounded-2xl text-sm font-bold transition-all ${activeSection === s.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
                             >
                                 <s.icon size={16} />
                                 {s.label}
@@ -210,13 +210,13 @@ export const DeveloperGuide: React.FC = () => {
                         </p>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700">
+                            <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-[2rem] border border-slate-200 dark:border-slate-700">
                                 <h4 className="font-bold text-xs uppercase text-slate-400 mb-2">CNC/Focas Bridge</h4>
                                 <p className="text-xs text-slate-500 leading-relaxed">
                                     Schrijft direct naar PocketBase collectie <code>machines</code>. De web-app pollt dit elke seconde in <code>fetchLiveStreams()</code>.
                                 </p>
                             </div>
-                            <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700">
+                            <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-[2rem] border border-slate-200 dark:border-slate-700">
                                 <h4 className="font-bold text-xs uppercase text-slate-400 mb-2">Energy/P1 Bridge</h4>
                                 <p className="text-xs text-slate-500 leading-relaxed">
                                     Schrijft naar collectie <code>energy_live</code>. Dashboard rendert de laatste record.

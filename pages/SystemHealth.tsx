@@ -128,12 +128,12 @@ export const SystemHealth: React.FC = () => {
                         <div><h3 className="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2 uppercase text-xs tracking-widest"><Server size={16} /> Server</h3></div>
                         <div className={`px-2 py-1 rounded text-[9px] font-black uppercase ${serverStatus === 'CONNECTED' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'}`}>{serverStatus}</div>
                     </div>
-                    <div className="mt-6 text-xs text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl border font-mono truncate">{serverUrl}</div>
+                    <div className="mt-6 text-xs text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50 p-3 rounded-[2rem] border font-mono truncate">{serverUrl}</div>
                 </div>
 
                 <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden">
                     <div><h3 className="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2 uppercase text-xs tracking-widest"><Cpu size={16} /> Cloud Sync</h3><p className="text-[10px] text-slate-500 mt-1 uppercase font-bold">PocketBase Wachtrij</p></div>
-                    <div className="mt-6"><button onClick={handleForceSync} className="w-full py-2.5 bg-slate-100 dark:bg-slate-700 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2"><RefreshCw size={12} /> Sync Nu</button>{manualSyncMsg && <div className="text-[10px] text-center mt-2 text-blue-500 font-bold">{manualSyncMsg}</div>}</div>
+                    <div className="mt-6"><button onClick={handleForceSync} className="w-full py-2.5 bg-slate-100 dark:bg-slate-700 rounded-[2rem] text-[10px] font-black uppercase flex items-center justify-center gap-2"><RefreshCw size={12} /> Sync Nu</button>{manualSyncMsg && <div className="text-[10px] text-center mt-2 text-blue-500 font-bold">{manualSyncMsg}</div>}</div>
                 </div>
 
                 <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden">
@@ -172,7 +172,7 @@ export const SystemHealth: React.FC = () => {
                                     {health}
                                 </div>
                             </div>
-                            <div className="flex justify-between items-center text-[10px] font-mono text-slate-500 bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700">
+                            <div className="flex justify-between items-center text-[10px] font-mono text-slate-500 bg-slate-50 dark:bg-slate-900/50 p-3 rounded-[2rem] border border-slate-100 dark:border-slate-700">
                                 <span className="flex items-center gap-1.5"><Clock size={12} /> Laatste Signaal:</span>
                                 <span className="font-black">
                                     {status.last_seen ? new Date(status.last_seen.replace(' ', 'T')).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'Nooit'}

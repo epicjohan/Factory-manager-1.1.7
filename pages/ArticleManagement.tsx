@@ -103,7 +103,7 @@ export const ArticleManagement: React.FC = () => {
                 <p className="text-slate-500 font-bold max-w-md mx-auto leading-relaxed">
                     Je bezit niet de vereiste PDM-rechten (<span className="text-blue-500">PDM_VIEW</span>) om de Artikel database in te zien. Neem contact op met je applicatiebeheerder.
                 </p>
-                <button onClick={() => window.history.back()} className="mt-8 px-6 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-xs uppercase text-slate-600 dark:text-slate-300 shadow-sm hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
+                <button onClick={() => window.history.back()} className="mt-8 px-6 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[2rem] font-bold text-xs uppercase text-slate-600 dark:text-slate-300 shadow-sm hover:border-slate-300 dark:hover:border-slate-600 transition-colors">
                     Terug naar Dashboard
                 </button>
             </div>
@@ -607,14 +607,14 @@ export const ArticleManagement: React.FC = () => {
             {/* TOP BAR */}
             <div className="h-16 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-6 shrink-0 shadow-sm z-20">
                 <div className="flex items-center gap-4">
-                    <button onClick={() => setView('LIST')} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-500"><ArrowLeft size={20} /></button>
+                    <button onClick={() => setView('LIST')} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-2xl text-slate-500"><ArrowLeft size={20} /></button>
                     <h1 className="text-lg font-black uppercase tracking-tight text-slate-800 dark:text-white whitespace-pre-wrap">
                         {editingArticle ? headerParts : 'Nieuw Artikel'}
                     </h1>
                 </div>
                 <button
                     onClick={() => setShowContextPanel(!showContextPanel)}
-                    className={`p-2 rounded-lg transition-colors ${showContextPanel ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'text-slate-400 hover:text-slate-600'}`}
+                    className={`p-2 rounded-2xl transition-colors ${showContextPanel ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'text-slate-400 hover:text-slate-600'}`}
                     title="Toon/Verberg Tekening"
                 >
                     <LayoutPanelLeft size={20} className="rotate-180" />

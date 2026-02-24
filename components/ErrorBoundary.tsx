@@ -56,21 +56,21 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               De applicatie is tegen een onverwachte fout aangelopen. Onze excuses voor het ongemak.
             </p>
             
-            <div className="bg-slate-100 dark:bg-slate-900 p-4 rounded-lg mb-6 text-left overflow-auto max-h-32 text-xs font-mono text-red-500">
+            <div className="bg-slate-100 dark:bg-slate-900 p-4 rounded-2xl mb-6 text-left overflow-auto max-h-32 text-xs font-mono text-red-500">
                 {this.state.error?.toString()}
             </div>
 
             <div className="space-y-3">
                 <button 
                     onClick={this.handleReload}
-                    className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-colors"
+                    className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-[2rem] font-bold flex items-center justify-center gap-2 transition-colors"
                 >
                     <RefreshCw size={20} /> Pagina Verversen
                 </button>
                 
                 <button 
                     onClick={this.handleHardReset}
-                    className="w-full py-3 bg-white dark:bg-slate-700 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors"
+                    className="w-full py-3 bg-white dark:bg-slate-700 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-[2rem] font-bold flex items-center justify-center gap-2 transition-colors"
                 >
                     <Trash2 size={20} /> Fabrieksinstellingen (Noodoplossing)
                 </button>

@@ -122,8 +122,8 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({ machine }) =
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b border-slate-100 dark:border-slate-700 pb-4">
                     <h3 className="font-black text-slate-800 dark:text-white flex items-center gap-3 uppercase tracking-tighter italic text-xl"> <ClipboardList size={24} className="text-purple-500" /> Onderhouds Checklist </h3>
                     <div className="flex bg-slate-100 dark:bg-slate-900 rounded-2xl p-1.5 border border-slate-200 dark:border-slate-700">
-                        <button onClick={() => setView('EXECUTE')} className={`px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${view === 'EXECUTE' ? 'bg-white dark:bg-slate-800 text-purple-600 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-200'}`}> <CheckSquare size={16} /> Uitvoeren </button>
-                        <button onClick={() => setView('HISTORY')} className={`px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${view === 'HISTORY' ? 'bg-white dark:bg-slate-800 text-purple-600 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}> <History size={16} /> Historie </button>
+                        <button onClick={() => setView('EXECUTE')} className={`px-5 py-2 rounded-[2rem] text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${view === 'EXECUTE' ? 'bg-white dark:bg-slate-800 text-purple-600 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-200'}`}> <CheckSquare size={16} /> Uitvoeren </button>
+                        <button onClick={() => setView('HISTORY')} className={`px-5 py-2 rounded-[2rem] text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${view === 'HISTORY' ? 'bg-white dark:bg-slate-800 text-purple-600 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}> <History size={16} /> Historie </button>
                     </div>
                     {view === 'EXECUTE' && hasPermission(Permission.MANAGE_MACHINES) && !machine.isArchived && (
                         <button onClick={() => setShowConfig(!showConfig)} className="p-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 rounded text-slate-600 dark:text-slate-300 transition-colors"> {showConfig ? <XCircle size={18} /> : <Settings size={18} />} </button>
@@ -139,28 +139,28 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({ machine }) =
                                     <div className="flex flex-col md:flex-row gap-3 items-end">
                                         <div className="flex-1 w-full">
                                             <label className="block text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2">Omschrijving van de check</label>
-                                            <input required type="text" placeholder="Bijv. Oliepeil controleren" className="w-full p-3 rounded-xl border border-purple-200 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white text-sm" value={newDesc} onChange={e => setNewDesc(e.target.value)} />
+                                            <input required type="text" placeholder="Bijv. Oliepeil controleren" className="w-full p-3 rounded-[2rem] border border-purple-200 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white text-sm" value={newDesc} onChange={e => setNewDesc(e.target.value)} />
                                         </div>
                                         <div className="w-full md:w-56">
                                             <label className="block text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2">Interval</label>
-                                            <select className="w-full p-3 rounded-xl border border-purple-200 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white text-sm" value={newInterval} onChange={e => setNewInterval(e.target.value as ChecklistInterval)}>
+                                            <select className="w-full p-3 rounded-[2rem] border border-purple-200 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white text-sm" value={newInterval} onChange={e => setNewInterval(e.target.value as ChecklistInterval)}>
                                                 <option value={ChecklistInterval.DAGELIJKS}>Dagelijks</option>
                                                 <option value={ChecklistInterval.WEKELIJKS}>Wekelijks</option>
                                                 <option value={ChecklistInterval.MAANDELIJKS}>Maandelijks</option>
                                                 <option value={ChecklistInterval.AANGEPAST}>Anders (Dagen)...</option>
                                             </select>
                                         </div>
-                                        <button type="submit" className="w-full md:w-auto px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-black uppercase tracking-widest rounded-xl text-xs transition-colors shadow-md shadow-purple-500/30">Toevoegen</button>
+                                        <button type="submit" className="w-full md:w-auto px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-black uppercase tracking-widest rounded-[2rem] text-xs transition-colors shadow-md shadow-purple-500/30">Toevoegen</button>
                                     </div>
                                     {newInterval === ChecklistInterval.AANGEPAST && (
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in slide-in-from-top-1 pt-4">
                                             <div>
                                                 <label className="block text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2">Label (Optioneel, bijv. Elke 100u)</label>
-                                                <input type="text" placeholder="Laat leeg voor standaard weergave" className="w-full p-3 rounded-xl border border-purple-200 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white text-sm font-bold" value={newCustomText} onChange={e => setNewCustomText(e.target.value)} />
+                                                <input type="text" placeholder="Laat leeg voor standaard weergave" className="w-full p-3 rounded-[2rem] border border-purple-200 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white text-sm font-bold" value={newCustomText} onChange={e => setNewCustomText(e.target.value)} />
                                             </div>
                                             <div>
                                                 <label className="block text-[10px] uppercase font-black tracking-widest text-slate-500 mb-2">Actief na (Aantal dagen)</label>
-                                                <input required type="number" min="1" className="w-full p-3 rounded-xl border border-purple-200 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white text-sm font-bold" value={newCustomDays} onChange={e => setNewCustomDays(parseInt(e.target.value))} />
+                                                <input required type="number" min="1" className="w-full p-3 rounded-[2rem] border border-purple-200 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white text-sm font-bold" value={newCustomDays} onChange={e => setNewCustomDays(parseInt(e.target.value))} />
                                             </div>
                                         </div>
                                     )}
@@ -196,7 +196,7 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({ machine }) =
                                     );
                                 })
                             ) : (
-                                <div className="text-center py-12 text-slate-400 italic bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-dashed border-slate-300"> Geen items geconfigureerd. </div>
+                                <div className="text-center py-12 text-slate-400 italic bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-dashed border-slate-300"> Geen items geconfigureerd. </div>
                             )}
                         </div>
                     </>
@@ -207,11 +207,11 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({ machine }) =
                         <div className="flex flex-col md:flex-row gap-6 bg-slate-50 dark:bg-slate-900/50 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-700">
                             <div className="flex-1">
                                 <label className="text-[10px] font-black tracking-widest text-slate-500 uppercase mb-2 flex items-center gap-2"><Calendar size={12} /> Datum</label>
-                                <input type="date" className="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white text-sm font-bold" value={historyDate} onChange={e => setHistoryDate(e.target.value)} />
+                                <input type="date" className="w-full p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white text-sm font-bold" value={historyDate} onChange={e => setHistoryDate(e.target.value)} />
                             </div>
                             <div className="flex-1">
                                 <label className="text-[10px] font-black tracking-widest text-slate-500 uppercase mb-2 flex items-center gap-2"><Filter size={12} /> Actie Punt</label>
-                                <select className="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white text-sm font-bold" value={historyFilterItem} onChange={e => setHistoryFilterItem(e.target.value)}>
+                                <select className="w-full p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white text-sm font-bold" value={historyFilterItem} onChange={e => setHistoryFilterItem(e.target.value)}>
                                     <option value="ALL">Alle Punten</option>
                                     {machine.checklist?.map(item => (<option key={item.id} value={item.id}>{item.description}</option>))}
                                 </select>
@@ -237,7 +237,7 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({ machine }) =
                                     );
                                 })
                             ) : (
-                                <div className="text-center py-8 text-slate-400 text-xs italic border border-dashed border-slate-200 dark:border-slate-700 rounded-lg"> Geen logs gevonden. </div>
+                                <div className="text-center py-8 text-slate-400 text-xs italic border border-dashed border-slate-200 dark:border-slate-700 rounded-2xl"> Geen logs gevonden. </div>
                             )}
                         </div>
                     </div>

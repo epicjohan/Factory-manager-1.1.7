@@ -236,8 +236,8 @@ export const UserManagement: React.FC = () => {
          </div>
          
          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl border border-slate-200 dark:border-slate-700 w-fit shadow-sm">
-            <button onClick={() => { setActiveMainTab('USERS'); setEditingUser(null); }} className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${activeMainTab === 'USERS' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-md' : 'text-slate-500'}`}> <Users size={16} /> Gebruikers </button>
-            <button onClick={() => { setActiveMainTab('ROLES'); setEditingRole(null); }} className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${activeMainTab === 'ROLES' ? 'bg-white dark:bg-slate-700 text-purple-600 shadow-md' : 'text-slate-500'}`}> <ShieldCheck size={16} /> Rollen Beheer </button>
+            <button onClick={() => { setActiveMainTab('USERS'); setEditingUser(null); }} className={`px-6 py-2.5 rounded-[2rem] text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${activeMainTab === 'USERS' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-md' : 'text-slate-500'}`}> <Users size={16} /> Gebruikers </button>
+            <button onClick={() => { setActiveMainTab('ROLES'); setEditingRole(null); }} className={`px-6 py-2.5 rounded-[2rem] text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${activeMainTab === 'ROLES' ? 'bg-white dark:bg-slate-700 text-purple-600 shadow-md' : 'text-slate-500'}`}> <ShieldCheck size={16} /> Rollen Beheer </button>
          </div>
       </div>
 
@@ -256,7 +256,7 @@ export const UserManagement: React.FC = () => {
                               <div key={u.id} onClick={() => handleEditUser(u)} className={`p-4 rounded-2xl border-2 cursor-pointer transition-all bg-white dark:bg-slate-800 ${editingUser?.id === u.id ? 'border-blue-500 shadow-md ring-1 ring-blue-500' : 'border-slate-100 dark:border-slate-700 hover:border-blue-300'}`}>
                                   <div className="flex justify-between items-center">
                                       <div className="flex items-center gap-3">
-                                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-lg ${editingUser?.id === u.id ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'}`}>{u.name.charAt(0)}</div>
+                                          <div className={`w-10 h-10 rounded-[2rem] flex items-center justify-center font-black text-lg ${editingUser?.id === u.id ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'}`}>{u.name.charAt(0)}</div>
                                           <div>
                                               <div className="font-bold text-slate-800 dark:text-white">{u.name}</div>
                                               <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">{roleDef?.name || u.role}</div>
@@ -323,7 +323,7 @@ export const UserManagement: React.FC = () => {
                                   {MODULE_GROUPS.map(group => group.items.map(item => {
                                       const isEnabled = globallyEnabledModules.includes(item.id);
                                       return (
-                                          <div key={item.id} onClick={() => isEnabled && toggleModuleAccess(item.id)} className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer select-none ${!isEnabled ? 'opacity-40' : allowedModules.includes(item.id) ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700' : 'hover:bg-slate-200 dark:hover:bg-slate-700'}`}>
+                                          <div key={item.id} onClick={() => isEnabled && toggleModuleAccess(item.id)} className={`flex items-center gap-2 p-2 rounded-2xl cursor-pointer select-none ${!isEnabled ? 'opacity-40' : allowedModules.includes(item.id) ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700' : 'hover:bg-slate-200 dark:hover:bg-slate-700'}`}>
                                               {allowedModules.includes(item.id) ? <CheckSquare size={16}/> : <Square size={16}/>}
                                               <span className="text-xs font-bold">{item.label}</span>
                                           </div>
@@ -336,7 +336,7 @@ export const UserManagement: React.FC = () => {
                               <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><Layers size={14}/> Zichtbare Tabs</h4>
                               <div className="flex flex-wrap gap-2">
                                   {filteredAssetTabs.map(tab => (
-                                      <button type="button" key={tab} onClick={() => toggleTabAccess(tab)} className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wide border transition-all ${allowedTabs.includes(tab) ? 'bg-teal-50 border-teal-200 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300' : 'bg-white border-slate-200 text-slate-400'}`}>
+                                      <button type="button" key={tab} onClick={() => toggleTabAccess(tab)} className={`px-3 py-1.5 rounded-2xl text-[10px] font-bold uppercase tracking-wide border transition-all ${allowedTabs.includes(tab) ? 'bg-teal-50 border-teal-200 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300' : 'bg-white border-slate-200 text-slate-400'}`}>
                                           {tab}
                                       </button>
                                   ))}
@@ -440,7 +440,7 @@ export const UserManagement: React.FC = () => {
                                               <h5 className="text-[10px] font-black uppercase text-slate-500 mb-3 border-b border-slate-200 dark:border-slate-700 pb-1">{group.label}</h5>
                                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                   {group.permissions.map(perm => (
-                                                      <div key={perm} onClick={() => toggleRolePermission(perm)} className={`flex items-center gap-3 p-2.5 rounded-xl cursor-pointer select-none transition-all ${rolePermissions.includes(perm) ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 shadow-sm' : 'hover:bg-white dark:hover:bg-slate-800'}`}>
+                                                      <div key={perm} onClick={() => toggleRolePermission(perm)} className={`flex items-center gap-3 p-2.5 rounded-[2rem] cursor-pointer select-none transition-all ${rolePermissions.includes(perm) ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 shadow-sm' : 'hover:bg-white dark:hover:bg-slate-800'}`}>
                                                           {rolePermissions.includes(perm) ? <CheckSquare size={18} className="text-purple-600"/> : <Square size={18} className="text-slate-300"/>}
                                                           <span className="text-xs font-bold">{perm.replace(/_/g, ' ')}</span>
                                                       </div>

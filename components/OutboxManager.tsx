@@ -106,7 +106,7 @@ export const OutboxManager: React.FC<OutboxManagerProps> = ({ isOpen, onClose })
                                         </span>
                                         <button 
                                             onClick={() => handleRemoveItem(entry.id)} 
-                                            className="p-1.5 bg-slate-50 dark:bg-slate-800 rounded-lg text-slate-300 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100"
+                                            className="p-1.5 bg-slate-50 dark:bg-slate-800 rounded-2xl text-slate-300 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100"
                                             title="Verwijder dit item"
                                         >
                                             <Trash2 size={12} />
@@ -119,7 +119,7 @@ export const OutboxManager: React.FC<OutboxManagerProps> = ({ isOpen, onClose })
                                 </div>
 
                                 {entry.error && (
-                                    <div className="mt-3 p-3 bg-red-100 dark:bg-red-900/40 rounded-xl text-[10px] text-red-700 dark:text-red-300 font-bold flex items-start gap-2 animate-in shake duration-500 border border-red-200 dark:border-red-900">
+                                    <div className="mt-3 p-3 bg-red-100 dark:bg-red-900/40 rounded-[2rem] text-[10px] text-red-700 dark:text-red-300 font-bold flex items-start gap-2 animate-in shake duration-500 border border-red-200 dark:border-red-900">
                                         <AlertTriangle size={14} className="shrink-0 mt-0.5" />
                                         <div className="min-w-0">
                                             <span className="block uppercase text-[8px] opacity-70 mb-0.5">Foutmelding Server:</span>

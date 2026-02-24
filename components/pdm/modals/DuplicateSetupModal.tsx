@@ -57,7 +57,7 @@ export const DuplicateSetupModal: React.FC<DuplicateSetupModalProps> = ({
                         <div className="relative">
                             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><Monitor size={18} /></div>
                             <select 
-                                className="w-full pl-12 pr-4 py-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-bold text-slate-800 dark:text-white outline-none focus:border-blue-500 transition-all"
+                                className="w-full pl-12 pr-4 py-4 rounded-[2rem] border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-bold text-slate-800 dark:text-white outline-none focus:border-blue-500 transition-all"
                                 value={targetMachineId}
                                 onChange={(e) => setTargetMachineId(e.target.value)}
                             >
@@ -75,7 +75,7 @@ export const DuplicateSetupModal: React.FC<DuplicateSetupModalProps> = ({
                         <div className="grid grid-cols-1 gap-3">
                             <button 
                                 onClick={() => setMode('CLONE')}
-                                className={`flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left group ${mode === 'CLONE' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-500' : 'border-slate-200 dark:border-slate-700 hover:border-blue-300'}`}
+                                className={`flex items-center gap-4 p-4 rounded-[2rem] border-2 transition-all text-left group ${mode === 'CLONE' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-500' : 'border-slate-200 dark:border-slate-700 hover:border-blue-300'}`}
                             >
                                 <div className={`p-3 rounded-full ${mode === 'CLONE' ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
                                     <Copy size={20} />
@@ -89,7 +89,7 @@ export const DuplicateSetupModal: React.FC<DuplicateSetupModalProps> = ({
 
                             <button 
                                 onClick={() => setMode('TEMPLATE')}
-                                className={`flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left group ${mode === 'TEMPLATE' ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 ring-1 ring-orange-500' : 'border-slate-200 dark:border-slate-700 hover:border-orange-300'}`}
+                                className={`flex items-center gap-4 p-4 rounded-[2rem] border-2 transition-all text-left group ${mode === 'TEMPLATE' ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 ring-1 ring-orange-500' : 'border-slate-200 dark:border-slate-700 hover:border-orange-300'}`}
                             >
                                 <div className={`p-3 rounded-full ${mode === 'TEMPLATE' ? 'bg-orange-600 text-white shadow-lg' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
                                     <LayoutTemplate size={20} />
@@ -106,10 +106,10 @@ export const DuplicateSetupModal: React.FC<DuplicateSetupModalProps> = ({
                 </div>
 
                 <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex gap-4">
-                    <button onClick={onClose} className="flex-1 py-4 text-slate-500 font-bold uppercase text-xs tracking-widest hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl transition-colors">
+                    <button onClick={onClose} className="flex-1 py-4 text-slate-500 font-bold uppercase text-xs tracking-widest hover:bg-slate-200 dark:hover:bg-slate-800 rounded-[2rem] transition-colors">
                         Annuleren
                     </button>
-                    <button onClick={handleConfirm} disabled={!targetMachineId} className="flex-[2] py-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl font-black uppercase text-xs tracking-widest shadow-xl transition-all active:scale-95">
+                    <button onClick={handleConfirm} disabled={!targetMachineId} className="flex-[2] py-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-[2rem] font-black uppercase text-xs tracking-widest shadow-xl transition-all active:scale-95">
                         Start Kopie
                     </button>
                 </div>

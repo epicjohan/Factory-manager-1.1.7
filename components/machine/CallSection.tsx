@@ -77,7 +77,7 @@ export const CallSection: React.FC<CallSectionProps> = ({ machine }) => {
     const RequestItem: React.FC<{ req: any }> = ({ req }) => (
         <div className="p-4 flex items-center justify-between group hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
             <div className="flex items-center gap-4">
-                <div className={`p-2.5 rounded-xl shadow-inner ${req.status === SupportStatus.COMPLETED ? 'bg-slate-100 dark:bg-slate-700 text-slate-400' : req.status === SupportStatus.PENDING ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-500' : 'bg-blue-50 dark:bg-blue-900/20 text-blue-500'}`}>
+                <div className={`p-2.5 rounded-[2rem] shadow-inner ${req.status === SupportStatus.COMPLETED ? 'bg-slate-100 dark:bg-slate-700 text-slate-400' : req.status === SupportStatus.PENDING ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-500' : 'bg-blue-50 dark:bg-blue-900/20 text-blue-500'}`}>
                     {req.type === SupportType.SWARF && <Recycle size={20} />}
                     {req.type === SupportType.EMPTY_BIN && <Container size={20} />}
                     {req.type === SupportType.COOLANT && <Droplet size={20} />}
@@ -105,7 +105,7 @@ export const CallSection: React.FC<CallSectionProps> = ({ machine }) => {
                         <span className="text-[10px] font-black text-blue-600 dark:text-blue-400 italic">{req.acceptedBy}</span>
                     </div>
                 )}
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border-2 transition-all ${req.status === SupportStatus.ACCEPTED ? 'bg-blue-600 border-blue-500 text-white shadow-lg' : req.status === SupportStatus.COMPLETED ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-slate-100 dark:bg-slate-700 border-transparent text-slate-400'}`}>
+                <div className={`w-10 h-10 rounded-[2rem] flex items-center justify-center border-2 transition-all ${req.status === SupportStatus.ACCEPTED ? 'bg-blue-600 border-blue-500 text-white shadow-lg' : req.status === SupportStatus.COMPLETED ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-slate-100 dark:bg-slate-700 border-transparent text-slate-400'}`}>
                     {req.status === SupportStatus.ACCEPTED ? <Activity size={18} className="animate-pulse" /> : req.status === SupportStatus.COMPLETED ? <CheckCircle size={18} /> : <Clock size={18} />}
                 </div>
             </div>

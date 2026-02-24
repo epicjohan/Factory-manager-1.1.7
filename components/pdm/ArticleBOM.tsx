@@ -63,7 +63,7 @@ export const ArticleBOM: React.FC<ArticleBOMProps> = ({ items, allArticles, curr
                 {!isLocked && !isAdding && (
                     <button 
                         onClick={() => setIsAdding(true)} 
-                        className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold shadow-lg flex items-center gap-2 transition-all active:scale-95"
+                        className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-[2rem] font-bold shadow-lg flex items-center gap-2 transition-all active:scale-95"
                     >
                         <Plus size={18} /> Item Toevoegen
                     </button>
@@ -79,7 +79,7 @@ export const ArticleBOM: React.FC<ArticleBOMProps> = ({ items, allArticles, curr
                                 autoFocus
                                 type="text" 
                                 placeholder="Zoek artikel op code of naam..." 
-                                className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-bold outline-none focus:ring-2 focus:ring-purple-500"
+                                className="w-full pl-10 pr-4 py-3 rounded-[2rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-bold outline-none focus:ring-2 focus:ring-purple-500"
                                 value={searchTerm}
                                 onChange={e => setSearchTerm(e.target.value)}
                             />
@@ -87,12 +87,12 @@ export const ArticleBOM: React.FC<ArticleBOMProps> = ({ items, allArticles, curr
                         <div className="w-24">
                             <input 
                                 type="number" 
-                                className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-bold text-center outline-none focus:ring-2 focus:ring-purple-500"
+                                className="w-full p-3 rounded-[2rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-bold text-center outline-none focus:ring-2 focus:ring-purple-500"
                                 value={qty}
                                 onChange={e => setQty(Math.max(1, parseInt(e.target.value)))}
                             />
                         </div>
-                        <button onClick={() => setIsAdding(false)} className="px-6 py-3 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl font-bold">Annuleren</button>
+                        <button onClick={() => setIsAdding(false)} className="px-6 py-3 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-[2rem] font-bold">Annuleren</button>
                     </div>
 
                     <div className="grid grid-cols-1 gap-2">
@@ -100,7 +100,7 @@ export const ArticleBOM: React.FC<ArticleBOMProps> = ({ items, allArticles, curr
                             <button 
                                 key={a.id} 
                                 onClick={() => handleAdd(a)}
-                                className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-purple-500 hover:shadow-md transition-all text-left group"
+                                className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-[2rem] border border-slate-200 dark:border-slate-700 hover:border-purple-500 hover:shadow-md transition-all text-left group"
                             >
                                 <div>
                                     <div className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
@@ -152,7 +152,7 @@ export const ArticleBOM: React.FC<ArticleBOMProps> = ({ items, allArticles, curr
                                 </td>
                                 <td className="px-8 py-5 text-right">
                                     {!isLocked && (
-                                        <button onClick={() => handleRemove(item.id)} className="p-2 text-slate-300 hover:text-red-500 rounded-lg transition-colors">
+                                        <button onClick={() => handleRemove(item.id)} className="p-2 text-slate-300 hover:text-red-500 rounded-2xl transition-colors">
                                             <Trash2 size={16} />
                                         </button>
                                     )}

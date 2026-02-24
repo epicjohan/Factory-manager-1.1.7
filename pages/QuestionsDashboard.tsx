@@ -91,13 +91,13 @@ export const QuestionsDashboard: React.FC = () => {
                 <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl border border-slate-200 dark:border-slate-700">
                     <button 
                         onClick={() => setViewMode('PENDING')}
-                        className={`px-8 py-3 rounded-xl text-[11px] font-black flex items-center gap-2 uppercase tracking-widest transition-all ${viewMode === 'PENDING' ? 'bg-white dark:bg-slate-700 text-violet-600 shadow-xl' : 'text-slate-500 hover:text-slate-700'}`}
+                        className={`px-8 py-3 rounded-[2rem] text-[11px] font-black flex items-center gap-2 uppercase tracking-widest transition-all ${viewMode === 'PENDING' ? 'bg-white dark:bg-slate-700 text-violet-600 shadow-xl' : 'text-slate-500 hover:text-slate-700'}`}
                     >
                         <Clock size={16} /> OPENSTAAND ({pendingRequests.length})
                     </button>
                     <button 
                         onClick={() => setViewMode('HISTORY')}
-                        className={`px-8 py-3 rounded-xl text-[11px] font-black flex items-center gap-2 uppercase tracking-widest transition-all ${viewMode === 'HISTORY' ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 shadow-xl' : 'text-slate-500 hover:text-slate-700'}`}
+                        className={`px-8 py-3 rounded-[2rem] text-[11px] font-black flex items-center gap-2 uppercase tracking-widest transition-all ${viewMode === 'HISTORY' ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 shadow-xl' : 'text-slate-500 hover:text-slate-700'}`}
                     >
                         <History size={16} /> ARCHIEF
                     </button>
@@ -132,11 +132,11 @@ export const QuestionsDashboard: React.FC = () => {
                                 </div>
 
                                 <div className="flex flex-wrap gap-3">
-                                    <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-tighter">
+                                    <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-[2rem] text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-tighter">
                                         <Monitor size={14} className="text-blue-500" /> {getMachineInfo(req.machineId)}
                                     </div>
                                     {req.location && (
-                                        <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-tighter">
+                                        <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-[2rem] text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-tighter">
                                             <MapPin size={14} className="text-purple-500" /> {req.location}
                                         </div>
                                     )}
@@ -185,7 +185,7 @@ export const QuestionsDashboard: React.FC = () => {
                                             <button onClick={() => setReplyingToId(null)} className="flex-1 py-3 text-slate-400 font-bold uppercase text-[10px] tracking-widest">Annuleren</button>
                                             <button 
                                                 onClick={() => handleSendReply(req)}
-                                                className="flex-2 py-3 px-6 bg-emerald-600 text-white rounded-xl font-black shadow-lg uppercase text-xs"
+                                                className="flex-2 py-3 px-6 bg-emerald-600 text-white rounded-[2rem] font-black shadow-lg uppercase text-xs"
                                             >
                                                 Verzenden
                                             </button>

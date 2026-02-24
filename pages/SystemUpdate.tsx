@@ -56,7 +56,7 @@ export const SystemUpdate: React.FC = () => {
                         Systeem Activatie
                     </h2>
                 </div>
-                <div className="bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 font-mono text-[10px] text-slate-500 uppercase tracking-widest">
+                <div className="bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-[2rem] border border-slate-200 dark:border-slate-700 font-mono text-[10px] text-slate-500 uppercase tracking-widest">
                     Build ID: {APP_INFO.BUILD}
                 </div>
             </div>

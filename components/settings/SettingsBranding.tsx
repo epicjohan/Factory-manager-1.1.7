@@ -21,7 +21,7 @@ export const SettingsBranding: React.FC = () => {
         setSaveStatus('saving');
         // Fetch fresh to avoid overwriting other fields
         const current = await db.getSystemSettings();
-        await db.setSystemSettings({ ...current, companyName: settings.companyName, licenseHolder: settings.licenseHolder, logoUrl: settings.logoUrl });
+        await db.setSystemSettings({ ...current, companyName: settings.companyName, licenseHolder: settings.licenseHolder, logoUrl: settings.logoUrl, darkModeStyle: settings.darkModeStyle, lightModeStyle: settings.lightModeStyle });
 
         setSaveStatus('saved');
         setTimeout(() => setSaveStatus('idle'), 3000);
@@ -76,6 +76,54 @@ export const SettingsBranding: React.FC = () => {
                                 value={settings.licenseHolder || ''}
                                 onChange={e => setSettings({ ...settings, licenseHolder: e.target.value })}
                             />
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2 ml-1">Achtergrond Contrast (Donkere Modus)</label>
+                            <div className="flex bg-slate-100 dark:bg-slate-900/50 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700">
+                                <button
+                                    onClick={() => setSettings({ ...settings, darkModeStyle: 'OLED' })}
+                                    className={`flex-1 py-3 px-4 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all ${!settings.darkModeStyle || settings.darkModeStyle === 'OLED' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300'}`}
+                                >
+                                    OLED (Zwart)
+                                </button>
+                                <button
+                                    onClick={() => setSettings({ ...settings, darkModeStyle: 'CLASSIC' })}
+                                    className={`flex-1 py-3 px-4 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all ${settings.darkModeStyle === 'CLASSIC' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300'}`}
+                                >
+                                    Classic (Grijs)
+                                </button>
+                                <button
+                                    onClick={() => setSettings({ ...settings, darkModeStyle: 'MIDNIGHT' })}
+                                    className={`flex-1 py-3 px-4 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all ${settings.darkModeStyle === 'MIDNIGHT' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300'}`}
+                                >
+                                    Midnight
+                                </button>
+                            </div>
+                            <p className="mt-2 text-[10px] font-medium text-slate-400 ml-1">Kies tussen modern diep zwart, klassiek zachter donkergrijs of de nieuwe Midnight mockup voor applicatie achtergronden.</p>
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2 ml-1">Achtergrond Contrast (Lichte Modus)</label>
+                            <div className="flex bg-slate-100 dark:bg-slate-900/50 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700">
+                                <button
+                                    onClick={() => setSettings({ ...settings, lightModeStyle: 'CLEAN' })}
+                                    className={`flex-1 py-3 px-4 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all ${!settings.lightModeStyle || settings.lightModeStyle === 'CLEAN' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300'}`}
+                                >
+                                    Clean (Wit)
+                                </button>
+                                <button
+                                    onClick={() => setSettings({ ...settings, lightModeStyle: 'SOFT' })}
+                                    className={`flex-1 py-3 px-4 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all ${settings.lightModeStyle === 'SOFT' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300'}`}
+                                >
+                                    Soft Sand
+                                </button>
+                                <button
+                                    onClick={() => setSettings({ ...settings, lightModeStyle: 'COOL' })}
+                                    className={`flex-1 py-3 px-4 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all ${settings.lightModeStyle === 'COOL' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300'}`}
+                                >
+                                    Cool Frost
+                                </button>
+                            </div>
+                            <p className="mt-2 text-[10px] font-medium text-slate-400 ml-1">Kies tussen super strak wit, zacht beige of een koele blauwe gloed voor in lichte modus.</p>
                         </div>
                     </div>
                     <div className="space-y-4">

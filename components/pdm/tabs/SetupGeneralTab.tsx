@@ -76,10 +76,10 @@ export const SetupGeneralTab: React.FC<SetupGeneralTabProps> = ({ setup, isLocke
             {setup.revision && setup.revision > 0 && (
                 <div 
                     onClick={() => setShowHistoryModal(true)}
-                    className="group bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 p-4 rounded-xl flex items-center justify-between shadow-sm mb-4 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+                    className="group bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 p-4 rounded-[2rem] flex items-center justify-between shadow-sm mb-4 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
                 >
                     <div className="flex items-center gap-3">
-                        <div className="bg-blue-200 dark:bg-blue-800 p-2 rounded-lg text-blue-700 dark:text-blue-300">
+                        <div className="bg-blue-200 dark:bg-blue-800 p-2 rounded-2xl text-blue-700 dark:text-blue-300">
                             <History size={18} />
                         </div>
                         <div>
@@ -104,7 +104,7 @@ export const SetupGeneralTab: React.FC<SetupGeneralTabProps> = ({ setup, isLocke
                 {/* LEFT: TYPE */}
                 <div>
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Type Aansturing</label>
-                    <div className="w-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 font-bold text-slate-500 dark:text-slate-400 cursor-not-allowed flex items-center gap-3">
+                    <div className="w-full p-4 rounded-[2rem] border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 font-bold text-slate-500 dark:text-slate-400 cursor-not-allowed flex items-center gap-3">
                         {isProcessSetup ? <Box size={18} /> : <Monitor size={18} />}
                         {isProcessSetup ? 'Proces Instructie' : 'Machine Bewerking'}
                     </div>
@@ -120,7 +120,7 @@ export const SetupGeneralTab: React.FC<SetupGeneralTabProps> = ({ setup, isLocke
                                     e.stopPropagation(); 
                                     if(!isLocked) setShowMachinePicker(!showMachinePicker); 
                                 }} 
-                                className={`w-full p-4 rounded-xl border-2 bg-white dark:bg-slate-800 flex items-center justify-between cursor-pointer transition-all ${isLocked ? 'opacity-60 cursor-not-allowed border-slate-200 dark:border-slate-700' : 'border-slate-200 dark:border-slate-700 hover:border-blue-500 shadow-sm'}`}
+                                className={`w-full p-4 rounded-[2rem] border-2 bg-white dark:bg-slate-800 flex items-center justify-between cursor-pointer transition-all ${isLocked ? 'opacity-60 cursor-not-allowed border-slate-200 dark:border-slate-700' : 'border-slate-200 dark:border-slate-700 hover:border-blue-500 shadow-sm'}`}
                             >
                                 <div className="flex items-center gap-3 font-bold text-slate-800 dark:text-white truncate">
                                     <Monitor size={18} className="text-blue-500" /> 
@@ -134,7 +134,7 @@ export const SetupGeneralTab: React.FC<SetupGeneralTabProps> = ({ setup, isLocke
                                 <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl z-[150] p-4 animate-in zoom-in-95 duration-200 ring-4 ring-black/5">
                                     <div className="relative mb-3">
                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                                        <input autoFocus type="text" placeholder="Zoek machine..." className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border-none outline-none font-bold text-sm" value={machineSearchTerm} onChange={e => setMachineSearchTerm(e.target.value)} />
+                                        <input autoFocus type="text" placeholder="Zoek machine..." className="w-full pl-10 pr-4 py-2.5 rounded-[2rem] bg-slate-50 dark:bg-slate-900 border-none outline-none font-bold text-sm" value={machineSearchTerm} onChange={e => setMachineSearchTerm(e.target.value)} />
                                     </div>
                                     <div className="max-h-60 overflow-y-auto space-y-1 custom-scrollbar">
                                         {filteredMachines.map(m => (
@@ -145,7 +145,7 @@ export const SetupGeneralTab: React.FC<SetupGeneralTabProps> = ({ setup, isLocke
                                                     e.stopPropagation();
                                                     handleMachineSelect(m.id);
                                                 }} 
-                                                className="p-3 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-xl cursor-pointer flex justify-between items-center transition-colors group"
+                                                className="p-3 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-[2rem] cursor-pointer flex justify-between items-center transition-colors group"
                                             >
                                                 <span className="font-bold text-sm text-slate-800 dark:text-white uppercase italic group-hover:text-blue-600 transition-colors">{m.name}</span>
                                                 <span className="font-mono text-[10px] text-slate-400 font-black">{m.machineNumber}</span>
@@ -158,7 +158,7 @@ export const SetupGeneralTab: React.FC<SetupGeneralTabProps> = ({ setup, isLocke
                     ) : (
                         <>
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Proces Type (Sjabloon)</label>
-                            <div className="w-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 font-bold text-slate-700 dark:text-slate-300 cursor-not-allowed flex items-center gap-3">
+                            <div className="w-full p-4 rounded-[2rem] border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 font-bold text-slate-700 dark:text-slate-300 cursor-not-allowed flex items-center gap-3">
                                 <Box size={18} className="text-orange-500" />
                                 {templates.find(t => t.id === setup.setupTemplateId)?.name || 'Geen sjabloon geselecteerd'}
                             </div>
@@ -174,8 +174,8 @@ export const SetupGeneralTab: React.FC<SetupGeneralTabProps> = ({ setup, isLocke
             <div className="grid grid-cols-2 gap-6">
                 <div>
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Insteltijd</label>
-                    <div className={`w-full p-3 rounded-xl border-2 bg-white dark:bg-slate-800 flex items-center gap-3 transition-all ${isLocked ? 'border-slate-200 dark:border-slate-700 opacity-60' : 'border-slate-200 dark:border-slate-700 hover:border-blue-500 shadow-sm'}`}>
-                         <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400">
+                    <div className={`w-full p-3 rounded-[2rem] border-2 bg-white dark:bg-slate-800 flex items-center gap-3 transition-all ${isLocked ? 'border-slate-200 dark:border-slate-700 opacity-60' : 'border-slate-200 dark:border-slate-700 hover:border-blue-500 shadow-sm'}`}>
+                         <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-2xl text-blue-600 dark:text-blue-400">
                              <Clock size={18} />
                          </div>
                          <input 
@@ -192,8 +192,8 @@ export const SetupGeneralTab: React.FC<SetupGeneralTabProps> = ({ setup, isLocke
 
                 <div>
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Cyclus Tijd</label>
-                    <div className={`w-full p-3 rounded-xl border-2 bg-white dark:bg-slate-800 flex items-center gap-3 transition-all ${isLocked ? 'border-slate-200 dark:border-slate-700 opacity-60' : 'border-slate-200 dark:border-slate-700 hover:border-emerald-500 shadow-sm'}`}>
-                         <div className="p-2 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg text-emerald-600 dark:text-emerald-400">
+                    <div className={`w-full p-3 rounded-[2rem] border-2 bg-white dark:bg-slate-800 flex items-center gap-3 transition-all ${isLocked ? 'border-slate-200 dark:border-slate-700 opacity-60' : 'border-slate-200 dark:border-slate-700 hover:border-emerald-500 shadow-sm'}`}>
+                         <div className="p-2 bg-emerald-50 dark:bg-emerald-900/30 rounded-2xl text-emerald-600 dark:text-emerald-400">
                              <RefreshCw size={18} />
                          </div>
                          <input 
@@ -250,7 +250,7 @@ export const SetupGeneralTab: React.FC<SetupGeneralTabProps> = ({ setup, isLocke
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <div className="text-xs bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-700 italic text-slate-600 dark:text-slate-300">
+                                                <div className="text-xs bg-white dark:bg-slate-900 p-3 rounded-[2rem] border border-slate-200 dark:border-slate-700 italic text-slate-600 dark:text-slate-300">
                                                     "<span className="font-bold not-italic text-slate-800 dark:text-slate-200">Reden:</span> {entry.reason}"
                                                 </div>
                                             </div>

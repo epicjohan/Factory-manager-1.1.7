@@ -18,7 +18,7 @@ export const AdminDashboard: React.FC = () => {
   const archivedMachines = useMemo(() => machines.filter(m => m.isArchived), [machines]);
 
   const SectionHeader = ({ title }: { title: string }) => (
-      <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-200 dark:border-slate-700 pb-2 mt-8 first:mt-0">
+      <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] mb-4 border-b border-slate-200 dark:border-slate-700 pb-2 mt-8 first:mt-0">
           {title}
       </h3>
   );
@@ -31,15 +31,15 @@ export const AdminDashboard: React.FC = () => {
             <p className="text-slate-500 dark:text-slate-400">Centraal beheer van productie en systeem.</p>
         </div>
         <div className="text-right">
-            <span className="text-[10px] font-mono text-slate-500 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700">GEREGISTREERD ALS: {user?.name.toUpperCase()}</span>
+            <span className="text-[10px] font-mono text-slate-500 bg-white dark:bg-slate-900 px-4 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm">GEREGISTREERD ALS: {user?.name.toUpperCase()}</span>
         </div>
       </div>
 
       <div>
         <SectionHeader title="Operationeel Beheer" />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Link to="/admin/create-machine" className="group relative bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all duration-300">
-                <div className="bg-blue-100 dark:bg-blue-900/30 w-12 h-12 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <Link to="/admin/create-machine" className="group relative bg-white dark:bg-slate-800 rounded-[2rem] p-8 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all duration-300">
+                <div className="bg-blue-100 dark:bg-blue-900/30 w-14 h-14 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                     <PlusCircle size={24} className="text-blue-600 dark:text-blue-400" />
                 </div>
                 <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">Nieuwe Asset</h3>
@@ -52,8 +52,8 @@ export const AdminDashboard: React.FC = () => {
                 </div>
             </Link>
 
-            <Link to="/admin/users" className="group relative bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all duration-300">
-                <div className="bg-purple-100 dark:bg-purple-900/30 w-12 h-12 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <Link to="/admin/users" className="group relative bg-white dark:bg-slate-800 rounded-[2rem] p-8 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all duration-300">
+                <div className="bg-purple-100 dark:bg-purple-900/30 w-14 h-14 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                     <Users size={24} className="text-purple-600 dark:text-purple-400" />
                 </div>
                 <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">Gebruikers & Rechten</h3>
@@ -67,8 +67,8 @@ export const AdminDashboard: React.FC = () => {
             </Link>
 
             {canAccessModule(AppModule.ENERGY) && (
-                <Link to="/admin/energy-config" className="group relative bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all duration-300">
-                    <div className="bg-yellow-100 dark:bg-yellow-900/30 w-12 h-12 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Link to="/admin/energy-config" className="group relative bg-white dark:bg-slate-800 rounded-[2rem] p-8 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all duration-300">
+                    <div className="bg-yellow-100 dark:bg-yellow-900/30 w-14 h-14 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                         <Zap size={24} className="text-yellow-600 dark:text-yellow-500" />
                     </div>
                     <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">Energie Monitor</h3>
@@ -82,8 +82,8 @@ export const AdminDashboard: React.FC = () => {
                 </Link>
             )}
 
-            <Link to="/admin/cost-report" className="group relative bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all duration-300">
-                <div className="bg-emerald-100 dark:bg-emerald-900/30 w-12 h-12 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <Link to="/admin/cost-report" className="group relative bg-white dark:bg-slate-800 rounded-[2rem] p-8 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all duration-300">
+                <div className="bg-emerald-100 dark:bg-emerald-900/30 w-14 h-14 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                     <BarChart2 size={24} className="text-emerald-600 dark:text-emerald-400" />
                 </div>
                 <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">Financieel Rapport</h3>
@@ -100,8 +100,8 @@ export const AdminDashboard: React.FC = () => {
         <SectionHeader title="Productie Instellingen" />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {canAccessModule(AppModule.ARTICLES) && (
-                <Link to="/admin/templates" className="group relative bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all duration-300">
-                    <div className="bg-indigo-100 dark:bg-indigo-900/30 w-12 h-12 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Link to="/admin/templates" className="group relative bg-white dark:bg-slate-800 rounded-[2rem] p-8 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all duration-300">
+                    <div className="bg-indigo-100 dark:bg-indigo-900/30 w-14 h-14 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                         <LayoutTemplate size={24} className="text-indigo-600 dark:text-indigo-400" />
                     </div>
                     <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">Setup Templates</h3>
@@ -116,8 +116,8 @@ export const AdminDashboard: React.FC = () => {
             )}
 
             {canAccessModule(AppModule.INVENTORY) && (
-                <Link to="/admin/inventory" className="group relative bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all duration-300">
-                    <div className="bg-orange-100 dark:bg-orange-900/30 w-12 h-12 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Link to="/admin/inventory" className="group relative bg-white dark:bg-slate-800 rounded-[2rem] p-8 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all duration-300">
+                    <div className="bg-orange-100 dark:bg-orange-900/30 w-14 h-14 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                         <Box size={24} className="text-orange-600 dark:text-orange-400" />
                     </div>
                     <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">Materieel & Voorraad</h3>
@@ -137,7 +137,7 @@ export const AdminDashboard: React.FC = () => {
                 <SectionHeader title="Gearchiveerde Assets" />
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {archivedMachines.map(m => (
-                        <Link key={m.id} to={`/machine/${m.id}`} className="flex items-center justify-between p-4 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-200 transition-colors">
+                        <Link key={m.id} to={`/machine/${m.id}`} className="flex items-center justify-between p-4 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-[2rem] hover:bg-slate-200 transition-colors">
                             <div className="flex items-center gap-3">
                                 <Archive size={20} className="text-slate-400" />
                                 <div>
@@ -154,8 +154,8 @@ export const AdminDashboard: React.FC = () => {
 
         <SectionHeader title="Systeem & Configuratie" />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Link to="/admin/health" className="group relative bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all duration-300">
-                <div className="bg-teal-100 dark:bg-teal-900/30 w-12 h-12 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <Link to="/admin/health" className="group relative bg-white dark:bg-slate-800 rounded-[2rem] p-8 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all duration-300">
+                <div className="bg-teal-100 dark:bg-teal-900/30 w-14 h-14 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                     <Activity size={24} className="text-teal-600 dark:text-teal-400" />
                 </div>
                 <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">Systeem Monitor</h3>
@@ -168,8 +168,8 @@ export const AdminDashboard: React.FC = () => {
                 </div>
             </Link>
 
-            <Link to="/settings" className="group relative bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all duration-300">
-                <div className="bg-slate-100 dark:bg-slate-700/50 w-12 h-12 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <Link to="/settings" className="group relative bg-white dark:bg-slate-800 rounded-[2rem] p-8 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all duration-300">
+                <div className="bg-slate-100 dark:bg-slate-700/50 w-14 h-14 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                     <Settings size={24} className="text-slate-600 dark:text-slate-300" />
                 </div>
                 <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">Instellingen</h3>
@@ -183,11 +183,11 @@ export const AdminDashboard: React.FC = () => {
             </Link>
 
             {/* GOLD CARD SHOWCASE LINK */}
-            <Link to="/showcase" className="group relative bg-gradient-to-br from-yellow-50 to-amber-100 dark:from-yellow-900/20 dark:to-amber-900/10 rounded-xl p-6 border border-yellow-200 dark:border-yellow-800/50 shadow-lg hover:shadow-yellow-500/20 transition-all duration-300 overflow-hidden">
+            <Link to="/showcase" className="group relative bg-gradient-to-br from-yellow-50 to-amber-100 dark:from-yellow-900/20 dark:to-amber-900/10 rounded-[2rem] p-8 border border-yellow-200 dark:border-yellow-800/50 shadow-lg hover:shadow-yellow-500/20 transition-all duration-300 overflow-hidden">
                 <div className="absolute top-0 right-0 p-4 opacity-10">
                     <Presentation size={80} className="text-yellow-600" />
                 </div>
-                <div className="bg-yellow-100 dark:bg-yellow-900/40 w-12 h-12 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-inner">
+                <div className="bg-yellow-100 dark:bg-yellow-900/40 w-14 h-14 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-inner">
                     <PlayCircle size={24} className="text-yellow-700 dark:text-yellow-400" />
                 </div>
                 <h3 className="text-lg font-bold text-yellow-900 dark:text-yellow-100 mb-1">Systeem Presentatie</h3>
@@ -202,11 +202,11 @@ export const AdminDashboard: React.FC = () => {
 
             {user?.id === 'super-admin-ghost' && (
                 <>
-                    <Link to="/admin/license-config" className="group relative bg-indigo-900 border-2 border-indigo-500 rounded-xl p-6 shadow-xl hover:shadow-indigo-500/20 transition-all duration-300 overflow-hidden">
+                    <Link to="/admin/license-config" className="group relative bg-indigo-900 border-2 border-indigo-500 rounded-[2rem] p-8 shadow-xl hover:shadow-indigo-500/20 transition-all duration-300 overflow-hidden">
                         <div className="absolute top-0 right-0 p-4 opacity-10">
                             <Layers size={100} className="text-white" />
                         </div>
-                        <div className="bg-indigo-600 w-12 h-12 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <div className="bg-indigo-600 w-14 h-14 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                             <Shield size={24} className="text-white" />
                         </div>
                         <h3 className="text-lg font-bold text-white mb-1">Module & Licentie Beheer</h3>
@@ -219,8 +219,8 @@ export const AdminDashboard: React.FC = () => {
                         </div>
                     </Link>
                     
-                    <Link to="/admin/release-guide" className="group relative bg-indigo-50 dark:bg-indigo-900/20 rounded-xl p-6 border border-indigo-200 dark:border-indigo-800 shadow-sm hover:shadow-xl transition-all duration-300">
-                        <div className="bg-indigo-100 dark:bg-indigo-900/40 w-12 h-12 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <Link to="/admin/release-guide" className="group relative bg-indigo-50 dark:bg-indigo-900/20 rounded-[2rem] p-8 border border-indigo-200 dark:border-indigo-800 shadow-sm hover:shadow-xl transition-all duration-300">
+                        <div className="bg-indigo-100 dark:bg-indigo-900/40 w-14 h-14 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                             <ClipboardList size={24} className="text-indigo-600 dark:text-indigo-400" />
                         </div>
                         <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">Release & Installatie</h3>
@@ -238,8 +238,8 @@ export const AdminDashboard: React.FC = () => {
 
         <SectionHeader title="Informatie & Support" />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Link to="/admin/help" className="group relative bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all duration-300">
-                <div className="bg-cyan-100 dark:bg-cyan-900/30 w-12 h-12 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <Link to="/admin/help" className="group relative bg-white dark:bg-slate-800 rounded-[2rem] p-8 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all duration-300">
+                <div className="bg-cyan-100 dark:bg-cyan-900/30 w-14 h-14 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                     <BookOpen size={24} className="text-cyan-600 dark:text-cyan-400" />
                 </div>
                 <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">Handleiding</h3>
@@ -254,8 +254,8 @@ export const AdminDashboard: React.FC = () => {
 
             {user?.id === 'super-admin-ghost' && (
                 <>
-                    <Link to="/admin/simulator" className="group relative bg-purple-50 dark:bg-purple-900/20 rounded-xl p-6 border border-purple-200 dark:border-purple-800 shadow-sm hover:shadow-xl transition-all duration-300">
-                        <div className="bg-purple-100 dark:bg-purple-900/30 w-12 h-12 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <Link to="/admin/simulator" className="group relative bg-purple-50 dark:bg-purple-900/20 rounded-[2rem] p-8 border border-purple-200 dark:border-purple-800 shadow-sm hover:shadow-xl transition-all duration-300">
+                        <div className="bg-purple-100 dark:bg-purple-900/30 w-14 h-14 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                             <Beaker size={24} className="text-purple-600 dark:text-purple-400" />
                         </div>
                         <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">Test Unit / Simulator</h3>
@@ -268,11 +268,11 @@ export const AdminDashboard: React.FC = () => {
                         </div>
                     </Link>
 
-                    <Link to="/admin/super-help" className="group relative bg-amber-50 dark:bg-amber-900/20 rounded-xl p-6 border border-amber-200 dark:border-amber-700 shadow-sm hover:shadow-xl transition-all duration-300">
+                    <Link to="/admin/super-help" className="group relative bg-amber-50 dark:bg-amber-900/20 rounded-[2rem] p-8 border border-amber-200 dark:border-amber-700 shadow-sm hover:shadow-xl transition-all duration-300">
                         <div className="absolute top-3 right-3">
                             <Shield size={16} className="text-amber-500" />
                         </div>
-                        <div className="bg-amber-100 dark:bg-amber-900/40 w-12 h-12 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <div className="bg-amber-100 dark:bg-amber-900/40 w-14 h-14 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                             <Terminal size={24} className="text-amber-600 dark:text-amber-400" />
                         </div>
                         <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">Tech Docs</h3>
@@ -285,8 +285,8 @@ export const AdminDashboard: React.FC = () => {
                         </div>
                     </Link>
                     
-                    <Link to="/admin/update" className="group relative bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all duration-300">
-                        <div className="bg-orange-100 dark:bg-orange-900/30 w-12 h-12 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <Link to="/admin/update" className="group relative bg-white dark:bg-slate-800 rounded-[2rem] p-8 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all duration-300">
+                        <div className="bg-orange-100 dark:bg-orange-900/30 w-14 h-14 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                             <RefreshCw size={24} className="text-orange-600 dark:text-orange-400" />
                         </div>
                         <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">Systeem Update</h3>

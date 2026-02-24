@@ -129,7 +129,7 @@ export const SystemSimulator: React.FC = () => {
                 </div>
                 <button 
                     onClick={toggleSim}
-                    className={`px-10 py-4 rounded-2xl font-black flex items-center gap-3 transition-all shadow-xl text-lg ${simState.active ? 'bg-red-600 text-white animate-pulse' : 'bg-blue-600 text-white hover:bg-blue-500'}`}
+                    className={`px-10 py-4 rounded-full font-black flex items-center gap-3 transition-all shadow-xl text-lg ${simState.active ? 'bg-red-600 text-white animate-pulse' : 'bg-blue-600 text-white hover:bg-blue-500'}`}
                 >
                     {simState.active ? <Square size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" />}
                     <span>{simState.active ? 'STOP SIMULATIE' : 'START SIMULATIE'}</span>
@@ -143,7 +143,7 @@ export const SystemSimulator: React.FC = () => {
                             <div className="space-y-6">
                                 <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><Cpu size={14} /> Machine</h3>
                                 <select 
-                                    className="w-full p-4 rounded-2xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 dark:text-white font-bold outline-none"
+                                    className="w-full p-4 rounded-[2rem] border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 dark:text-white font-bold outline-none"
                                     value={simState.machineId}
                                     onChange={e => handleSaveAndSync({ ...simState, machineId: e.target.value })}
                                 >
@@ -157,7 +157,7 @@ export const SystemSimulator: React.FC = () => {
                                     <input 
                                         type="range" min="5" max="100" value={simState.baseLoad} 
                                         onChange={e => handleSaveAndSync({ ...simState, baseLoad: parseInt(e.target.value) })}
-                                        className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                                        className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-2xl appearance-none cursor-pointer accent-blue-600"
                                     />
                                 </div>
                             </div>
@@ -165,12 +165,12 @@ export const SystemSimulator: React.FC = () => {
                                 <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><List size={14} /> Sequence</h3>
                                 <div className="flex flex-wrap gap-2">
                                     {simState.toolSequence.map((t, idx) => (
-                                        <div key={idx} className={`w-12 h-12 rounded-xl border-2 flex items-center justify-center font-black relative ${idx === simState.activeToolIdx && simState.active ? 'bg-blue-600 border-blue-400 text-white' : 'bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500'}`}>
+                                        <div key={idx} className={`w-12 h-12 rounded-2xl border-2 flex items-center justify-center font-black relative ${idx === simState.activeToolIdx && simState.active ? 'bg-blue-600 border-blue-400 text-white' : 'bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500'}`}>
                                             T{t}
                                             <button onClick={() => handleSaveAndSync({ ...simState, toolSequence: simState.toolSequence.filter((_, i) => i !== idx) })} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5"><X size={10}/></button>
                                         </div>
                                     ))}
-                                    <button onClick={() => handleSaveAndSync({ ...simState, toolSequence: [...simState.toolSequence, (simState.toolSequence[simState.toolSequence.length-1] || 0) + 1] })} className="w-12 h-12 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400"><Plus size={20}/></button>
+                                    <button onClick={() => handleSaveAndSync({ ...simState, toolSequence: [...simState.toolSequence, (simState.toolSequence[simState.toolSequence.length-1] || 0) + 1] })} className="w-12 h-12 rounded-2xl border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400"><Plus size={20}/></button>
                                 </div>
                                 <div>
                                     <div className="flex justify-between mb-2"><label className="text-[10px] font-bold text-slate-500 uppercase">Snelheid</label><span className="text-xs font-bold text-slate-500">{simState.secondsPerTool}s/tool</span></div>
@@ -186,7 +186,7 @@ export const SystemSimulator: React.FC = () => {
                                     <button 
                                         key={sc} 
                                         onClick={() => handleSaveAndSync({ ...simState, scenario: sc })}
-                                        className={`p-4 rounded-2xl border-2 text-left transition-all ${simState.scenario === sc ? 'bg-blue-50 border-blue-500 dark:bg-blue-900/20' : 'bg-white border-slate-100 dark:bg-slate-800 opacity-60'}`}
+                                        className={`p-4 rounded-[1.5rem] border-2 text-left transition-all ${simState.scenario === sc ? 'bg-blue-50 border-blue-500 dark:bg-blue-900/20' : 'bg-white border-slate-100 dark:bg-slate-800 opacity-60'}`}
                                     >
                                         <div className="font-black text-sm uppercase mb-1">{sc === 'STABLE' ? 'Productie' : sc === 'WEAR' ? 'Slijtage' : 'Breuk'}</div>
                                         <p className="text-[10px] text-slate-500">{sc === 'STABLE' ? 'Normale load.' : sc === 'WEAR' ? '+0.5% per cyclus.' : 'Load piek op T1.'}</p>
@@ -198,7 +198,7 @@ export const SystemSimulator: React.FC = () => {
                 </div>
 
                 <div className="lg:col-span-4 space-y-6">
-                    <div className="bg-slate-950 rounded-3xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col h-[500px]">
+                    <div className="bg-slate-950 rounded-[2.5rem] border border-slate-800 shadow-2xl overflow-hidden flex flex-col h-[500px]">
                         <div className="bg-slate-900 px-6 py-4 flex justify-between items-center border-b border-slate-800">
                             <div className="flex items-center gap-3"><Terminal size={18} className="text-blue-500" /><h3 className="text-sm font-black text-white uppercase tracking-widest">Live Trace</h3></div>
                             <button onClick={() => setLogs([])} className="text-slate-500 hover:text-red-400 transition-colors"><Trash2 size={16}/></button>

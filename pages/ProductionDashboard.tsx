@@ -194,7 +194,7 @@ export const ProductionDashboard: React.FC = () => {
             {/* 1. HEADER */}
             <header className={`flex items-center justify-between px-6 py-4 bg-slate-900/95 border-b border-slate-800 shrink-0 z-20 h-20 transition-all ${focusMode && isFullscreen ? '-mt-20 opacity-0 pointer-events-none' : ''}`}>
                 <div className="flex items-center gap-6">
-                    <button onClick={() => navigate(`/machine/${id}`)} className="p-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-400 transition-colors">
+                    <button onClick={() => navigate(`/machine/${id}`)} className="p-3 bg-slate-800 hover:bg-slate-700 rounded-2xl text-slate-400 transition-colors">
                         <ArrowLeft size={24} />
                     </button>
                     <div>
@@ -210,7 +210,7 @@ export const ProductionDashboard: React.FC = () => {
                 <div className="flex items-center gap-3">
                     <button 
                         onClick={handleFullscreenToggle}
-                        className={`p-3 rounded-xl transition-all border ${isFullscreen ? 'bg-blue-600 text-white border-blue-500' : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white'}`}
+                        className={`p-3 rounded-full transition-all border ${isFullscreen ? 'bg-blue-600 text-white border-blue-500' : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white'}`}
                         title={isFullscreen ? "Verlaat Fullscreen" : "Fullscreen Modus"}
                     >
                         {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
@@ -220,34 +220,34 @@ export const ProductionDashboard: React.FC = () => {
                     <div className="relative" ref={logisticsContainerRef}>
                         <button 
                             onClick={() => setShowLogisticsMenu(!showLogisticsMenu)} 
-                            className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold uppercase text-xs tracking-widest border transition-all active:scale-95 ${showLogisticsMenu ? 'bg-slate-700 text-white border-slate-600' : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'}`}
+                            className={`flex items-center gap-2 px-5 py-3 rounded-full font-bold uppercase text-xs tracking-widest border transition-all active:scale-95 ${showLogisticsMenu ? 'bg-slate-700 text-white border-slate-600' : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'}`}
                         >
                             <Truck size={18} /> <span className="hidden lg:inline">Logistiek</span>
                         </button>
                         
                         {showLogisticsMenu && (
-                            <div className="absolute top-full right-0 mt-2 w-64 bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden z-50 flex flex-col animate-in zoom-in-95 duration-200">
+                            <div className="absolute top-full right-0 mt-2 w-64 bg-slate-800 border border-slate-700 rounded-[2rem] shadow-2xl overflow-hidden z-50 flex flex-col animate-in zoom-in-95 duration-200">
                                 <button onClick={() => { setActiveSupportType(SupportType.EMPTY_BIN); setShowLogisticsMenu(false); }} className="flex items-center gap-4 p-4 hover:bg-slate-700 transition-colors border-b border-slate-700/50 text-left">
-                                    <div className="p-2 bg-teal-500/10 text-teal-500 rounded-lg"><Container size={20}/></div>
+                                    <div className="p-2 bg-teal-500/10 text-teal-500 rounded-2xl"><Container size={20}/></div>
                                     <div className="text-left"><span className="block font-bold text-white text-sm">Lege bak</span><span className="text-[10px] text-slate-400 uppercase">Aanvragen</span></div>
                                 </button>
                                 <button onClick={() => { setActiveSupportType(SupportType.SWARF); setShowLogisticsMenu(false); }} className="flex items-center gap-4 p-4 hover:bg-slate-700 transition-colors border-b border-slate-700/50 text-left">
-                                    <div className="p-2 bg-orange-500/10 text-orange-500 rounded-lg"><Recycle size={20}/></div>
+                                    <div className="p-2 bg-orange-500/10 text-orange-500 rounded-2xl"><Recycle size={20}/></div>
                                     <div className="text-left"><span className="block font-bold text-white text-sm">Spanenbak vol</span><span className="text-[10px] text-slate-400 uppercase">Afvoeren</span></div>
                                 </button>
                                 <button onClick={() => { setActiveSupportType(SupportType.COOLANT); setShowLogisticsMenu(false); }} className="flex items-center gap-4 p-4 hover:bg-slate-700 transition-colors border-b border-slate-700/50 text-left">
-                                    <div className="p-2 bg-blue-500/10 text-blue-500 rounded-lg"><Droplet size={20}/></div>
+                                    <div className="p-2 bg-blue-500/10 text-blue-500 rounded-2xl"><Droplet size={20}/></div>
                                     <div className="text-left"><span className="block font-bold text-white text-sm">Leibaan olie</span><span className="text-[10px] text-slate-400 uppercase">Bijvullen</span></div>
                                 </button>
                                 <button onClick={() => { setActiveSupportType(SupportType.MATERIAL); setShowLogisticsMenu(false); }} className="flex items-center gap-4 p-4 hover:bg-slate-700 transition-colors text-left">
-                                    <div className="p-2 bg-purple-500/10 text-purple-500 rounded-lg"><Box size={20}/></div>
+                                    <div className="p-2 bg-purple-500/10 text-purple-500 rounded-2xl"><Box size={20}/></div>
                                     <div className="text-left"><span className="block font-bold text-white text-sm">Nieuw materiaal</span><span className="text-[10px] text-slate-400 uppercase">Aanvoer</span></div>
                                 </button>
                             </div>
                         )}
                     </div>
 
-                    <button onClick={handleStopClick} className="flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-black uppercase text-xs tracking-widest shadow-lg shadow-red-900/20 transition-all active:scale-95 ml-4">
+                    <button onClick={handleStopClick} className="flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-500 text-white rounded-full font-black uppercase text-xs tracking-widest shadow-lg shadow-red-900/20 transition-all active:scale-95 ml-4">
                         <StopCircle size={20} /> Stop Order
                     </button>
                 </div>
@@ -263,21 +263,21 @@ export const ProductionDashboard: React.FC = () => {
                     <div className="absolute top-4 left-4 z-30 flex gap-2">
                         <button 
                             onClick={() => setFocusMode(!focusMode)} 
-                            className="p-3 bg-slate-800/80 hover:bg-slate-700 text-white backdrop-blur rounded-xl border border-white/10 shadow-lg transition-all"
+                            className="p-3 bg-slate-800/80 hover:bg-slate-700 text-white backdrop-blur rounded-2xl border border-white/10 shadow-lg transition-all"
                             title={focusMode ? "Toon Zijbalk" : "Focus Modus (Verberg Zijbalk)"}
                         >
                             {focusMode ? <Shrink size={24} /> : <Expand size={24} />}
                         </button>
 
                         {focusMode && (
-                            <div className="bg-black/60 backdrop-blur rounded-lg p-1 border border-white/10 flex">
+                            <div className="bg-black/60 backdrop-blur rounded-2xl p-1 border border-white/10 flex">
                                 {hasDrawings && (
-                                    <button onClick={() => setViewMode('DRAWING')} className={`p-3 rounded-lg transition-all ${viewMode === 'DRAWING' ? 'bg-white text-black' : 'text-slate-400 hover:text-white'}`}>
+                                    <button onClick={() => setViewMode('DRAWING')} className={`p-3 rounded-[2rem] transition-all ${viewMode === 'DRAWING' ? 'bg-white text-black' : 'text-slate-400 hover:text-white'}`}>
                                         <FileText size={20} />
                                     </button>
                                 )}
                                 {hasImages && (
-                                    <button onClick={() => setViewMode('IMAGE')} className={`p-3 rounded-lg transition-all ${viewMode === 'IMAGE' ? 'bg-white text-black' : 'text-slate-400 hover:text-white'}`}>
+                                    <button onClick={() => setViewMode('IMAGE')} className={`p-3 rounded-[2rem] transition-all ${viewMode === 'IMAGE' ? 'bg-white text-black' : 'text-slate-400 hover:text-white'}`}>
                                         <ImageIcon size={20} />
                                     </button>
                                 )}
@@ -287,14 +287,14 @@ export const ProductionDashboard: React.FC = () => {
 
                     {/* View Switcher - TOP RIGHT */}
                     {!focusMode && (
-                        <div className="absolute top-4 right-4 z-30 flex bg-slate-900/90 p-1 rounded-xl border border-slate-800 shadow-xl">
+                        <div className="absolute top-4 right-4 z-30 flex bg-slate-900/90 p-1 rounded-full border border-slate-800 shadow-xl">
                             {hasDrawings && (
-                                <button onClick={() => setViewMode('DRAWING')} className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${viewMode === 'DRAWING' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-300'}`}>
+                                <button onClick={() => setViewMode('DRAWING')} className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${viewMode === 'DRAWING' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-300'}`}>
                                     <FileText size={16} /> Tekening
                                 </button>
                             )}
                             {hasImages && (
-                                <button onClick={() => setViewMode('IMAGE')} className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${viewMode === 'IMAGE' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-300'}`}>
+                                <button onClick={() => setViewMode('IMAGE')} className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${viewMode === 'IMAGE' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-300'}`}>
                                     <ImageIcon size={16} /> Foto's
                                 </button>
                             )}
@@ -326,7 +326,7 @@ export const ProductionDashboard: React.FC = () => {
                                 <div className="w-full h-full p-4 flex items-center justify-center cursor-zoom-in" onClick={() => setPreviewFile(setupImages[0])}>
                                     <img 
                                         src={setupImages[0].url} 
-                                        className="max-w-full max-h-full object-contain shadow-2xl rounded-lg" 
+                                        className="max-w-full max-h-full object-contain shadow-2xl rounded-2xl" 
                                         alt="Setup" 
                                     />
                                 </div>
@@ -345,13 +345,13 @@ export const ProductionDashboard: React.FC = () => {
                     
                     {/* SEGMENTED TABS */}
                     <div className="flex gap-2 p-3 bg-slate-950 border-b border-slate-800">
-                        <button onClick={() => setActiveTab('INSTRUCTION')} className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 rounded-lg transition-all shadow-sm ${activeTab === 'INSTRUCTION' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white'}`}>
+                        <button onClick={() => setActiveTab('INSTRUCTION')} className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 rounded-[2rem] transition-all shadow-sm ${activeTab === 'INSTRUCTION' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white'}`}>
                             <ClipboardList size={16} /> Instructie
                         </button>
-                        <button onClick={() => setActiveTab('TOOLS')} className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 rounded-lg transition-all shadow-sm ${activeTab === 'TOOLS' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white'}`}>
+                        <button onClick={() => setActiveTab('TOOLS')} className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 rounded-[2rem] transition-all shadow-sm ${activeTab === 'TOOLS' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white'}`}>
                             <Wrench size={16} /> Gereedschap
                         </button>
-                        <button onClick={() => setActiveTab('INFO')} className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 rounded-lg transition-all shadow-sm ${activeTab === 'INFO' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white'}`}>
+                        <button onClick={() => setActiveTab('INFO')} className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 rounded-[2rem] transition-all shadow-sm ${activeTab === 'INFO' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white'}`}>
                             <Info size={16} /> Info
                         </button>
                     </div>
@@ -373,7 +373,7 @@ export const ProductionDashboard: React.FC = () => {
                                                 const val = templateData[field.key];
                                                 if (!val) return null;
                                                 return (
-                                                    <div key={field.key} className="bg-slate-800/50 border border-slate-700 p-3 rounded-xl flex justify-between items-center">
+                                                    <div key={field.key} className="bg-slate-800/50 border border-slate-700 p-3 rounded-[2rem] flex justify-between items-center">
                                                         <span className="text-xs font-bold text-slate-400 uppercase">{field.label}</span>
                                                         <span className="text-sm font-bold text-white">{val.toString()} {field.unit}</span>
                                                     </div>
@@ -395,9 +395,9 @@ export const ProductionDashboard: React.FC = () => {
                                                 <button 
                                                     key={step.id}
                                                     onClick={() => setCheckedSteps(prev => ({...prev, [step.id]: !isChecked}))}
-                                                    className={`w-full text-left p-4 rounded-2xl border transition-all flex items-start gap-4 active:scale-[0.98] ${isChecked ? 'bg-green-900/10 border-green-900/30 opacity-60' : 'bg-slate-800 border-slate-700 hover:border-slate-600'}`}
+                                                    className={`w-full text-left p-4 rounded-[2rem] border transition-all flex items-start gap-4 active:scale-[0.98] ${isChecked ? 'bg-green-900/10 border-green-900/30 opacity-60' : 'bg-slate-800 border-slate-700 hover:border-slate-600'}`}
                                                 >
-                                                    <div className={`w-6 h-6 rounded flex items-center justify-center shrink-0 border transition-all mt-0.5 ${isChecked ? 'bg-green-600 border-green-600 text-white' : 'border-slate-600 bg-slate-900'}`}>
+                                                    <div className={`w-6 h-6 rounded-[2rem] flex items-center justify-center shrink-0 border transition-all mt-0.5 ${isChecked ? 'bg-green-600 border-green-600 text-white' : 'border-slate-600 bg-slate-900'}`}>
                                                         {isChecked && <CheckSquare size={14} />}
                                                     </div>
                                                     <div className={`text-sm font-medium leading-snug whitespace-pre-wrap ${isChecked ? 'text-green-400 line-through' : 'text-slate-200'}`}>
@@ -419,9 +419,9 @@ export const ProductionDashboard: React.FC = () => {
                                     <div 
                                         key={tool.id} 
                                         onClick={() => setSelectedTool(tool)}
-                                        className="bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 p-4 rounded-2xl flex gap-4 items-center cursor-pointer transition-all active:scale-[0.98]"
+                                        className="bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 p-4 rounded-[2rem] flex gap-4 items-center cursor-pointer transition-all active:scale-[0.98]"
                                     >
-                                        <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center font-black text-lg text-blue-500 border border-slate-700 shadow-inner">
+                                        <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center font-black text-lg text-blue-500 border border-slate-700 shadow-inner">
                                             {tool.order}
                                         </div>
                                         <div className="flex-1 min-w-0">
@@ -444,7 +444,7 @@ export const ProductionDashboard: React.FC = () => {
                         {/* TAB 3: INFO */}
                         {activeTab === 'INFO' && (
                             <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                                <div className="bg-slate-800 p-5 rounded-2xl border border-slate-700">
+                                <div className="bg-slate-800 p-5 rounded-[2rem] border border-slate-700">
                                     <h4 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Artikel Informatie</h4>
                                     <div className="space-y-3">
                                         <div className="flex justify-between border-b border-slate-700 pb-2">
@@ -472,8 +472,8 @@ export const ProductionDashboard: React.FC = () => {
                                     <h4 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Bestanden</h4>
                                     <div className="space-y-2">
                                         {article.files?.map(file => (
-                                            <button key={file.id} onClick={() => setPreviewFile(file)} className="w-full flex items-center gap-3 p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition-colors text-left group">
-                                                <div className="p-2 bg-slate-900 rounded-lg text-blue-500 group-hover:text-white transition-colors">
+                                            <button key={file.id} onClick={() => setPreviewFile(file)} className="w-full flex items-center gap-3 p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-2xl transition-colors text-left group">
+                                                <div className="p-2 bg-slate-900 rounded-2xl text-blue-500 group-hover:text-white transition-colors">
                                                     {file.type === 'application/pdf' ? <FileText size={18}/> : <ImageIcon size={18}/>}
                                                 </div>
                                                 <div className="min-w-0">
@@ -552,27 +552,27 @@ export const ProductionDashboard: React.FC = () => {
                         {/* Modal Content */}
                         <div className="p-8 overflow-y-auto custom-scrollbar">
                             <div className="grid grid-cols-2 gap-4 mb-8">
-                                <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-800">
+                                <div className="bg-slate-800/50 p-4 rounded-[1.5rem] border border-slate-800">
                                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Matrix Code</span>
                                     <span className="text-lg font-mono font-bold text-blue-400">{selectedTool.matrixCode || '-'}</span>
                                 </div>
-                                <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-800">
+                                <div className="bg-slate-800/50 p-4 rounded-[1.5rem] border border-slate-800">
                                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Assembly ID</span>
                                     <span className="text-lg font-mono font-bold text-white">{selectedTool.assemblyCode || '-'}</span>
                                 </div>
-                                <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-800">
+                                <div className="bg-slate-800/50 p-4 rounded-[1.5rem] border border-slate-800">
                                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1 flex items-center gap-1"><Ruler size={10}/> Snijlengte</span>
                                     <span className="text-lg font-bold text-white">{selectedTool.cuttingLength || '-'}</span>
                                 </div>
-                                <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-800">
+                                <div className="bg-slate-800/50 p-4 rounded-[1.5rem] border border-slate-800">
                                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Vrijloop</span>
                                     <span className="text-lg font-bold text-white">{selectedTool.clearance || '-'}</span>
                                 </div>
-                                <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-800">
+                                <div className="bg-slate-800/50 p-4 rounded-[1.5rem] border border-slate-800">
                                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Houder</span>
                                     <span className="text-lg font-bold text-white">{selectedTool.holder || '-'}</span>
                                 </div>
-                                <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-800">
+                                <div className="bg-slate-800/50 p-4 rounded-[1.5rem] border border-slate-800">
                                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1 flex items-center gap-1"><Thermometer size={10}/> Interne Koeling</span>
                                     <span className={`text-lg font-black ${selectedTool.internalCooling ? 'text-green-500' : 'text-slate-500'}`}>
                                         {selectedTool.internalCooling ? 'JA' : 'NEE'}
@@ -587,7 +587,7 @@ export const ProductionDashboard: React.FC = () => {
                                     </h4>
                                     <div className="grid grid-cols-2 gap-4">
                                         {Object.entries(selectedTool.toolData).map(([key, value]) => (
-                                            <div key={key} className="bg-slate-800/30 p-3 rounded-xl border border-slate-800/50">
+                                            <div key={key} className="bg-slate-800/30 p-3 rounded-[2rem] border border-slate-800/50">
                                                 <span className="text-[9px] font-bold text-slate-500 uppercase block mb-1">{key}</span>
                                                 <span className="text-sm font-bold text-slate-300">{String(value)}</span>
                                             </div>
@@ -599,7 +599,7 @@ export const ProductionDashboard: React.FC = () => {
 
                         {/* Modal Footer */}
                         <div className="p-6 bg-slate-950/50 border-t border-slate-800 rounded-b-[2.5rem]">
-                            <button onClick={() => setSelectedTool(null)} className="w-full py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-black uppercase text-xs tracking-widest transition-colors">
+                            <button onClick={() => setSelectedTool(null)} className="w-full py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-black uppercase text-xs tracking-widest transition-colors">
                                 Sluiten
                             </button>
                         </div>

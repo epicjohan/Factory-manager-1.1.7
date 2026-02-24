@@ -7,7 +7,7 @@ export const ReleaseManual: React.FC = () => {
   const navigate = useNavigate();
 
   const FolderStructure = () => (
-    <div className="bg-slate-950 text-slate-300 p-6 rounded-xl font-mono text-xs border border-slate-800 shadow-inner overflow-x-auto">
+    <div className="bg-slate-950 text-slate-300 p-6 rounded-[2rem] font-mono text-xs border border-slate-800 shadow-inner overflow-x-auto">
         <div className="flex items-center gap-2 text-blue-400 mb-2"><Folder size={14} /> C:\FactoryManager</div>
         <div className="pl-4 border-l border-slate-800 space-y-2">
             <div className="flex items-center gap-2"><Folder size={14} className="text-yellow-500" /> pb_data <span className="text-slate-600 ml-2">// SQLite DATABASE</span></div>
@@ -95,11 +95,11 @@ export const ReleaseManual: React.FC = () => {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-700">
+                        <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-700">
                             <h5 className="font-bold text-xs uppercase mb-2 flex items-center gap-2"><Cpu size={14}/> Bridge Monitoring</h5>
                             <p className="text-[10px] text-slate-500">Bridges loggen hun status in de <code>logs</code> map. Controleer deze bij verbindingsproblemen.</p>
                         </div>
-                        <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-700">
+                        <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-700">
                             <h5 className="font-bold text-xs uppercase mb-2 flex items-center gap-2"><Settings size={14}/> Poortbeheer</h5>
                             <p className="text-[10px] text-slate-500">De server draait standaard op poort 8095. Zorg dat deze in de Windows Firewall open staat voor inkomend verkeer.</p>
                         </div>

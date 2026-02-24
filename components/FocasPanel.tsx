@@ -88,7 +88,7 @@ export const FocasPanel: React.FC<FocasPanelProps> = ({ machine, onSimulate }) =
 
     if (!stats || !stats.connected) {
         return (
-            <div className="bg-white dark:bg-slate-800 p-8 rounded-xl border border-slate-200 dark:border-slate-700 text-center shadow-sm">
+            <div className="bg-white dark:bg-slate-800 p-8 rounded-[2rem] border border-slate-200 dark:border-slate-700 text-center shadow-sm">
                 <Monitor size={48} className="mx-auto mb-4 text-slate-300 dark:text-slate-600 shrink-0" />
                 <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2 uppercase tracking-widest">Geen Live Verbinding</h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 max-w-md mx-auto font-medium">
@@ -100,7 +100,7 @@ export const FocasPanel: React.FC<FocasPanelProps> = ({ machine, onSimulate }) =
                     </div>
                 </div>
                 <div>
-                    <button onClick={toggleSimulation} className="text-xs text-blue-600 dark:text-blue-400 font-black uppercase tracking-widest flex items-center gap-2 mx-auto border-2 border-blue-100 dark:border-blue-900/50 px-6 py-2.5 rounded-xl hover:bg-blue-50 transition-all shadow-sm">
+                    <button onClick={toggleSimulation} className="text-xs text-blue-600 dark:text-blue-400 font-black uppercase tracking-widest flex items-center gap-2 mx-auto border-2 border-blue-100 dark:border-blue-900/50 px-6 py-2.5 rounded-[2rem] hover:bg-blue-50 transition-all shadow-sm">
                         <Play size={14} fill="currentColor" /> Start Preview Modus
                     </button>
                 </div>

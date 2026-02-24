@@ -370,7 +370,7 @@ export const SetupProgTab: React.FC<SetupProgTabProps> = ({
     return (
         <div className="space-y-8 animate-in fade-in duration-300 text-left">
             {isArchived && (
-                <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center gap-3">
+                <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-[2rem] border border-slate-200 dark:border-slate-700 flex items-center gap-3">
                     <Archive className="text-slate-400" size={24} />
                     <div className="text-sm text-slate-500 font-bold">
                         Gearchiveerde bestanden. Alleen lezen modus.
@@ -393,7 +393,7 @@ export const SetupProgTab: React.FC<SetupProgTabProps> = ({
                             </div>
                         </div>
                         {camFile && (
-                            <div className="bg-slate-900 text-white text-[10px] font-black px-3 py-1 rounded-lg">V{camFile.version}</div>
+                            <div className="bg-slate-900 text-white text-[10px] font-black px-3 py-1 rounded-2xl">V{camFile.version}</div>
                         )}
                     </div>
 
@@ -418,7 +418,7 @@ export const SetupProgTab: React.FC<SetupProgTabProps> = ({
                                     </div>
                                 </div>
                                 {camFile.lockedBy && (
-                                    <div className="bg-orange-500 text-white p-3 rounded-xl flex items-center gap-3 animate-pulse">
+                                    <div className="bg-orange-500 text-white p-3 rounded-[2rem] flex items-center gap-3 animate-pulse">
                                         <ShieldAlert size={18} />
                                         <span className="text-[10px] font-black uppercase tracking-widest">Gereserveerd door {camFile.lockedBy}</span>
                                     </div>
@@ -449,7 +449,7 @@ export const SetupProgTab: React.FC<SetupProgTabProps> = ({
                                     <button onClick={() => camInputRef.current?.click()} className="w-full py-4 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg flex items-center justify-center gap-3 active:scale-95">
                                         <CheckCircle2 size={18} /> Check-In Nieuwe Versie
                                     </button>
-                                    <button onClick={handleCancelLock} className="w-full py-3 text-red-500 font-bold uppercase text-[10px] tracking-widest hover:bg-red-50 rounded-xl transition-all">Bewerking Annuleren</button>
+                                    <button onClick={handleCancelLock} className="w-full py-3 text-red-500 font-bold uppercase text-[10px] tracking-widest hover:bg-red-50 rounded-[2rem] transition-all">Bewerking Annuleren</button>
                                 </>
                             ) : isLockedByOthers ? (
                                 <div className="text-center">
@@ -484,7 +484,7 @@ export const SetupProgTab: React.FC<SetupProgTabProps> = ({
                             </div>
                         </div>
                         {ncFile && (
-                            <div className="bg-emerald-500 text-white text-[10px] font-black px-3 py-1 rounded-lg shadow-sm">V{ncFile.version}</div>
+                            <div className="bg-emerald-500 text-white text-[10px] font-black px-3 py-1 rounded-2xl shadow-sm">V{ncFile.version}</div>
                         )}
                     </div>
 
@@ -534,10 +534,10 @@ export const SetupProgTab: React.FC<SetupProgTabProps> = ({
                         )}
                         {ncFile && (
                             <div className="flex gap-2">
-                                <button onClick={() => onPreview(ncFile)} className="flex-1 py-3 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold text-[10px] uppercase flex items-center justify-center gap-1.5 hover:bg-slate-200 transition-colors">
+                                <button onClick={() => onPreview(ncFile)} className="flex-1 py-3 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-[2rem] font-bold text-[10px] uppercase flex items-center justify-center gap-1.5 hover:bg-slate-200 transition-colors">
                                     <Eye size={14} /> Inzien
                                 </button>
-                                <button onClick={() => handleDownload(ncFile)} className="flex-1 py-3 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold text-[10px] uppercase flex items-center justify-center gap-1.5 hover:bg-slate-200 transition-colors">
+                                <button onClick={() => handleDownload(ncFile)} className="flex-1 py-3 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-[2rem] font-bold text-[10px] uppercase flex items-center justify-center gap-1.5 hover:bg-slate-200 transition-colors">
                                     <Download size={14} /> Download
                                 </button>
                             </div>
@@ -595,15 +595,15 @@ export const SetupProgTab: React.FC<SetupProgTabProps> = ({
                         <textarea
                             autoFocus
                             rows={3}
-                            className="w-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-medium outline-none focus:border-orange-500 transition-all text-sm mb-6"
+                            className="w-full p-4 rounded-[2rem] border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-medium outline-none focus:border-orange-500 transition-all text-sm mb-6"
                             placeholder="Bijv. Optimalisatie voeding, aanpassing ijlgang..."
                             value={changeReason}
                             onChange={e => setChangeReason(e.target.value)}
                         />
 
                         <div className="flex gap-3">
-                            <button onClick={() => { setShowReasonModal(false); setPendingFile(null); }} className="flex-1 py-3 text-slate-500 font-bold uppercase text-xs rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Annuleren</button>
-                            <button onClick={confirmReason} disabled={!changeReason.trim()} className="flex-2 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-black uppercase text-xs tracking-widest shadow-lg disabled:opacity-50 transition-all">Wijziging Doorvoeren</button>
+                            <button onClick={() => { setShowReasonModal(false); setPendingFile(null); }} className="flex-1 py-3 text-slate-500 font-bold uppercase text-xs rounded-[2rem] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Annuleren</button>
+                            <button onClick={confirmReason} disabled={!changeReason.trim()} className="flex-2 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-[2rem] font-black uppercase text-xs tracking-widest shadow-lg disabled:opacity-50 transition-all">Wijziging Doorvoeren</button>
                         </div>
                     </div>
                 </div>
@@ -624,10 +624,10 @@ export const SetupProgTab: React.FC<SetupProgTabProps> = ({
                         </div>
 
                         <div className="flex gap-3">
-                            <button onClick={() => setShowCancelConfirmModal(false)} className="flex-1 py-3 text-slate-500 font-bold uppercase text-xs rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                            <button onClick={() => setShowCancelConfirmModal(false)} className="flex-1 py-3 text-slate-500 font-bold uppercase text-xs rounded-[2rem] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                                 Terug
                             </button>
-                            <button onClick={confirmCancelLock} className="flex-2 px-8 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-black uppercase text-xs tracking-widest shadow-lg transition-all">
+                            <button onClick={confirmCancelLock} className="flex-2 px-8 py-3 bg-red-600 hover:bg-red-700 text-white rounded-[2rem] font-black uppercase text-xs tracking-widest shadow-lg transition-all">
                                 Bevestig Annulering
                             </button>
                         </div>
@@ -663,9 +663,9 @@ export const SetupProgTab: React.FC<SetupProgTabProps> = ({
                                 const histVersion = (historyFile.version || 1) - 1 - idx;
 
                                 return (
-                                    <div key={doc.id} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-xl hover:border-blue-300 dark:hover:border-blue-600 transition-colors">
+                                    <div key={doc.id} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-[2rem] hover:border-blue-300 dark:hover:border-blue-600 transition-colors">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 rounded-lg bg-white dark:bg-slate-800 text-slate-400 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700 shadow-sm font-black text-xs">
+                                            <div className="w-10 h-10 rounded-2xl bg-white dark:bg-slate-800 text-slate-400 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700 shadow-sm font-black text-xs">
                                                 V{Math.max(1, histVersion)}
                                             </div>
                                             <div>
@@ -689,7 +689,7 @@ export const SetupProgTab: React.FC<SetupProgTabProps> = ({
                                                 link.click();
                                                 document.body.removeChild(link);
                                             }}
-                                            className="bg-white hover:bg-slate-100 text-slate-600 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600 rounded-lg px-4 py-2 text-[10px] font-black uppercase tracking-wider flex items-center gap-2 transition-colors shadow-sm"
+                                            className="bg-white hover:bg-slate-100 text-slate-600 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600 rounded-2xl px-4 py-2 text-[10px] font-black uppercase tracking-wider flex items-center gap-2 transition-colors shadow-sm"
                                         >
                                             <Download size={14} /> Download
                                         </button>

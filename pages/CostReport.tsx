@@ -127,14 +127,14 @@ export const CostReport: React.FC = () => {
                 <div className="flex gap-2">
                     <button 
                         onClick={handleExport}
-                        className="flex items-center gap-2 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg shadow-sm transition-colors"
+                        className="flex items-center gap-2 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-2xl shadow-sm transition-colors"
                         title="Download huidige selectie als CSV"
                     >
                         <Download size={16} />
                         Export naar CSV
                     </button>
 
-                    <div className="flex items-center gap-2 bg-white dark:bg-slate-800 p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm self-start">
+                    <div className="flex items-center gap-2 bg-white dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm self-start">
                         <div className="flex items-center gap-2 px-2 hidden md:flex">
                             <Calendar size={16} className="text-slate-400" />
                             <span className="text-xs font-bold text-slate-500 uppercase">Periode</span>
@@ -158,7 +158,7 @@ export const CostReport: React.FC = () => {
         </div>
 
         {/* Asset Filters */}
-        <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-wrap gap-4 items-center">
+        <div className="bg-white dark:bg-slate-800 p-4 rounded-[2rem] border border-slate-200 dark:border-slate-700 shadow-sm flex flex-wrap gap-4 items-center">
             <div className="flex items-center gap-2 text-slate-500 text-sm font-medium">
                 <Filter size={16} /> Filters:
             </div>
@@ -169,7 +169,7 @@ export const CostReport: React.FC = () => {
                     setAssetTypeFilter(e.target.value as AssetType | 'ALL');
                     setMachineIdFilter('ALL'); 
                 }}
-                className="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-white text-sm outline-none focus:ring-2 focus:ring-emerald-500"
+                className="px-3 py-2 rounded-2xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-white text-sm outline-none focus:ring-2 focus:ring-emerald-500"
             >
                 <option value="ALL">Alle Asset Types</option>
                 <option value="CNC">CNC Machines</option>
@@ -181,7 +181,7 @@ export const CostReport: React.FC = () => {
             <select 
                 value={machineIdFilter}
                 onChange={(e) => setMachineIdFilter(e.target.value)}
-                className="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-white text-sm outline-none focus:ring-2 focus:ring-emerald-500"
+                className="px-3 py-2 rounded-2xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-white text-sm outline-none focus:ring-2 focus:ring-emerald-500"
             >
                 <option value="ALL">Alle Machines</option>
                 {filteredMachinesDropdown.map(m => (
@@ -192,9 +192,9 @@ export const CostReport: React.FC = () => {
 
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-700 shadow-sm">
                 <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg text-emerald-600 dark:text-emerald-400">
+                    <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl text-emerald-600 dark:text-emerald-400">
                         <Euro size={24} />
                     </div>
                     <span className="text-slate-500 dark:text-slate-400 text-sm font-medium uppercase tracking-wider">Totale Kosten</span>
@@ -203,9 +203,9 @@ export const CostReport: React.FC = () => {
                 <div className="text-xs text-slate-400 mt-1">Gefilterde periode & selectie</div>
             </div>
 
-            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-700 shadow-sm">
                 <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400">
+                    <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-2xl text-blue-600 dark:text-blue-400">
                         <Clock size={24} />
                     </div>
                     <span className="text-slate-500 dark:text-slate-400 text-sm font-medium uppercase tracking-wider">Totale Stilstand</span>
@@ -213,9 +213,9 @@ export const CostReport: React.FC = () => {
                 <div className="text-3xl font-bold text-slate-800 dark:text-white">{(totalDowntime / 60).toFixed(1)} <span className="text-lg font-normal text-slate-500">uur</span></div>
             </div>
 
-            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-700 shadow-sm">
                 <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg text-purple-600 dark:text-purple-400">
+                    <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-2xl text-purple-600 dark:text-purple-400">
                         <FileText size={24} />
                     </div>
                     <span className="text-slate-500 dark:text-slate-400 text-sm font-medium uppercase tracking-wider">Gem. Kosten / Storing</span>
@@ -225,7 +225,7 @@ export const CostReport: React.FC = () => {
         </div>
 
         {/* Chart */}
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-700 shadow-sm">
             <h3 className="text-lg font-bold mb-6 text-slate-800 dark:text-white">Kostenverdeling</h3>
             <div className="h-80 w-full">
                 {costPerMachine.length > 0 ? (
@@ -256,7 +256,7 @@ export const CostReport: React.FC = () => {
         </div>
 
         {/* Detailed Table */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <div className="bg-white dark:bg-slate-800 rounded-[2rem] border border-slate-200 dark:border-slate-700 overflow-hidden">
             <div className="p-6 border-b border-slate-200 dark:border-slate-700">
                 <div className="flex items-center justify-between">
                     <h3 className="text-lg font-bold text-slate-800 dark:text-white">Factuur & Kosten detail</h3>

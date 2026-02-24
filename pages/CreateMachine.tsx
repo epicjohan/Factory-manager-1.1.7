@@ -162,13 +162,13 @@ export const CreateMachine: React.FC = () => {
             <span>Terug</span>
           </button>
           
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-lg text-xs font-bold border border-purple-200">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-2xl text-xs font-bold border border-purple-200">
               <ShieldCheck size={14} />
               Geautoriseerd als Administrator
           </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+      <div className="bg-white dark:bg-slate-800 rounded-[2rem] shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
         <div className="p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
@@ -180,7 +180,7 @@ export const CreateMachine: React.FC = () => {
               <button 
                 type="button"
                 onClick={() => setFormData({...formData, isArchived: !formData.isArchived})}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${formData.isArchived ? 'bg-orange-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200'}`}
+                className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-bold transition-all ${formData.isArchived ? 'bg-orange-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200'}`}
               >
                   {formData.isArchived ? <ArchiveX size={16} /> : <Archive size={16} />}
                   <span>{formData.isArchived ? 'Gearchiveerd' : 'Archiveer Asset'}</span>
@@ -202,7 +202,7 @@ export const CreateMachine: React.FC = () => {
                     <input 
                         type="text" 
                         placeholder="Bijv. Mazak Variaxis"
-                        className={`w-full px-4 py-2 rounded-lg border bg-transparent dark:text-white focus:ring-2 focus:ring-blue-500 outline-none ${errors.name ? 'border-red-500' : 'border-slate-300 dark:border-slate-600'}`}
+                        className={`w-full px-4 py-2 rounded-2xl border bg-transparent dark:text-white focus:ring-2 focus:ring-blue-500 outline-none ${errors.name ? 'border-red-500' : 'border-slate-300 dark:border-slate-600'}`}
                         value={formData.name}
                         onChange={e => setFormData({...formData, name: e.target.value})}
                     />
@@ -213,7 +213,7 @@ export const CreateMachine: React.FC = () => {
                     <input 
                         type="text" 
                         placeholder="Bijv. CNC-005"
-                        className={`w-full px-4 py-2 rounded-lg border bg-transparent dark:text-white focus:ring-2 focus:ring-blue-500 outline-none ${errors.machineNumber ? 'border-red-500' : 'border-slate-300 dark:border-slate-600'}`}
+                        className={`w-full px-4 py-2 rounded-2xl border bg-transparent dark:text-white focus:ring-2 focus:ring-blue-500 outline-none ${errors.machineNumber ? 'border-red-500' : 'border-slate-300 dark:border-slate-600'}`}
                         value={formData.machineNumber}
                         onChange={e => setFormData({...formData, machineNumber: e.target.value})}
                     />
@@ -222,7 +222,7 @@ export const CreateMachine: React.FC = () => {
                 <div className="space-y-2">
                     <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Type Asset</label>
                     <select
-                        className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white outline-none"
+                        className="w-full px-4 py-2 rounded-2xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white outline-none"
                         value={formData.type}
                         onChange={e => setFormData({...formData, type: e.target.value as AssetType, setupTemplateId: ''})}
                     >
@@ -237,7 +237,7 @@ export const CreateMachine: React.FC = () => {
                 <div className="space-y-2">
                     <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Dienstrooster</label>
                     <select
-                        className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white outline-none"
+                        className="w-full px-4 py-2 rounded-2xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white outline-none"
                         value={formData.scheduleId}
                         onChange={e => setFormData({...formData, scheduleId: e.target.value})}
                     >
@@ -254,7 +254,7 @@ export const CreateMachine: React.FC = () => {
                         <FileJson size={16} /> Setup Sjabloon (Voor Artikelen)
                     </label>
                     <select
-                        className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white outline-none"
+                        className="w-full px-4 py-2 rounded-2xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white outline-none"
                         value={formData.setupTemplateId || ''}
                         onChange={e => setFormData({...formData, setupTemplateId: e.target.value})}
                     >
@@ -271,7 +271,7 @@ export const CreateMachine: React.FC = () => {
               <div className="pt-4">
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Machine Foto</label>
                   <div className="flex flex-col sm:flex-row items-center gap-6 p-6 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-700">
-                      <div className="w-32 h-32 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden shadow-inner shrink-0">
+                      <div className="w-32 h-32 rounded-[2rem] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden shadow-inner shrink-0">
                           {formData.image ? (
                               <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
                           ) : (
@@ -281,13 +281,13 @@ export const CreateMachine: React.FC = () => {
                       <div className="flex-1 space-y-3">
                           <p className="text-xs text-slate-500 leading-relaxed font-medium">Upload een duidelijke foto van de machine voor snelle herkenning op de werkvloer.</p>
                           <div className="flex flex-wrap gap-2">
-                              <label className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg shadow-blue-500/20">
+                              <label className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-2xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg shadow-blue-500/20">
                                   <Upload size={14} /> 
                                   <span>{formData.image ? 'Wijzig Foto' : 'Foto Selecteren'}</span>
                                   <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
                               </label>
                               {formData.image && (
-                                  <button type="button" onClick={() => setFormData({...formData, image: ''})} className="px-5 py-2 bg-slate-100 dark:bg-slate-700 text-red-500 rounded-lg text-xs font-bold">Verwijderen</button>
+                                  <button type="button" onClick={() => setFormData({...formData, image: ''})} className="px-5 py-2 bg-slate-100 dark:bg-slate-700 text-red-500 rounded-2xl text-xs font-bold">Verwijderen</button>
                               )}
                           </div>
                       </div>
@@ -302,7 +302,7 @@ export const CreateMachine: React.FC = () => {
                     <Wifi size={18} className="text-teal-500" /> Connectiviteit (Smart Factory)
                 </h3>
                 
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-200 dark:border-blue-800">
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-[2rem] border border-blue-200 dark:border-blue-800">
                     <div className="flex gap-4">
                         <Info className="text-blue-500 shrink-0" size={20} />
                         <div className="text-xs text-blue-800 dark:text-blue-300 leading-relaxed">
@@ -319,7 +319,7 @@ export const CreateMachine: React.FC = () => {
                 <div className="space-y-6">
                     <div className="flex gap-4">
                         {Object.values(MachineProtocol).map(p => (
-                            <button key={p} type="button" onClick={() => setFormData({...formData, protocol: p})} className={`flex-1 p-4 rounded-xl border-2 transition-all text-left ${formData.protocol === p ? 'bg-teal-50 border-teal-500 dark:bg-teal-900/20 shadow-md' : 'bg-slate-50 border-slate-200 dark:bg-slate-900 dark:border-slate-700 opacity-60'}`}>
+                            <button key={p} type="button" onClick={() => setFormData({...formData, protocol: p})} className={`flex-1 p-4 rounded-[2rem] border-2 transition-all text-left ${formData.protocol === p ? 'bg-teal-50 border-teal-500 dark:bg-teal-900/20 shadow-md' : 'bg-slate-50 border-slate-200 dark:bg-slate-900 dark:border-slate-700 opacity-60'}`}>
                                 <div className="font-bold text-sm mb-1">{p} Protocol</div>
                                 <div className="text-[10px] text-slate-500 uppercase tracking-widest">{p === MachineProtocol.FOCAS ? 'Fanuc / FOCAS API' : 'MTConnect Stream'}</div>
                             </button>
@@ -332,7 +332,7 @@ export const CreateMachine: React.FC = () => {
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold text-slate-500 uppercase">Sturing Generatie</label>
                                     <select 
-                                        className="w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white outline-none font-bold"
+                                        className="w-full p-2.5 rounded-2xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white outline-none font-bold"
                                         value={formData.fanucType}
                                         onChange={e => setFormData({...formData, fanucType: e.target.value as FanucControlType})}
                                     >
@@ -345,12 +345,12 @@ export const CreateMachine: React.FC = () => {
                                     <label className="text-xs font-bold text-slate-500 uppercase">IP Adres</label>
                                     <div className="relative">
                                         <Globe className="absolute left-3 top-3 text-slate-400" size={18} />
-                                        <input type="text" placeholder="192.168.1.10" className="w-full pl-10 p-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-transparent dark:text-white font-mono font-bold" value={formData.focasIp || ''} onChange={e => setFormData({...formData, focasIp: e.target.value})} />
+                                        <input type="text" placeholder="192.168.1.10" className="w-full pl-10 p-2 rounded-2xl border border-slate-300 dark:border-slate-600 bg-transparent dark:text-white font-mono font-bold" value={formData.focasIp || ''} onChange={e => setFormData({...formData, focasIp: e.target.value})} />
                                     </div>
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold text-slate-500 uppercase">Poort</label>
-                                    <input type="number" className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-transparent dark:text-white font-mono font-bold" value={formData.focasPort || 8193} onChange={e => setFormData({...formData, focasPort: parseInt(e.target.value)})} />
+                                    <input type="number" className="w-full p-2 rounded-2xl border border-slate-300 dark:border-slate-600 bg-transparent dark:text-white font-mono font-bold" value={formData.focasPort || 8193} onChange={e => setFormData({...formData, focasPort: parseInt(e.target.value)})} />
                                 </div>
                             </div>
                         </div>
@@ -367,19 +367,19 @@ export const CreateMachine: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-500 uppercase">Tankinhoud (L)</label>
-                    <input type="number" className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-transparent dark:text-white font-bold" value={formData.tankCapacity || 0} onChange={e => setFormData({...formData, tankCapacity: parseInt(e.target.value)})} />
+                    <input type="number" className="w-full p-2 rounded-2xl border border-slate-300 dark:border-slate-600 bg-transparent dark:text-white font-bold" value={formData.tankCapacity || 0} onChange={e => setFormData({...formData, tankCapacity: parseInt(e.target.value)})} />
                 </div>
                 <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-500 uppercase">Brix Doel (%)</label>
-                    <input type="number" step="0.1" className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-transparent dark:text-white font-bold" value={formData.coolantTarget || 8.0} onChange={e => setFormData({...formData, coolantTarget: parseFloat(e.target.value)})} />
+                    <input type="number" step="0.1" className="w-full p-2 rounded-2xl border border-slate-300 dark:border-slate-600 bg-transparent dark:text-white font-bold" value={formData.coolantTarget || 8.0} onChange={e => setFormData({...formData, coolantTarget: parseFloat(e.target.value)})} />
                 </div>
                 <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-500 uppercase">Min. Limiet (%)</label>
-                    <input type="number" step="0.1" className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-transparent dark:text-white font-bold border-red-200" value={formData.coolantMinLimit || 7.0} onChange={e => setFormData({...formData, coolantMinLimit: parseFloat(e.target.value)})} />
+                    <input type="number" step="0.1" className="w-full p-2 rounded-2xl border border-slate-300 dark:border-slate-600 bg-transparent dark:text-white font-bold border-red-200" value={formData.coolantMinLimit || 7.0} onChange={e => setFormData({...formData, coolantMinLimit: parseFloat(e.target.value)})} />
                 </div>
                 <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-500 uppercase">Max. Limiet (%)</label>
-                    <input type="number" step="0.1" className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-transparent dark:text-white font-bold border-red-200" value={formData.coolantMaxLimit || 9.0} onChange={e => setFormData({...formData, coolantMaxLimit: parseFloat(e.target.value)})} />
+                    <input type="number" step="0.1" className="w-full p-2 rounded-2xl border border-slate-300 dark:border-slate-600 bg-transparent dark:text-white font-bold border-red-200" value={formData.coolantMaxLimit || 9.0} onChange={e => setFormData({...formData, coolantMaxLimit: parseFloat(e.target.value)})} />
                 </div>
               </div>
           </div>
@@ -396,7 +396,7 @@ export const CreateMachine: React.FC = () => {
                   className={`p-4 rounded-2xl border-2 flex items-center justify-between transition-all ${formData.showInDashboard ? 'bg-blue-50 border-blue-500 dark:bg-blue-900/20 shadow-md' : 'bg-slate-50 border-slate-200 dark:bg-slate-900 dark:border-slate-700 opacity-60'}`}
                 >
                     <div className="flex items-center gap-4">
-                        <div className={`p-2 rounded-lg ${formData.showInDashboard ? 'bg-blue-600 text-white' : 'bg-slate-300 text-slate-500'}`}><LayoutDashboard size={20} /></div>
+                        <div className={`p-2 rounded-2xl ${formData.showInDashboard ? 'bg-blue-600 text-white' : 'bg-slate-300 text-slate-500'}`}><LayoutDashboard size={20} /></div>
                         <span className="text-sm font-black uppercase tracking-widest">Toon in Dashboard</span>
                     </div>
                     {formData.showInDashboard ? <ToggleRight size={32} className="text-blue-600" /> : <ToggleLeft size={32} className="text-slate-400" />}
@@ -408,7 +408,7 @@ export const CreateMachine: React.FC = () => {
                   className={`p-4 rounded-2xl border-2 flex items-center justify-between transition-all ${formData.showInAndon ? 'bg-teal-50 border-teal-500 dark:bg-teal-900/20 shadow-md' : 'bg-slate-50 border-slate-200 dark:bg-slate-900 dark:border-slate-700 opacity-60'}`}
                 >
                     <div className="flex items-center gap-4">
-                        <div className={`p-2 rounded-lg ${formData.showInAndon ? 'bg-teal-600 text-white' : 'bg-slate-300 text-slate-500'}`}><Tv size={20} /></div>
+                        <div className={`p-2 rounded-2xl ${formData.showInAndon ? 'bg-teal-600 text-white' : 'bg-slate-300 text-slate-500'}`}><Tv size={20} /></div>
                         <span className="text-sm font-black uppercase tracking-widest">Toon op TV / Andon</span>
                     </div>
                     {formData.showInAndon ? <ToggleRight size={32} className="text-teal-600" /> : <ToggleLeft size={32} className="text-slate-400" />}
@@ -432,7 +432,7 @@ export const CreateMachine: React.FC = () => {
                                     ...formData, 
                                     andonConfig: { ...formData.andonConfig!, [opt.key]: !(formData.andonConfig as any)[opt.key] }
                                 })}
-                                className={`flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all ${ (formData.andonConfig as any)[opt.key] ? 'bg-white dark:bg-slate-800 border-blue-500 text-blue-600 shadow-sm' : 'bg-transparent border-slate-200 text-slate-400' }`}
+                                className={`flex items-center justify-center gap-2 p-3 rounded-[2rem] border-2 transition-all ${ (formData.andonConfig as any)[opt.key] ? 'bg-white dark:bg-slate-800 border-blue-500 text-blue-600 shadow-sm' : 'bg-transparent border-slate-200 text-slate-400' }`}
                               >
                                   {(formData.andonConfig as any)[opt.key] ? <CheckCircle size={14} /> : <div className="w-3.5 h-3.5" />}
                                   <span className="text-[10px] font-black uppercase tracking-widest">{opt.label}</span>
@@ -446,13 +446,13 @@ export const CreateMachine: React.FC = () => {
           {/* ACTIE KNOPPEN */}
           <div className="flex justify-between items-center pt-8 border-t border-slate-200 dark:border-slate-700">
             {isEditing ? (
-                <button type="button" onClick={handleDelete} className="flex items-center gap-2 bg-red-50 text-red-600 px-6 py-3 rounded-lg font-bold border border-red-200 hover:bg-red-100 transition-colors">
+                <button type="button" onClick={handleDelete} className="flex items-center gap-2 bg-red-50 text-red-600 px-6 py-3 rounded-2xl font-bold border border-red-200 hover:bg-red-100 transition-colors">
                     <Trash2 size={18} />
                     <span>Verwijderen</span>
                 </button>
             ) : <div />}
             
-            <button type="submit" disabled={isProcessing} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-xl font-black shadow-xl shadow-blue-500/30 disabled:opacity-50 transition-all uppercase tracking-widest text-sm">
+            <button type="submit" disabled={isProcessing} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-[2rem] font-black shadow-xl shadow-blue-500/30 disabled:opacity-50 transition-all uppercase tracking-widest text-sm">
               <Save size={20} />
               <span>{isEditing ? 'Asset Bijwerken' : 'Asset Opslaan'}</span>
             </button>

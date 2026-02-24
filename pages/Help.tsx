@@ -8,7 +8,7 @@ export const Help: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'ALGEMEEN' | 'PRODUCTIE' | 'ONDERHOUD' | 'BEHEER'>('ALGEMEEN');
 
   const GuideSection = ({ title, icon: Icon, children }: any) => (
-    <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm animate-in fade-in slide-in-from-bottom-2">
+    <div className="bg-white dark:bg-slate-800 rounded-[2rem] p-8 border border-slate-200 dark:border-slate-700 shadow-sm animate-in fade-in slide-in-from-bottom-2">
         <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-2">
             <Icon className="text-blue-500" size={24} />
             {title}
@@ -37,28 +37,28 @@ export const Help: React.FC = () => {
       </div>
 
       {/* TABS */}
-      <div className="flex overflow-x-auto gap-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 mb-6">
+      <div className="flex overflow-x-auto gap-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-full border border-slate-200 dark:border-slate-700 mb-6">
           <button 
               onClick={() => setActiveTab('ALGEMEEN')}
-              className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap ${activeTab === 'ALGEMEEN' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
+              className={`px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap ${activeTab === 'ALGEMEEN' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
           >
               <LayoutGrid size={16} /> Algemeen
           </button>
           <button 
               onClick={() => setActiveTab('PRODUCTIE')}
-              className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap ${activeTab === 'PRODUCTIE' ? 'bg-white dark:bg-slate-700 text-orange-600 shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
+              className={`px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap ${activeTab === 'PRODUCTIE' ? 'bg-white dark:bg-slate-700 text-orange-600 shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
           >
               <AlertTriangle size={16} /> Productie & Storing
           </button>
           <button 
               onClick={() => setActiveTab('ONDERHOUD')}
-              className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap ${activeTab === 'ONDERHOUD' ? 'bg-white dark:bg-slate-700 text-teal-600 shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
+              className={`px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap ${activeTab === 'ONDERHOUD' ? 'bg-white dark:bg-slate-700 text-teal-600 shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
           >
               <Droplet size={16} /> Onderhoud & Koeling
           </button>
           <button 
               onClick={() => setActiveTab('BEHEER')}
-              className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap ${activeTab === 'BEHEER' ? 'bg-white dark:bg-slate-700 text-purple-600 shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
+              className={`px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap ${activeTab === 'BEHEER' ? 'bg-white dark:bg-slate-700 text-purple-600 shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
           >
               <Package size={16} /> Materieel & Voorraad
           </button>
@@ -107,7 +107,7 @@ export const Help: React.FC = () => {
                      <p>
                          Machines die gekoppeld zijn met de "Factory Bridge" zenden live data naar het systeem.
                      </p>
-                     <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-100 dark:border-blue-800">
+                     <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-2xl border border-blue-100 dark:border-blue-800">
                          <h4 className="font-bold text-blue-800 dark:text-blue-300 mb-2 flex items-center gap-2">
                              <Wifi size={16} /> Automatische Foutuitlezing
                          </h4>
@@ -127,7 +127,7 @@ export const Help: React.FC = () => {
                      <p>
                          Voor machines zonder FOCAS of voor fysieke problemen (lekkage, geluid):
                      </p>
-                     <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
+                     <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
                          <h4 className="font-bold text-slate-800 dark:text-white mb-2">Stappenplan:</h4>
                          <ol className="list-decimal pl-5 space-y-2 text-sm">
                              <li>Navigeer naar de machine of klik op <strong>"Snel Storing Melden"</strong> op het dashboard.</li>
@@ -173,7 +173,7 @@ export const Help: React.FC = () => {
                     <li><strong>Onderdelen:</strong> Kunnen machine-specifiek zijn (gekoppeld aan één machine) of algemeen (bouten, moeren, handschoenen).</li>
                     <li><strong>Minimale Voorraad:</strong> Stel een minimum in. Zodra de voorraad hieronder komt door een reparatie, krijgt de beheerder een melding.</li>
                 </ul>
-                <div className="bg-purple-50 dark:bg-purple-900/10 p-3 mt-4 rounded-lg border border-purple-100 dark:border-purple-800 text-sm text-purple-800 dark:text-purple-300">
+                <div className="bg-purple-50 dark:bg-purple-900/10 p-3 mt-4 rounded-2xl border border-purple-100 dark:border-purple-800 text-sm text-purple-800 dark:text-purple-300">
                     <strong>Tip:</strong> Gebruik het zoekveld om snel een artikelcode te vinden en de voorraad te corrigeren.
                 </div>
             </GuideSection>

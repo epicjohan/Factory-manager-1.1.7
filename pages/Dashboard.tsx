@@ -146,7 +146,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <MachineCard key={machine.id} machine={machine} />
             ))}
             {filteredMachines.length === 0 && (
-              <div className="col-span-full py-12 flex flex-col items-center justify-center text-slate-500 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/30">
+              <div className="col-span-full py-12 flex flex-col items-center justify-center text-slate-500 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-[2rem] bg-slate-50 dark:bg-slate-800/30">
                 <Filter size={48} className="mb-4 opacity-50" />
                 <p className="text-lg font-medium">Geen items gevonden</p>
                 <p className="text-sm">Er zijn geen actieve assets in deze categorie.</p>
@@ -242,7 +242,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               );
             })
           ) : (
-            <div className="py-16 text-center bg-white dark:bg-slate-800 rounded-xl border border-dashed border-green-300 dark:border-green-800">
+            <div className="py-16 text-center bg-white dark:bg-slate-800 rounded-[2rem] border border-dashed border-green-300 dark:border-green-800">
               <CheckCircle size={64} className="mx-auto text-green-500 mb-4" />
               <h3 className="text-2xl font-bold text-slate-800 dark:text-white">Alles draait soepel!</h3>
               <p className="text-slate-500 dark:text-slate-400">Er zijn momenteel geen actieve storingen gemeld voor uw zichtbare machines.</p>
@@ -259,13 +259,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <Siren className="text-red-500" />
                 Snel Storing Melden
               </h3>
-              <button onClick={() => setShowTicketModal(false)} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 bg-slate-100 dark:bg-slate-900 rounded-xl transition-colors">
+              <button onClick={() => setShowTicketModal(false)} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 bg-slate-100 dark:bg-slate-900 rounded-[2rem] transition-colors">
                 <X size={20} />
               </button>
             </div>
 
             {qtImpact === TicketImpact.CRITICAL && (
-              <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/50 p-4 rounded-xl mb-6 text-sm text-red-800 dark:text-red-200 flex items-start gap-2">
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/50 p-4 rounded-[2rem] mb-6 text-sm text-red-800 dark:text-red-200 flex items-start gap-2">
                 <AlertTriangle className="shrink-0 mt-0.5" size={16} />
                 <div>
                   Let op: Bij <strong>Meteen Actie</strong> wordt de machinestatus direct op <strong>STORING</strong> gezet.

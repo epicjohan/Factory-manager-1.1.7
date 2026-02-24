@@ -178,7 +178,7 @@ export const MachineDetail: React.FC = () => {
 
     const getStatusButtonClass = (target: 'RUNNING' | 'MAINTENANCE' | 'ERROR' | 'OFFLINE') => {
         const isActive = machine.status === target;
-        const base = "p-1.5 rounded-lg border transition-all flex items-center justify-center";
+        const base = "p-1.5 rounded-2xl border transition-all flex items-center justify-center";
         if (target === 'RUNNING') return isActive ? `${base} bg-emerald-500 text-white border-emerald-500 shadow-sm shadow-emerald-500/30 scale-105 z-10` : `${base} bg-transparent text-emerald-500 border-emerald-500/20 hover:bg-emerald-50 dark:hover:bg-emerald-900/20`;
         if (target === 'MAINTENANCE') return isActive ? `${base} bg-amber-500 text-white border-amber-500 shadow-sm shadow-amber-500/30 scale-105 z-10` : `${base} bg-transparent text-amber-500 border-amber-500/20 hover:bg-emerald-50 dark:hover:bg-emerald-900/20`;
         if (target === 'ERROR') return isActive ? `${base} bg-red-600 text-white border-red-600 shadow-sm shadow-red-600/30 scale-105 z-10 animate-pulse` : `${base} bg-transparent text-red-500 border-red-500/20 hover:bg-red-900/20`;
@@ -208,17 +208,17 @@ export const MachineDetail: React.FC = () => {
                 </button>
                 <div className="flex gap-2">
                     {machine.type === AssetType.CNC && canAccessModule(AppModule.TOOLGUARD) && hasPermission(Permission.USE_TOOLGUARD) && (
-                        <Link to={`/machine/${machine.id}/toolguard`} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-sm shadow-indigo-500/20 text-[10px] font-black tracking-widest transition-all transform hover:scale-105">
+                        <Link to={`/machine/${machine.id}/toolguard`} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-[2rem] shadow-sm shadow-indigo-500/20 text-[10px] font-black tracking-widest transition-all transform hover:scale-105">
                             <ShieldCheck size={16} />
                             <span>TOOLGUARD</span>
                         </Link>
                     )}
                     {hasPermission(Permission.MANAGE_MACHINES) && (
-                        <Link to={`/admin/edit-machine/${machine.id}`} className="p-2 bg-white dark:bg-slate-800 text-slate-500 hover:text-blue-500 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm transition-colors">
+                        <Link to={`/admin/edit-machine/${machine.id}`} className="p-2 bg-white dark:bg-slate-800 text-slate-500 hover:text-blue-500 border border-slate-200 dark:border-slate-700 rounded-[2rem] shadow-sm transition-colors">
                             <Edit size={16} />
                         </Link>
                     )}
-                    {!machine.isArchived && <button onClick={() => setShowQrModal(true)} className="p-2 bg-white dark:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-white border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm transition-colors">
+                    {!machine.isArchived && <button onClick={() => setShowQrModal(true)} className="p-2 bg-white dark:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-white border border-slate-200 dark:border-slate-700 rounded-[2rem] shadow-sm transition-colors">
                         <QrCode size={16} />
                     </button>}
                 </div>
@@ -240,8 +240,8 @@ export const MachineDetail: React.FC = () => {
                         <div className="flex justify-between items-start gap-4">
                             <div className="min-w-0">
                                 <div className="flex items-center gap-3 mb-2">
-                                    <span className="text-[10px] font-mono font-black tracking-widest text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-600">{machine.machineNumber}</span>
-                                    <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest hidden sm:inline-block bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-lg border border-blue-100 dark:border-blue-900/50">{machine.type}</span>
+                                    <span className="text-[10px] font-mono font-black tracking-widest text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-2xl border border-slate-200 dark:border-slate-600">{machine.machineNumber}</span>
+                                    <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest hidden sm:inline-block bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-2xl border border-blue-100 dark:border-blue-900/50">{machine.type}</span>
                                 </div>
                                 <h1 className="text-3xl md:text-4xl font-black text-slate-800 dark:text-white leading-tight truncate tracking-tighter italic uppercase">{machine.name}</h1>
                                 <div className="flex items-center gap-4 mt-3 text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wide">
@@ -254,7 +254,7 @@ export const MachineDetail: React.FC = () => {
                             </div>
                         </div>
                         <div className="flex items-end justify-between mt-4 md:mt-2">
-                            <div className={`flex items-center gap-2 text-xs uppercase font-black tracking-widest px-3 py-1.5 rounded-xl border ${activeTickets.length > 0 ? 'text-red-600 bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-900/50' : 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-900/50'}`}> <Activity size={14} /> <span>{activeTickets.length} Meldingen</span> </div>
+                            <div className={`flex items-center gap-2 text-xs uppercase font-black tracking-widest px-3 py-1.5 rounded-[2rem] border ${activeTickets.length > 0 ? 'text-red-600 bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-900/50' : 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-900/50'}`}> <Activity size={14} /> <span>{activeTickets.length} Meldingen</span> </div>
                             {hasPermission(Permission.UPDATE_MACHINE_STATUS) && !machine.isArchived && (
                                 <div className="flex gap-2 bg-slate-100/80 dark:bg-slate-900/80 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-inner">
                                     {(['RUNNING', 'MAINTENANCE', 'ERROR', 'OFFLINE'] as const).map(s => (

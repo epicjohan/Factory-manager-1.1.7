@@ -167,7 +167,7 @@ export const TicketRow: React.FC<TicketRowProps> = ({
                             if (confirmDeleteTicket) onDelete();
                             else setConfirmDeleteTicket(true);
                         }}
-                        className={`p-2 transition-all rounded-lg flex items-center gap-2 ${confirmDeleteTicket ? 'bg-red-600 text-white px-3' : 'text-slate-300 hover:text-red-500'}`}
+                        className={`p-2 transition-all rounded-2xl flex items-center gap-2 ${confirmDeleteTicket ? 'bg-red-600 text-white px-3' : 'text-slate-300 hover:text-red-500'}`}
                         title="Bon verwijderen"
                     >
                         {confirmDeleteTicket ? <><AlertCircle size={14} /><span className="text-[10px] font-black uppercase">WISSEN?</span></> : <Trash2 size={16} />}
@@ -194,7 +194,7 @@ export const TicketRow: React.FC<TicketRowProps> = ({
                                 <div className="space-y-3">
                                     {ticket.actions.length === 0 && <div className="text-xs text-slate-400 italic py-2 pl-1">Geen acties geregistreerd.</div>}
                                     {ticket.actions.map(action => (
-                                        <div key={action.id} className="bg-slate-50 dark:bg-slate-700 p-4 rounded-xl border border-slate-100 dark:border-slate-600 shadow-sm relative group overflow-hidden">
+                                        <div key={action.id} className="bg-slate-50 dark:bg-slate-700 p-4 rounded-[2rem] border border-slate-100 dark:border-slate-600 shadow-sm relative group overflow-hidden">
                                             <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500" />
                                             <div className="text-[10px] text-slate-500 uppercase tracking-widest font-black mb-1">{new Date(action.date).toLocaleString()} • {action.user}</div>
                                             <div className="text-sm text-slate-700 dark:text-slate-300 font-medium">{action.description}</div>
@@ -206,7 +206,7 @@ export const TicketRow: React.FC<TicketRowProps> = ({
                                     <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row gap-3 items-end">
                                         <input
                                             type="text"
-                                            className="flex-1 p-3 rounded-xl border border-slate-300 dark:border-slate-600 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="flex-1 p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
                                             placeholder="Beschrijf uitgevoerde actie..."
                                             value={newActionText}
                                             onChange={e => setNewActionText(e.target.value)}
@@ -215,7 +215,7 @@ export const TicketRow: React.FC<TicketRowProps> = ({
                                         <button
                                             onClick={handleAddAction}
                                             disabled={!newActionText.trim()}
-                                            className="px-6 py-2 bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-sm shadow-blue-500/20"
+                                            className="px-6 py-2 bg-blue-600 text-white rounded-[2rem] text-xs font-black uppercase tracking-widest flex items-center gap-2 hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-sm shadow-blue-500/20"
                                         >
                                             <Send size={14} /> Opslaan
                                         </button>
@@ -236,7 +236,7 @@ export const TicketRow: React.FC<TicketRowProps> = ({
                                             const partKey = `${ticket.id}-${idx}`;
                                             const isConfirming = confirmDeletePartKey === partKey;
                                             return (
-                                                <div key={idx} className={`flex items-center justify-between text-[10px] p-2.5 rounded-lg font-bold group/item transition-colors ${isConfirming ? 'bg-red-50 dark:bg-red-900/20' : 'bg-slate-50 dark:bg-slate-700'}`}>
+                                                <div key={idx} className={`flex items-center justify-between text-[10px] p-2.5 rounded-2xl font-bold group/item transition-colors ${isConfirming ? 'bg-red-50 dark:bg-red-900/20' : 'bg-slate-50 dark:bg-slate-700'}`}>
                                                     <div className="flex-1 truncate pr-2" title={`${p.quantity}x ${p.name}`}>{p.quantity}x {p.name}</div>
                                                     <div className="flex items-center gap-2">
                                                         {!isConfirming && <div className="font-mono text-blue-600 dark:text-blue-400 shrink-0">€{p.totalCost.toFixed(2)}</div>}
@@ -263,15 +263,15 @@ export const TicketRow: React.FC<TicketRowProps> = ({
                                 )}
 
                                 {!machine.isArchived && isTD && ticket.status === 'OPEN' && (
-                                    <div className="p-3 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-800/50">
+                                    <div className="p-3 bg-blue-50 dark:bg-blue-900/10 rounded-[2rem] border border-blue-100 dark:border-blue-800/50">
                                         <div className="flex gap-2 mb-2">
-                                            <select className="flex-1 text-[10px] p-2 rounded-lg border border-blue-200 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white font-bold outline-none" value={selectedPartId} onChange={e => setSelectedPartId(e.target.value)}>
+                                            <select className="flex-1 text-[10px] p-2 rounded-2xl border border-blue-200 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white font-bold outline-none" value={selectedPartId} onChange={e => setSelectedPartId(e.target.value)}>
                                                 <option value="">+ Artikel</option>
                                                 {parts.map(p => (<option key={p.id} value={p.id}>{p.description} (€{p.price})</option>))}
                                             </select>
-                                            <input type="number" className="w-12 text-[10px] p-2 rounded-lg border border-blue-200 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white font-bold" min="1" value={selectedPartQty} onChange={e => setSelectedPartQty(parseInt(e.target.value))} />
+                                            <input type="number" className="w-12 text-[10px] p-2 rounded-2xl border border-blue-200 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white font-bold" min="1" value={selectedPartQty} onChange={e => setSelectedPartQty(parseInt(e.target.value))} />
                                         </div>
-                                        <button onClick={handleAddPart} disabled={!selectedPartId} className="w-full py-2 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-blue-700 disabled:opacity-50 shadow-sm transition-all active:scale-95">Toevoegen aan bon</button>
+                                        <button onClick={handleAddPart} disabled={!selectedPartId} className="w-full py-2 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-blue-700 disabled:opacity-50 shadow-sm transition-all active:scale-95">Toevoegen aan bon</button>
                                     </div>
                                 )}
                             </div>
@@ -281,7 +281,7 @@ export const TicketRow: React.FC<TicketRowProps> = ({
                                     <Paperclip size={14} /> Bijlagen
                                 </h4>
                                 {ticket.invoice ? (
-                                    <div className="flex items-center justify-between p-2.5 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-100 dark:border-green-800 mb-3 overflow-hidden">
+                                    <div className="flex items-center justify-between p-2.5 bg-green-50 dark:bg-green-900/20 rounded-[2rem] border border-green-100 dark:border-green-800 mb-3 overflow-hidden">
                                         <div className="flex items-center gap-2 overflow-hidden">
                                             <FileText size={18} className="text-green-600 shrink-0" />
                                             <div className="min-w-0">
@@ -289,7 +289,7 @@ export const TicketRow: React.FC<TicketRowProps> = ({
                                                 <div className="text-[8px] uppercase font-bold text-green-600/50">Factuur/Bon</div>
                                             </div>
                                         </div>
-                                        <a href={resolveFileUrl(ticket.invoice.url) || '#'} target="_blank" rel="noopener noreferrer" className="p-1.5 bg-white dark:bg-slate-800 rounded-lg text-green-600 hover:text-green-800 shadow-sm shrink-0 transition-colors">
+                                        <a href={resolveFileUrl(ticket.invoice.url) || '#'} target="_blank" rel="noopener noreferrer" className="p-1.5 bg-white dark:bg-slate-800 rounded-2xl text-green-600 hover:text-green-800 shadow-sm shrink-0 transition-colors">
                                             <Download size={16} />
                                         </a>
                                     </div>
@@ -297,7 +297,7 @@ export const TicketRow: React.FC<TicketRowProps> = ({
                                     <div className="text-[10px] text-slate-400 italic mb-3">Nog geen PDF of afbeelding geüpload.</div>
                                 )}
                                 {!machine.isArchived && isTD && (
-                                    <label className="flex items-center justify-center gap-2 w-full py-3 border border-dashed border-slate-300 dark:border-slate-600 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700 cursor-pointer transition-all">
+                                    <label className="flex items-center justify-center gap-2 w-full py-3 border border-dashed border-slate-300 dark:border-slate-600 rounded-[2rem] text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700 cursor-pointer transition-all">
                                         <Upload size={14} /><span>{ticket.invoice ? 'Factuur wijzigen' : 'Scan toevoegen'}</span>
                                         <input type="file" className="hidden" accept=".pdf,.jpg,.png" onChange={handleInvoiceUpload} />
                                     </label>

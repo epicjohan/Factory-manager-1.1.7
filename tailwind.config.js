@@ -13,16 +13,16 @@ export default {
       colors: {
         // Modernized slate palette (Linear/Vercel sleek style)
         slate: {
-          50: '#fafafa', // highly sleek very-light grey/white
-          100: '#f4f4f5',
-          200: '#e4e4e7',
+          50: 'var(--color-slate-50)', // highly sleek very-light grey/white
+          100: 'var(--color-slate-100)',
+          200: 'var(--color-slate-200)',
           300: '#d4d4d8',
           400: '#a1a1aa',
           500: '#71717a',
           600: '#52525b',
           700: '#27272a',
-          800: '#18181b', // sleek dark card bg
-          900: '#09090b', // sleek app bg (OLED-ish)
+          800: 'var(--color-slate-800)', // sleek dark card bg or classic slate
+          900: 'var(--color-slate-900)', // sleek app bg (OLED-ish) or classic slate
           950: '#000000',
         },
         // Modern crisp digital blue (Stripe inspired)

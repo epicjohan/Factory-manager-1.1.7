@@ -58,7 +58,7 @@ export const ManagerDashboard: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div className="bg-white dark:bg-slate-800 p-8 rounded-[2rem] border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden group hover:shadow-xl transition-all">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400">
+                        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-2xl text-blue-600 dark:text-blue-400">
                             <TrendingUp size={24} />
                         </div>
                         <span className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">Total Assets</span>
@@ -68,7 +68,7 @@ export const ManagerDashboard: React.FC = () => {
 
                 <div className="bg-white dark:bg-slate-800 p-8 rounded-[2rem] border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden group hover:shadow-xl transition-all">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg text-red-600 dark:text-red-400">
+                        <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-2xl text-red-600 dark:text-red-400">
                             <AlertTriangle size={24} />
                         </div>
                         <span className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">Open Storingen</span>
@@ -80,7 +80,7 @@ export const ManagerDashboard: React.FC = () => {
 
                 <div className="bg-white dark:bg-slate-800 p-8 rounded-[2rem] border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden group hover:shadow-xl transition-all">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg text-emerald-600 dark:text-emerald-400">
+                        <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl text-emerald-600 dark:text-emerald-400">
                             <Euro size={24} />
                         </div>
                         <span className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">Kosten YTD</span>
@@ -90,7 +90,7 @@ export const ManagerDashboard: React.FC = () => {
 
                 <div className="bg-white dark:bg-slate-800 p-8 rounded-[2rem] border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden group hover:shadow-xl transition-all">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg text-orange-600 dark:text-orange-400">
+                        <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-2xl text-orange-600 dark:text-orange-400">
                             <Package size={24} />
                         </div>
                         <span className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">Voorraadwaarde</span>
@@ -172,7 +172,7 @@ export const ManagerDashboard: React.FC = () => {
                                 </Link>
                             ))
                         ) : (
-                            <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/30 rounded-lg text-green-700 dark:text-green-300">
+                            <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/30 rounded-2xl text-green-700 dark:text-green-300">
                                 <CheckCircle size={20} />
                                 <span>Geen kritieke storingen momenteel.</span>
                             </div>

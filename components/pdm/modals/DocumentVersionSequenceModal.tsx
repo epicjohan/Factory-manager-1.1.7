@@ -85,7 +85,7 @@ export const DocumentVersionSequenceModal: React.FC<DocumentVersionModalProps> =
 
                 <div className="flex-1 overflow-y-auto min-h-0 pr-2 space-y-3">
                     {/* CURRENT VERSION HEADER */}
-                    <div className="flex items-center justify-between p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-200 dark:border-emerald-800/50">
+                    <div className="flex items-center justify-between p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-[2rem] border border-emerald-200 dark:border-emerald-800/50">
                         <div className="flex items-center gap-3 overflow-hidden">
                             <FileCode size={20} className="text-emerald-600 shrink-0" />
                             <div className="truncate">
@@ -114,9 +114,9 @@ export const DocumentVersionSequenceModal: React.FC<DocumentVersionModalProps> =
                         historicalDocs.map((doc, idx) => {
                             const historicalVersionNum = (file.previousVersions?.length || 0) - idx;
                             return (
-                                <div key={doc.id} className="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-300 transition-colors group">
+                                <div key={doc.id} className="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-[2rem] border border-slate-200 dark:border-slate-700 hover:border-blue-300 transition-colors group">
                                     <div className="flex items-center gap-3 overflow-hidden">
-                                        <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-900 text-slate-400 flex items-center justify-center shrink-0 font-black text-xs border border-slate-200 dark:border-slate-700">
+                                        <div className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-900 text-slate-400 flex items-center justify-center shrink-0 font-black text-xs border border-slate-200 dark:border-slate-700">
                                             V{historicalVersionNum}
                                         </div>
                                         <div className="truncate">
@@ -127,7 +127,7 @@ export const DocumentVersionSequenceModal: React.FC<DocumentVersionModalProps> =
 
                                     <button
                                         onClick={() => handleDownload(doc, idx)}
-                                        className="p-3 bg-slate-50 hover:bg-blue-50 dark:bg-slate-900 dark:hover:bg-blue-900/30 text-slate-400 hover:text-blue-600 rounded-xl transition-all border border-slate-200 dark:border-slate-700 shadow-sm shrink-0"
+                                        className="p-3 bg-slate-50 hover:bg-blue-50 dark:bg-slate-900 dark:hover:bg-blue-900/30 text-slate-400 hover:text-blue-600 rounded-[2rem] transition-all border border-slate-200 dark:border-slate-700 shadow-sm shrink-0"
                                         title="Download oude versie"
                                     >
                                         <Download size={18} />

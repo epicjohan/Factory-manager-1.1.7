@@ -262,25 +262,25 @@ export const SiteEnergyView: React.FC = () => {
             <div className="bg-slate-900 border border-slate-800 rounded-[3rem] shadow-2xl overflow-hidden">
                 <div className="bg-slate-950/50 p-2 flex justify-center border-b border-slate-800">
                     <div className="flex bg-slate-900 p-1 rounded-2xl border border-white/5">
-                        <button onClick={() => setViewTab('COMBINED')} className={`px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${viewTab === 'COMBINED' ? 'bg-blue-600 text-white' : 'text-slate-500'}`}>Netto Balans</button>
-                        <button onClick={() => setViewTab('CONSUMPTION')} className={`px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${viewTab === 'CONSUMPTION' ? 'bg-slate-700 text-white' : 'text-slate-500'}`}>Verbruik</button>
-                        <button onClick={() => setViewTab('PRODUCTION')} className={`px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${viewTab === 'PRODUCTION' ? 'bg-emerald-600 text-white' : 'text-slate-500'}`}>Zon</button>
+                        <button onClick={() => setViewTab('COMBINED')} className={`px-8 py-3 rounded-[2rem] text-xs font-black uppercase tracking-widest transition-all ${viewTab === 'COMBINED' ? 'bg-blue-600 text-white' : 'text-slate-500'}`}>Netto Balans</button>
+                        <button onClick={() => setViewTab('CONSUMPTION')} className={`px-8 py-3 rounded-[2rem] text-xs font-black uppercase tracking-widest transition-all ${viewTab === 'CONSUMPTION' ? 'bg-slate-700 text-white' : 'text-slate-500'}`}>Verbruik</button>
+                        <button onClick={() => setViewTab('PRODUCTION')} className={`px-8 py-3 rounded-[2rem] text-xs font-black uppercase tracking-widest transition-all ${viewTab === 'PRODUCTION' ? 'bg-emerald-600 text-white' : 'text-slate-500'}`}>Zon</button>
                     </div>
                 </div>
 
                 <div className="p-8 border-b border-slate-800 flex flex-col md:flex-row justify-between items-center gap-6">
                     <div className="flex items-center gap-4">
                         <div className="flex gap-2">
-                            <button onClick={() => navigateDate('PREV')} className="p-2 bg-slate-800 hover:bg-blue-600 rounded-lg text-white transition-all"><ArrowLeft size={20} /></button>
-                            <button onClick={() => navigateDate('NEXT')} className="p-2 bg-slate-800 hover:bg-blue-600 rounded-lg text-white transition-all"><ArrowRight size={20} /></button>
+                            <button onClick={() => navigateDate('PREV')} className="p-2 bg-slate-800 hover:bg-blue-600 rounded-2xl text-white transition-all"><ArrowLeft size={20} /></button>
+                            <button onClick={() => navigateDate('NEXT')} className="p-2 bg-slate-800 hover:bg-blue-600 rounded-2xl text-white transition-all"><ArrowRight size={20} /></button>
                         </div>
                         <h3 className="text-sm font-black text-white uppercase tracking-widest border-l border-slate-700 pl-6">
                             {selectedDate.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })}
                         </h3>
                     </div>
-                    <div className="flex bg-slate-950 p-1 rounded-xl">
+                    <div className="flex bg-slate-950 p-1 rounded-[2rem]">
                         {(['YEAR', 'MONTH', 'DAY'] as DrillLevel[]).map(l => (
-                            <button key={l} onClick={() => setLevel(l)} className={`px-5 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${level === l ? 'bg-slate-800 text-blue-400' : 'text-slate-600 hover:text-slate-400'}`}>{l}</button>
+                            <button key={l} onClick={() => setLevel(l)} className={`px-5 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${level === l ? 'bg-slate-800 text-blue-400' : 'text-slate-600 hover:text-slate-400'}`}>{l}</button>
                         ))}
                     </div>
                 </div>
@@ -331,7 +331,7 @@ export const SiteEnergyView: React.FC = () => {
                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Zon Opbrengst</span>
                         </div>
                     </div>
-                    <button onClick={() => {}} className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl">
+                    <button onClick={() => {}} className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-[2rem] text-[10px] font-black uppercase tracking-widest transition-all shadow-xl">
                         <Download size={14} className="inline mr-2" /> PDF Rapport
                     </button>
                 </div>

@@ -206,13 +206,13 @@ export const SupportDashboard: React.FC = () => {
                     <div className="flex bg-slate-100 dark:bg-slate-950 p-1 rounded-2xl border border-slate-200 dark:border-slate-800 flex-1 md:flex-none">
                         <button 
                             onClick={() => setViewMode('ACTIVE')}
-                            className={`flex-1 md:flex-none px-8 py-3 rounded-xl text-[11px] font-black flex items-center justify-center gap-2 uppercase tracking-widest transition-all ${viewMode === 'ACTIVE' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-xl' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`flex-1 md:flex-none px-8 py-3 rounded-[2rem] text-[11px] font-black flex items-center justify-center gap-2 uppercase tracking-widest transition-all ${viewMode === 'ACTIVE' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-xl' : 'text-slate-500 hover:text-slate-700'}`}
                         >
                             <Activity size={16} /> ACTUEEL
                         </button>
                         <button 
                             onClick={() => setViewMode('HISTORY')}
-                            className={`flex-1 md:flex-none px-8 py-3 rounded-xl text-[11px] font-black flex items-center justify-center gap-2 uppercase tracking-widest transition-all ${viewMode === 'HISTORY' ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 shadow-xl' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`flex-1 md:flex-none px-8 py-3 rounded-[2rem] text-[11px] font-black flex items-center justify-center gap-2 uppercase tracking-widest transition-all ${viewMode === 'HISTORY' ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 shadow-xl' : 'text-slate-500 hover:text-slate-700'}`}
                         >
                             <History size={16} /> HISTORIE
                         </button>
@@ -222,9 +222,9 @@ export const SupportDashboard: React.FC = () => {
 
             {viewMode === 'ACTIVE' && (
                 <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/50 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700 w-fit ml-auto">
-                    <button onClick={() => setStatusFilter('ALL')} className={`px-5 py-2 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl transition-all ${statusFilter === 'ALL' ? 'bg-white dark:bg-slate-600 text-blue-600 shadow-md' : 'text-slate-400'}`}>Alles</button>
-                    <button onClick={() => setStatusFilter(SupportStatus.PENDING)} className={`px-5 py-2 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl transition-all ${statusFilter === SupportStatus.PENDING ? 'bg-red-500 text-white shadow-xl shadow-red-500/20' : 'text-slate-400'}`}>Open ({pendingCount})</button>
-                    <button onClick={() => setStatusFilter(SupportStatus.ACCEPTED)} className={`px-5 py-2 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl transition-all ${statusFilter === SupportStatus.ACCEPTED ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/20' : 'text-slate-400'}`}>Onderweg ({acceptedCount})</button>
+                    <button onClick={() => setStatusFilter('ALL')} className={`px-5 py-2 text-[10px] font-black uppercase tracking-[0.2em] rounded-[2rem] transition-all ${statusFilter === 'ALL' ? 'bg-white dark:bg-slate-600 text-blue-600 shadow-md' : 'text-slate-400'}`}>Alles</button>
+                    <button onClick={() => setStatusFilter(SupportStatus.PENDING)} className={`px-5 py-2 text-[10px] font-black uppercase tracking-[0.2em] rounded-[2rem] transition-all ${statusFilter === SupportStatus.PENDING ? 'bg-red-500 text-white shadow-xl shadow-red-500/20' : 'text-slate-400'}`}>Open ({pendingCount})</button>
+                    <button onClick={() => setStatusFilter(SupportStatus.ACCEPTED)} className={`px-5 py-2 text-[10px] font-black uppercase tracking-[0.2em] rounded-[2rem] transition-all ${statusFilter === SupportStatus.ACCEPTED ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/20' : 'text-slate-400'}`}>Onderweg ({acceptedCount})</button>
                 </div>
             )}
 

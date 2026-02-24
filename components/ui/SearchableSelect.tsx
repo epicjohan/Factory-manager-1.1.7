@@ -63,7 +63,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
         <div className={`relative ${className}`} ref={containerRef}>
             <div
                 onClick={() => !disabled && setIsOpen(!isOpen)}
-                className={`w-full p-2.5 rounded-xl border flex items-center justify-between bg-slate-50 dark:bg-slate-900 transition-all cursor-pointer ${
+                className={`w-full p-2.5 rounded-[2rem] border flex items-center justify-between bg-slate-50 dark:bg-slate-900 transition-all cursor-pointer ${
                     disabled ? 'opacity-60 cursor-not-allowed border-slate-200 dark:border-slate-700' : 
                     isOpen ? 'border-blue-500 ring-1 ring-blue-500 bg-white dark:bg-slate-800' : 'border-slate-200 dark:border-slate-700 hover:border-blue-400'
                 }`}
@@ -82,14 +82,14 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
             </div>
 
             {isOpen && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl z-50 overflow-hidden animate-in zoom-in-95 duration-100">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[2rem] shadow-xl z-50 overflow-hidden animate-in zoom-in-95 duration-100">
                     <div className="p-2 border-b border-slate-100 dark:border-slate-700">
                         <div className="relative">
                             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                             <input
                                 ref={searchInputRef}
                                 type="text"
-                                className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-900 rounded-lg text-xs font-bold outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 dark:text-white"
+                                className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-900 rounded-2xl text-xs font-bold outline-none focus:ring-1 focus:ring-blue-500 text-slate-800 dark:text-white"
                                 placeholder="Zoek optie..."
                                 value={searchTerm}
                                 onChange={e => setSearchTerm(e.target.value)}
@@ -102,7 +102,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
                                 <button
                                     key={idx}
                                     onClick={() => handleSelect(opt)}
-                                    className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                    className={`w-full text-left px-3 py-2 rounded-2xl text-sm font-medium transition-colors ${
                                         value === opt 
                                         ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' 
                                         : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'

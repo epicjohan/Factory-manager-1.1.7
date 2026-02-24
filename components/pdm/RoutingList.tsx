@@ -31,7 +31,7 @@ export const RoutingList: React.FC<RoutingListProps> = ({
                     {!isLocked && (
                         <button 
                             onClick={onRenormalize}
-                            className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all shadow-sm"
+                            className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-2xl text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all shadow-sm"
                             title="Zet alle order nummers weer op 10, 20, 30..."
                         >
                             <Hash size={12} /> Herschikken
@@ -39,9 +39,9 @@ export const RoutingList: React.FC<RoutingListProps> = ({
                     )}
                 </div>
                 {!isLocked ? (
-                    <button onClick={onAddOperation} className="px-6 py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-bold shadow-lg flex items-center gap-2 transition-all active:scale-95"><Plus size={18}/> Bewerking Toevoegen</button>
+                    <button onClick={onAddOperation} className="px-6 py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-[2rem] font-bold shadow-lg flex items-center gap-2 transition-all active:scale-95"><Plus size={18}/> Bewerking Toevoegen</button>
                 ) : (
-                    <div className="flex items-center gap-2 text-xs font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-2xl border border-slate-200 dark:border-slate-700">
                         <Lock size={12} /> Routing Vergrendeld
                     </div>
                 )}
@@ -67,7 +67,7 @@ export const RoutingList: React.FC<RoutingListProps> = ({
                                             <input 
                                                 disabled={isLocked}
                                                 type="number"
-                                                className="w-12 h-10 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center font-black text-slate-500 text-center border-none focus:ring-2 focus:ring-blue-500 transition-all disabled:opacity-60 disabled:bg-transparent"
+                                                className="w-12 h-10 rounded-[2rem] bg-slate-100 dark:bg-slate-700 flex items-center justify-center font-black text-slate-500 text-center border-none focus:ring-2 focus:ring-blue-500 transition-all disabled:opacity-60 disabled:bg-transparent"
                                                 value={op.order}
                                                 onChange={e => onUpdateOperation(op.id, { order: parseInt(e.target.value) || 0 })}
                                             />
@@ -112,14 +112,14 @@ export const RoutingList: React.FC<RoutingListProps> = ({
                                 <td className="px-6 py-5">
                                     <button 
                                         onClick={() => onDetailClick(op.id)}
-                                        className="flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm"
+                                        className="flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white rounded-[2rem] text-[10px] font-black uppercase tracking-widest transition-all shadow-sm"
                                     >
                                         Details <ArrowRight size={14} />
                                     </button>
                                 </td>
                                 <td className="px-8 py-5 text-right">
                                     {!isLocked && (
-                                        <button onClick={() => onDeleteOperation(op.id)} className="p-2 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all bg-slate-50 dark:bg-slate-700 rounded-lg"><Trash2 size={16}/></button>
+                                        <button onClick={() => onDeleteOperation(op.id)} className="p-2 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all bg-slate-50 dark:bg-slate-700 rounded-2xl"><Trash2 size={16}/></button>
                                     )}
                                 </td>
                             </tr>
