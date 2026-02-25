@@ -28,6 +28,8 @@ import { CatalogManager } from '../components/pdm/CatalogManager';
 import { ArticleHeader } from '../components/pdm/ArticleHeader';
 import { ArticleBOM } from '../components/pdm/ArticleBOM';
 import { ArticleFiles } from '../components/pdm/ArticleFiles';
+import { ArticleAuditTimeline } from '../components/pdm/ArticleAuditTimeline';
+import { logArticleChange } from '../services/db/articleService';
 
 export const ArticleManagement: React.FC = () => {
     const { user, hasPermission } = useAuth();
@@ -114,10 +116,7 @@ export const ArticleManagement: React.FC = () => {
         if (!editingArticle) return;
         let updated = transform(editingArticle);
         if (logMessage && user) {
-            const auditEntry: ArticleAuditEntry = {
-                id: generateId(), timestamp: new Date().toISOString(), user: user.name, action: logMessage
-            };
-            updated = { ...updated, auditTrail: [auditEntry, ...(updated.auditTrail || [])].slice(0, 500) };
+            updated = logArticleChange(updated, logMessage);
         }
         await db.updateArticle(updated);
         setEditingArticle(updated);
@@ -236,7 +235,11 @@ export const ArticleManagement: React.FC = () => {
         if (!user || isLocked) return;
         const baseData = { ...data, updatedBy: user.name };
         if (editingArticle) {
-            updateCurrentArticle(art => ({ ...art, ...baseData } as Article), 'Stamgegevens bijgewerkt.');
+            const changedKeys = Object.keys(data).filter(k => (data as any)[k] !== (editingArticle as any)[k]);
+            const logMsg = changedKeys.length > 0
+                ? `Stamgegevens bijgewerkt (${changedKeys.join(', ')}).`
+                : 'Stamgegevens bijgewerkt.';
+            updateCurrentArticle(art => ({ ...art, ...baseData } as Article), logMsg);
         } else {
             const auditEntry = { id: generateId(), timestamp: new Date().toISOString(), user: user.name, action: 'Artikel aangemaakt.' };
             const newArticle = {
@@ -251,19 +254,22 @@ export const ArticleManagement: React.FC = () => {
         refreshArticles();
     };
 
-    const handleUpdateFiles = (newFiles: ArticleFile[]) => {
-        updateCurrentArticle(art => ({ ...art, files: newFiles }), `Bestanden bijgewerkt.`);
+    const handleUpdateFiles = (newFiles: ArticleFile[], customLogMessage?: string) => {
+        updateCurrentArticle(art => ({ ...art, files: newFiles }), customLogMessage || `Bestanden bijgewerkt.`);
         // Update active file if it was removed or changed
         if (activeFile && !newFiles.find(f => f.id === activeFile.id)) setActiveFile(null);
     };
 
-    const handleUpdateSetup = (opId: string, setupId: string, updates: Partial<SetupVariant>) => {
+    const handleUpdateSetup = (opId: string, setupId: string, updates: Partial<SetupVariant>, customLogMessage?: string) => {
+        const setupName = editingArticle?.operations.find(o => o.id === opId)?.setups.find(s => s.id === setupId)?.name || 'Setup';
+        const logMsg = customLogMessage || `Setup '${setupName}' bijgewerkt.`;
+
         updateCurrentArticle(art => ({
             ...art, operations: art.operations.map(op => {
                 if (op.id !== opId) return op;
                 return { ...op, setups: op.setups.map(s => s.id === setupId ? { ...s, ...updates } : s) };
             })
-        }));
+        }), logMsg);
     };
 
     // New Function to handle setting a setup as default
@@ -294,12 +300,13 @@ export const ArticleManagement: React.FC = () => {
 
     const handleDeleteSetup = (opId: string, setupId: string) => {
         if (window.confirm("Setup verwijderen?")) {
+            const setupName = editingArticle?.operations.find(o => o.id === opId)?.setups.find(s => s.id === setupId)?.name || 'Setup';
             updateCurrentArticle(art => ({
                 ...art, operations: art.operations.map(o => {
                     if (o.id !== opId) return o;
                     return { ...o, setups: o.setups.filter(s => s.id !== setupId) };
                 })
-            }));
+            }), `Setup '${setupName}' verwijderd.`);
             setSelectedType('OPERATION');
             setSelectedId(opId);
         }
@@ -516,6 +523,10 @@ export const ArticleManagement: React.FC = () => {
                                 user={user}
                             />
                         </div>
+                    </div>
+                    {/* AUDIT TIMELINE ROW */}
+                    <div className="mt-8">
+                        <ArticleAuditTimeline auditTrail={editingArticle.auditTrail} />
                     </div>
                 </div>
             );

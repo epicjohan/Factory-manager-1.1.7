@@ -10,7 +10,7 @@ import { SleekDocumentList } from './ui/SleekDocumentList';
 interface ArticleFilesProps {
     files: ArticleFile[];
     isLocked: boolean;
-    onUpdate: (files: ArticleFile[]) => void;
+    onUpdate: (files: ArticleFile[], customLogMessage?: string) => void;
     onPreview: (file: ArticleFile) => void;
     user: any;
 }
@@ -74,7 +74,7 @@ export const ArticleFiles: React.FC<ArticleFilesProps> = ({ files, isLocked, onU
             if (processedFile) newFilesList.push(processedFile);
         }
 
-        onUpdate(newFilesList);
+        onUpdate(newFilesList, `${fileList.length} bronbestand(en) toegevoegd.`);
     };
 
     const handleSelectLibraryDoc = async (doc: DMSDocument, role: string) => {
@@ -93,7 +93,7 @@ export const ArticleFiles: React.FC<ArticleFilesProps> = ({ files, isLocked, onU
         };
 
         const newFilesList = [...files, newFile];
-        onUpdate(newFilesList);
+        onUpdate(newFilesList, `Bibliotheek document '${doc.name}' (${role}) gekoppeld.`);
     };
 
     const handleDeleteClick = (id: string) => {
@@ -104,7 +104,7 @@ export const ArticleFiles: React.FC<ArticleFilesProps> = ({ files, isLocked, onU
 
     const confirmDelete = () => {
         if (!fileToDelete) return;
-        onUpdate(files.filter(f => f.id !== fileToDelete.id));
+        onUpdate(files.filter(f => f.id !== fileToDelete.id), `Bestand '${fileToDelete.name}' ontkoppeld/verwijderd.`);
         setFileToDelete(null);
     };
 

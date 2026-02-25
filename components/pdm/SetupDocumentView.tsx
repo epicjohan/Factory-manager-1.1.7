@@ -21,7 +21,7 @@ interface SetupDocumentViewProps {
     templates: SetupTemplate[];
     isLocked: boolean; // This is the Article-level lock
     user: any;
-    onUpdateSetup: (opId: string, setupId: string, updates: Partial<SetupVariant>) => void;
+    onUpdateSetup: (opId: string, setupId: string, updates: Partial<SetupVariant>, customLogMessage?: string) => void;
     onDuplicateSetup: (opId: string, setup: SetupVariant) => void;
     onDeleteSetup: (opId: string, setupId: string) => void;
     onSetDefault: (opId: string, setupId: string) => void;
@@ -94,25 +94,27 @@ export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
     const canManage = user?.role === UserRole.MANAGER || user?.role === UserRole.ADMIN;
 
     // Update handlers wrappers
-    const handleUpdateSetupWrapper = (updates: Partial<SetupVariant>) => onUpdateSetup(activeOpId, setup.id, updates);
+    const handleUpdateSetupWrapper = (updates: Partial<SetupVariant>, customLog?: string) => onUpdateSetup(activeOpId, setup.id, updates, customLog);
 
     const handleUpdateTool = (toolId: string, updates: any) => {
         const newTools = (setup.tools || []).map(t => t.id === toolId ? { ...t, ...updates } : t);
-        handleUpdateSetupWrapper({ tools: newTools });
+        const toolNum = setup.tools?.find(t => t.id === toolId)?.order || '?';
+        handleUpdateSetupWrapper({ tools: newTools }, `Gereedschap T${toolNum} gewijzigd in Setup '${setup.name}'.`);
     };
     const handleAddTool = () => {
         const newOrder = (setup.tools?.length || 0) + 1;
         const id = Math.random().toString(36).substr(2, 9);
         const newTool = { id, order: newOrder, description: '', lifeTime: '', status: 'ACTIVE' as const };
-        handleUpdateSetupWrapper({ tools: [...(setup.tools || []), newTool] });
+        handleUpdateSetupWrapper({ tools: [...(setup.tools || []), newTool] }, `Nieuw gereedschap (T${newOrder}) toegevoegd aan Setup '${setup.name}'.`);
     };
     const handleDeleteTool = (id: string) => {
-        handleUpdateSetupWrapper({ tools: (setup.tools || []).filter(t => t.id !== id) });
+        const toolNum = setup.tools?.find(t => t.id === id)?.order || '?';
+        handleUpdateSetupWrapper({ tools: (setup.tools || []).filter(t => t.id !== id) }, `Gereedschap T${toolNum} verwijderd uit Setup '${setup.name}'.`);
     };
 
     // Workflow Actions
     const changeStatus = (newStatus: SetupStatus) => {
-        handleUpdateSetupWrapper({ status: newStatus });
+        handleUpdateSetupWrapper({ status: newStatus }, `Vrijgavestatus van Setup '${setup.name}' gewijzigd naar ${newStatus}.`);
     };
 
     return (
@@ -272,7 +274,7 @@ export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
                             isLocked={isSetupLocked}
                             isProcessSetup={!!isProcessSetup}
                             hasMachine={!!setup.machineId}
-                            onUpdateTemplateData={(k, v) => handleUpdateSetupWrapper({ templateData: { ...setup.templateData, [k]: v } })}
+                            onUpdateTemplateData={(k, v) => handleUpdateSetupWrapper({ templateData: { ...setup.templateData, [k]: v } }, `Opspanveld '${k}' gewijzigd in Setup '${setup.name}'.`)}
                             onUploadImage={async (files: FileList | File[], role: string) => {
                                 if (!files || files.length === 0) return;
 
@@ -333,7 +335,7 @@ export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
                                         instructions: setup.fixture?.instructions || '',
                                         images: newImages
                                     }
-                                });
+                                }, `Nieuwe opspanfoto toegevoegd aan Setup '${setup.name}'.`);
                             }}
                             onDeleteImage={(id) => {
                                 if (window.confirm('Verwijderen?')) {
@@ -346,7 +348,7 @@ export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
                                             instructions: setup.fixture?.instructions || '',
                                             images: (setup.fixture?.images || []).filter(img => img.id !== id)
                                         }
-                                    });
+                                    }, `Opspanfoto verwijderd uit Setup '${setup.name}'.`);
                                 }
                             }}
                             onPreviewImage={onPreviewFile}
@@ -385,11 +387,11 @@ export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
                     <SetupInstructionsTab
                         steps={setup.steps || []}
                         isLocked={isSetupLocked}
-                        onUpdateSteps={(steps) => handleUpdateSetupWrapper({ steps })}
-                        onDeleteStep={(id) => handleUpdateSetupWrapper({ steps: setup.steps.filter(s => s.id !== id) })}
+                        onUpdateSteps={(steps) => handleUpdateSetupWrapper({ steps }, `Werkinstructies bijgewerkt in Setup '${setup.name}'.`)}
+                        onDeleteStep={(id) => handleUpdateSetupWrapper({ steps: setup.steps.filter(s => s.id !== id) }, `Werkinstructie verwijderd uit Setup '${setup.name}'.`)}
                         onAddStep={() => {
                             const newStep = { id: Math.random().toString(36), order: (setup.steps?.length || 0) + 1, description: '', required: false };
-                            handleUpdateSetupWrapper({ steps: [...(setup.steps || []), newStep] });
+                            handleUpdateSetupWrapper({ steps: [...(setup.steps || []), newStep] }, `Nieuwe werkinstructie toegevoegd aan Setup '${setup.name}'.`);
                         }}
                     />
                 </CollapsibleSection>

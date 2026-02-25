@@ -19,7 +19,7 @@ interface SetupProgTabProps {
     allFiles: ArticleFile[];
     isLocked: boolean;
     user: any;
-    onUpdateFiles: (files: ArticleFile[]) => void;
+    onUpdateFiles: (files: ArticleFile[], customLogMessage?: string) => void;
     onPreview: (file: ArticleFile) => void;
     onUpdateSetup?: (updates: Partial<SetupVariant>) => void; // Made optional for TS safety, but should be passed
 }
@@ -135,13 +135,13 @@ export const SetupProgTab: React.FC<SetupProgTabProps> = ({
             if (processedFile) newFilesList.push(processedFile);
         }
 
-        onUpdateFiles(newFilesList);
+        onUpdateFiles(newFilesList, `${fileList.length} Setup document(en) toegevoegd aan Setup '${setup.name}'.`);
     };
 
     const handleDeleteDoc = (fileId: string) => {
         if (isLocked) return;
         if (window.confirm('Bestand definitief verwijderen?')) {
-            onUpdateFiles(allFiles.filter(f => f.id !== fileId));
+            onUpdateFiles(allFiles.filter(f => f.id !== fileId), `Setup document verwijderd uit Setup '${setup.name}'.`);
         }
     };
 
@@ -209,7 +209,7 @@ export const SetupProgTab: React.FC<SetupProgTabProps> = ({
                 } else {
                     updatedList = [...allFiles, newFile];
                 }
-                onUpdateFiles(updatedList);
+                onUpdateFiles(updatedList, `Nieuwe versie van ${role} toegevoegd aan Setup '${setup.name}'.`);
 
                 // LOG THE CHANGE IF REASON PROVIDED
                 if (reason && onUpdateSetup) {
@@ -295,7 +295,7 @@ export const SetupProgTab: React.FC<SetupProgTabProps> = ({
             } else {
                 updatedList = [...allFiles, newFile];
             }
-            onUpdateFiles(updatedList);
+            onUpdateFiles(updatedList, `Bibliotheek document '${doc.name}' (${libraryTargetRole}) gekoppeld aan Setup '${setup.name}'.`);
 
             // LOG
             if (onUpdateSetup) {
@@ -328,7 +328,7 @@ export const SetupProgTab: React.FC<SetupProgTabProps> = ({
             lockedBy: user?.name || 'Onbekend',
             lockedAt: new Date().toISOString()
         } : f);
-        onUpdateFiles(updatedFiles);
+        onUpdateFiles(updatedFiles, `Bestand bewerking (Check-Out) gestart voor Setup '${setup.name}'.`);
 
         // 2. Download kopie
         // Voor Legacy bestanden hebben we camFile.url, voor relationele DMS moeten we eigenlijk resolveFileUrl() gebruiken
@@ -348,7 +348,7 @@ export const SetupProgTab: React.FC<SetupProgTabProps> = ({
     const confirmCancelLock = () => {
         if (!camFile) return;
         // Reset lock fields
-        onUpdateFiles(allFiles.map(f => f.id === camFile.id ? { ...f, lockedBy: undefined, lockedAt: undefined } : f));
+        onUpdateFiles(allFiles.map(f => f.id === camFile.id ? { ...f, lockedBy: undefined, lockedAt: undefined } : f), `Bewerking geannuleerd (Check-In) voor Setup '${setup.name}'.`);
         setShowCancelConfirmModal(false);
     };
 

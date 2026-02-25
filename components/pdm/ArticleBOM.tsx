@@ -9,7 +9,7 @@ interface ArticleBOMProps {
     allArticles: Article[];
     currentArticleId: string;
     isLocked: boolean;
-    onUpdate: (items: ArticleBOMItem[]) => void;
+    onUpdate: (items: ArticleBOMItem[], customLogMessage?: string) => void;
 }
 
 export const ArticleBOM: React.FC<ArticleBOMProps> = ({ items, allArticles, currentArticleId, isLocked, onUpdate }) => {
@@ -20,7 +20,7 @@ export const ArticleBOM: React.FC<ArticleBOMProps> = ({ items, allArticles, curr
     // Filter available articles (exclude self and already added items could be allowed but usually warned)
     const availableArticles = useMemo(() => {
         const lowerSearch = searchTerm.toLowerCase();
-        return allArticles.filter(a => 
+        return allArticles.filter(a =>
             a.id !== currentArticleId && // Prevent self-reference
             (a.articleCode.toLowerCase().includes(lowerSearch) || a.name.toLowerCase().includes(lowerSearch))
         ).slice(0, 10); // Limit results
@@ -35,7 +35,7 @@ export const ArticleBOM: React.FC<ArticleBOMProps> = ({ items, allArticles, curr
             position: ((items.length + 1) * 10).toString(),
             quantity: qty
         };
-        onUpdate([...items, newItem]);
+        onUpdate([...items, newItem], `Onderdeel toegevoegd aan stuklijst: ${child.name} (${child.articleCode}).`);
         setSearchTerm('');
         setQty(1);
         setIsAdding(false);
@@ -44,14 +44,16 @@ export const ArticleBOM: React.FC<ArticleBOMProps> = ({ items, allArticles, curr
     const handleRemove = (id: string) => {
         if (isLocked) return;
         if (window.confirm('Item verwijderen uit stuklijst?')) {
-            onUpdate(items.filter(i => i.id !== id));
+            const item = items.find(i => i.id === id);
+            onUpdate(items.filter(i => i.id !== id), `Onderdeel verwijderd uit stuklijst: ${item?.childArticleName}.`);
         }
     };
 
     const handleQtyChange = (id: string, newQty: number) => {
         if (isLocked) return;
+        const item = items.find(i => i.id === id);
         const updated = items.map(i => i.id === id ? { ...i, quantity: newQty } : i);
-        onUpdate(updated);
+        onUpdate(updated, `Stuklijst: Aantal van ${item?.childArticleName} gewijzigd naar ${newQty}.`);
     };
 
     return (
@@ -61,8 +63,8 @@ export const ArticleBOM: React.FC<ArticleBOMProps> = ({ items, allArticles, curr
                     <Layers size={20} className="text-purple-600" /> Stuklijst (B.O.M.)
                 </h3>
                 {!isLocked && !isAdding && (
-                    <button 
-                        onClick={() => setIsAdding(true)} 
+                    <button
+                        onClick={() => setIsAdding(true)}
                         className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-[2rem] font-bold shadow-lg flex items-center gap-2 transition-all active:scale-95"
                     >
                         <Plus size={18} /> Item Toevoegen
@@ -75,18 +77,18 @@ export const ArticleBOM: React.FC<ArticleBOMProps> = ({ items, allArticles, curr
                     <div className="flex gap-4 mb-4">
                         <div className="relative flex-1">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                            <input 
+                            <input
                                 autoFocus
-                                type="text" 
-                                placeholder="Zoek artikel op code of naam..." 
+                                type="text"
+                                placeholder="Zoek artikel op code of naam..."
                                 className="w-full pl-10 pr-4 py-3 rounded-[2rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-bold outline-none focus:ring-2 focus:ring-purple-500"
                                 value={searchTerm}
                                 onChange={e => setSearchTerm(e.target.value)}
                             />
                         </div>
                         <div className="w-24">
-                            <input 
-                                type="number" 
+                            <input
+                                type="number"
                                 className="w-full p-3 rounded-[2rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-bold text-center outline-none focus:ring-2 focus:ring-purple-500"
                                 value={qty}
                                 onChange={e => setQty(Math.max(1, parseInt(e.target.value)))}
@@ -97,8 +99,8 @@ export const ArticleBOM: React.FC<ArticleBOMProps> = ({ items, allArticles, curr
 
                     <div className="grid grid-cols-1 gap-2">
                         {searchTerm && availableArticles.map(a => (
-                            <button 
-                                key={a.id} 
+                            <button
+                                key={a.id}
                                 onClick={() => handleAdd(a)}
                                 className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-[2rem] border border-slate-200 dark:border-slate-700 hover:border-purple-500 hover:shadow-md transition-all text-left group"
                             >
@@ -132,7 +134,7 @@ export const ArticleBOM: React.FC<ArticleBOMProps> = ({ items, allArticles, curr
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                        {items.sort((a,b) => parseInt(a.position) - parseInt(b.position)).map(item => (
+                        {items.sort((a, b) => parseInt(a.position) - parseInt(b.position)).map(item => (
                             <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-blue-900/5 transition-colors group">
                                 <td className="px-8 py-5 font-mono font-bold text-slate-400">{item.position}</td>
                                 <td className="px-6 py-5">
@@ -142,9 +144,9 @@ export const ArticleBOM: React.FC<ArticleBOMProps> = ({ items, allArticles, curr
                                     {item.childArticleName}
                                 </td>
                                 <td className="px-6 py-5 text-center">
-                                    <input 
+                                    <input
                                         disabled={isLocked}
-                                        type="number" 
+                                        type="number"
                                         className="w-16 p-1 text-center bg-transparent border-b border-transparent hover:border-slate-300 focus:border-purple-500 outline-none font-bold text-slate-900 dark:text-white transition-colors"
                                         value={item.quantity}
                                         onChange={e => handleQtyChange(item.id, parseInt(e.target.value))}

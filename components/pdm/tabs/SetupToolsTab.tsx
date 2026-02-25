@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { Wrench, Plus, Info, RotateCcw, AlertTriangle, X, History, Clock } from '../../../icons';
+import { Wrench, Plus, Info, RotateCcw, AlertTriangle, X, History, Clock, Trash2 } from '../../../icons';
 import { ArticleTool, SetupTemplate, SetupChangeEntry, SetupVariant } from '../../../types';
 import { ToolBlock } from '../shared/ToolBlock';
 import { generateId } from '../../../services/db/core';
@@ -10,21 +10,35 @@ interface SetupToolsTabProps {
     tools: ArticleTool[];
     isLocked: boolean;
     template: SetupTemplate | null;
-    changeLog: SetupChangeEntry[]; 
+    changeLog: SetupChangeEntry[];
     onUpdateTool: (toolId: string, updates: Partial<ArticleTool>) => void;
     onAddTool: () => void;
     onDeleteTool: (toolId: string) => void;
     onUpdateSetup?: (updates: Partial<SetupVariant>) => void;
 }
 
-export const SetupToolsTab: React.FC<SetupToolsTabProps> = ({ 
-    tools, isLocked, template, changeLog, onUpdateTool, onAddTool, onDeleteTool, onUpdateSetup 
+export const SetupToolsTab: React.FC<SetupToolsTabProps> = ({
+    tools, isLocked, template, changeLog, onUpdateTool, onAddTool, onDeleteTool, onUpdateSetup
 }) => {
     const { user } = useAuth();
-    
+
     // State
     const [showHistory, setShowHistory] = useState(false);
-    
+
+    // Delete Confirmation Modal State
+    const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; toolId: string | null; toolLabel: string }>({ isOpen: false, toolId: null, toolLabel: '' });
+
+    const openDeleteModal = (tool: ArticleTool) => {
+        setDeleteModal({ isOpen: true, toolId: tool.id, toolLabel: `T${tool.order} — ${tool.description || 'Geen omschrijving'}` });
+    };
+
+    const confirmDelete = () => {
+        if (deleteModal.toolId) {
+            onDeleteTool(deleteModal.toolId);
+        }
+        setDeleteModal({ isOpen: false, toolId: null, toolLabel: '' });
+    };
+
     // Replace Modal State
     const [replaceModal, setReplaceModal] = useState<{ isOpen: boolean; toolId: string | null }>({ isOpen: false, toolId: null });
     const [replaceReason, setReplaceReason] = useState('');
@@ -58,7 +72,7 @@ export const SetupToolsTab: React.FC<SetupToolsTabProps> = ({
 
     const confirmReplace = () => {
         if (!replaceModal.toolId || !replaceReason.trim() || !onUpdateSetup) return;
-        
+
         const oldTool = tools.find(t => t.id === replaceModal.toolId);
         if (!oldTool) return;
 
@@ -101,9 +115,9 @@ export const SetupToolsTab: React.FC<SetupToolsTabProps> = ({
         // 5. Commit all changes
         onUpdateSetup({
             tools: newToolsList,
-            changeLog: [changeEntry, ...changeLog] 
+            changeLog: [changeEntry, ...changeLog]
         });
-        
+
         setReplaceModal({ isOpen: false, toolId: null });
         setShowHistory(false); // Hide history to show the clean active list
     };
@@ -118,12 +132,12 @@ export const SetupToolsTab: React.FC<SetupToolsTabProps> = ({
                     </div>
                 </div>
             )}
-            
+
             <div className="flex justify-between items-center px-2">
                 <div className="flex items-center gap-4">
                     <h4 className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 italic"><Wrench size={14} className="text-blue-500" /> Gereedschapslijst</h4>
-                    
-                    <button 
+
+                    <button
                         onClick={() => setShowHistory(!showHistory)}
                         className={`flex items-center gap-2 px-3 py-1.5 rounded-2xl text-[9px] font-bold uppercase tracking-widest transition-all ${showHistory ? 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
                     >
@@ -131,29 +145,29 @@ export const SetupToolsTab: React.FC<SetupToolsTabProps> = ({
                     </button>
                 </div>
                 {!isLocked && (
-                    <button onClick={onAddTool} className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-[2rem] font-black text-[11px] uppercase shadow-lg shadow-blue-500/20 transition-all hover:scale-105 active:scale-95"><Plus size={16}/> Tool Toevoegen</button>
+                    <button onClick={onAddTool} className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-[2rem] font-black text-[11px] uppercase shadow-lg shadow-blue-500/20 transition-all hover:scale-105 active:scale-95"><Plus size={16} /> Tool Toevoegen</button>
                 )}
             </div>
-            
+
             <div className="flex flex-col gap-3 pb-10">
                 {visibleTools.map(tool => (
                     <div key={tool.id}>
-                        <ToolBlock 
-                            tool={tool} 
-                            disabled={isLocked || tool.status === 'REPLACED'} 
-                            onUpdate={(updates) => onUpdateTool(tool.id, updates)} 
-                            onDelete={() => onDeleteTool(tool.id)}
+                        <ToolBlock
+                            tool={tool}
+                            disabled={isLocked || tool.status === 'REPLACED'}
+                            onUpdate={(updates) => onUpdateTool(tool.id, updates)}
+                            onDelete={() => openDeleteModal(tool)}
                             onReplace={() => openReplaceModal(tool.id)}
                             template={template}
                         />
-                        
+
                         {/* History Info Banner for Active Tools that replaced something */}
                         {tool.status === 'ACTIVE' && tool.replacedToolId && (
                             <div className="ml-14 mt-1 flex items-center gap-2 text-[10px] text-blue-600/70 font-bold uppercase tracking-wide">
                                 <RotateCcw size={10} /> Vervangt vorig item
                             </div>
                         )}
-                        
+
                         {/* History Banner for Archived Tools */}
                         {tool.status === 'REPLACED' && (
                             <div className="ml-14 mt-1 flex items-center gap-2 text-[10px] text-slate-400 font-bold uppercase tracking-wide">
@@ -162,7 +176,7 @@ export const SetupToolsTab: React.FC<SetupToolsTabProps> = ({
                         )}
                     </div>
                 ))}
-                
+
                 {visibleTools.length === 0 && (
                     <div className="py-20 text-center text-slate-400 italic border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-[3rem] flex flex-col items-center bg-white dark:bg-slate-800/50 shadow-inner">
                         <Wrench size={40} className="mb-4 opacity-10" />
@@ -171,12 +185,52 @@ export const SetupToolsTab: React.FC<SetupToolsTabProps> = ({
                 )}
             </div>
 
+            {/* DELETE CONFIRMATION MODAL */}
+            {deleteModal.isOpen && (
+                <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6 animate-in zoom-in duration-200">
+                    <div className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-[2rem] p-8 shadow-2xl relative border-2 border-red-500">
+                        <button onClick={() => setDeleteModal({ isOpen: false, toolId: null, toolLabel: '' })} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                            <X size={20} />
+                        </button>
+
+                        <div className="text-center mb-6">
+                            <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-red-50">
+                                <Trash2 size={28} />
+                            </div>
+                            <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase italic tracking-tight">Gereedschap Verwijderen</h3>
+                            <p className="text-xs font-bold text-slate-500 mt-2 leading-relaxed">
+                                Weet je zeker dat je het volgende gereedschap permanent wil verwijderen?
+                            </p>
+                            <div className="mt-3 px-4 py-2 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900 rounded-2xl">
+                                <p className="text-sm font-black text-red-700 dark:text-red-400">{deleteModal.toolLabel}</p>
+                            </div>
+                            <p className="text-[10px] text-slate-400 mt-3">Deze actie kan niet ongedaan worden gemaakt.</p>
+                        </div>
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setDeleteModal({ isOpen: false, toolId: null, toolLabel: '' })}
+                                className="flex-1 py-3 text-slate-500 font-bold uppercase text-xs rounded-[2rem] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                            >
+                                Annuleren
+                            </button>
+                            <button
+                                onClick={confirmDelete}
+                                className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-[2rem] font-black uppercase text-xs tracking-widest shadow-lg shadow-red-500/20 transition-all active:scale-95"
+                            >
+                                Ja, Verwijderen
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* REPLACE MODAL */}
             {replaceModal.isOpen && (
                 <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6 animate-in zoom-in duration-200">
                     <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-[2rem] p-8 shadow-2xl relative border-2 border-orange-500">
-                        <button onClick={() => setReplaceModal({isOpen: false, toolId: null})} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-white"><X size={20}/></button>
-                        
+                        <button onClick={() => setReplaceModal({ isOpen: false, toolId: null })} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-white"><X size={20} /></button>
+
                         <div className="text-center mb-6">
                             <div className="w-16 h-16 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-orange-50">
                                 <RotateCcw size={32} />
@@ -186,11 +240,11 @@ export const SetupToolsTab: React.FC<SetupToolsTabProps> = ({
                                 Dit archiveert de huidige tool en maakt een nieuwe actieve versie aan.
                             </p>
                         </div>
-                        
+
                         <div className="space-y-4 mb-6">
                             <div>
                                 <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">Nieuwe Omschrijving / Type</label>
-                                <input 
+                                <input
                                     autoFocus
                                     type="text"
                                     className="w-full p-4 rounded-[2rem] border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-bold outline-none focus:border-orange-500 transition-all text-sm"
@@ -200,7 +254,7 @@ export const SetupToolsTab: React.FC<SetupToolsTabProps> = ({
                             </div>
                             <div>
                                 <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">Reden van wijziging *</label>
-                                <textarea 
+                                <textarea
                                     rows={3}
                                     className="w-full p-4 rounded-[2rem] border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-medium outline-none focus:border-orange-500 transition-all text-sm"
                                     placeholder="Bijv. Niet leverbaar, alternatief merk, breuk..."
@@ -211,7 +265,7 @@ export const SetupToolsTab: React.FC<SetupToolsTabProps> = ({
                         </div>
 
                         <div className="flex gap-3">
-                            <button onClick={() => setReplaceModal({isOpen: false, toolId: null})} className="flex-1 py-3 text-slate-500 font-bold uppercase text-xs rounded-[2rem] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Annuleren</button>
+                            <button onClick={() => setReplaceModal({ isOpen: false, toolId: null })} className="flex-1 py-3 text-slate-500 font-bold uppercase text-xs rounded-[2rem] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Annuleren</button>
                             <button onClick={confirmReplace} disabled={!replaceReason.trim()} className="flex-2 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-[2rem] font-black uppercase text-xs tracking-widest shadow-lg disabled:opacity-50 transition-all">Vervangen & Loggen</button>
                         </div>
                     </div>

@@ -28,6 +28,26 @@ const getNextRevision = (currentRev: string): string => {
     return carry ? 'A' + chars.join('') : chars.join('');
 };
 
+export const logArticleChange = (article: Article, actionStr: string): Article => {
+    const updatedArticle = { ...article };
+    if (!updatedArticle.auditTrail) {
+        updatedArticle.auditTrail = [];
+    }
+    updatedArticle.auditTrail.unshift({ // Add to top of list
+        id: generateId(),
+        timestamp: getNowISO(),
+        user: getCurrentUserName(),
+        action: actionStr
+    });
+    
+    // Cap at 100 entries to prevent infinite JSON bloat
+    if (updatedArticle.auditTrail.length > 100) {
+        updatedArticle.auditTrail = updatedArticle.auditTrail.slice(0, 100);
+    }
+    
+    return updatedArticle;
+};
+
 export const articleService = {
     getArticles: () => loadTable<Article[]>(KEYS.ARTICLES, []),
 
