@@ -7,6 +7,7 @@ import {
 import { db } from '../../services/storage';
 import { DocumentCategory } from '../../types';
 import { generateId } from '../../services/db/core';
+import { useNotifications } from '../../contexts/NotificationContext';
 
 const AVAILABLE_ICONS = [
     { id: 'FileText', icon: FileText, label: 'Tekst / Document' },
@@ -28,10 +29,15 @@ const AVAILABLE_COLORS = [
     { class: 'text-green-500', label: 'Groen', bg: 'bg-green-100' },
     { class: 'text-orange-500', label: 'Oranje', bg: 'bg-orange-100' },
     { class: 'text-purple-500', label: 'Paars', bg: 'bg-purple-100' },
-    { class: 'text-slate-500', label: 'Grijs', bg: 'bg-slate-100' }
+    { class: 'text-slate-500', label: 'Grijs', bg: 'bg-slate-100' },
+    { class: 'text-yellow-500', label: 'Geel', bg: 'bg-yellow-100' },
+    { class: 'text-teal-500', label: 'Teal', bg: 'bg-teal-100' },
+    { class: 'text-pink-500', label: 'Roze', bg: 'bg-pink-100' },
+    { class: 'text-indigo-500', label: 'Indigo', bg: 'bg-indigo-100' }
 ];
 
 export const SettingsDocs: React.FC = () => {
+    const { addNotification } = useNotifications();
     const [categories, setCategories] = useState<DocumentCategory[]>([]);
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saved' | 'saving'>('idle');
 
@@ -113,7 +119,7 @@ export const SettingsDocs: React.FC = () => {
             // Check for uniqueness if it's a new or changed code
             const existingCat = categories.find(c => c.code === formattedCode);
             if (existingCat && existingCat.id !== editingId) {
-                alert('Deze code bestaat al. Kies een unieke code.');
+                addNotification('WARNING', 'Let op', 'Deze code bestaat al. Kies een unieke code.');
                 return;
             }
         }
@@ -150,7 +156,7 @@ export const SettingsDocs: React.FC = () => {
 
     const handleRemove = (catId: string, isSystem: boolean) => {
         if (isSystem) {
-            alert('Systeemcategorieën kunnen niet worden verwijderd.');
+            addNotification('WARNING', 'Let op', 'Systeemcategorieën kunnen niet worden verwijderd.');
             return;
         }
         if (window.confirm(`Geselecteerde categorie verwijderen?`)) {
@@ -241,7 +247,9 @@ export const SettingsDocs: React.FC = () => {
                                 >
                                     <option value="ARTICLE">Alleen Artikelen</option>
                                     <option value="SETUP">Alleen Setups</option>
-                                    <option value="BOTH">Beide</option>
+                                    <option value="BOTH">Artikelen & Setups</option>
+                                    <option value="MACHINE">Alleen Assets (Machines)</option>
+                                    <option value="ALL">Overal (Alles)</option>
                                 </select>
                             </div>
                             <div>
@@ -308,7 +316,10 @@ export const SettingsDocs: React.FC = () => {
                                         <span className="font-mono bg-slate-200 dark:bg-slate-800 px-1.5 rounded">{cat.code}</span>
                                         <span>&bull;</span>
                                         <span className="uppercase tracking-widest text-[10px] font-bold">
-                                            {cat.applicableTo === 'BOTH' ? 'Overal' : (cat.applicableTo === 'ARTICLE' ? 'Artikelen' : 'Setups')}
+                                            {cat.applicableTo === 'ALL' ? 'Overal' :
+                                                cat.applicableTo === 'BOTH' ? 'Artikelen & Setups' :
+                                                    cat.applicableTo === 'MACHINE' ? 'Assets' :
+                                                        cat.applicableTo === 'ARTICLE' ? 'Artikelen' : 'Setups'}
                                         </span>
                                     </div>
                                 </div>

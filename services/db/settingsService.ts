@@ -140,6 +140,7 @@ export const settingsService = {
     deleteSnapshot: async (id: string) => {
         const items = (await loadTable<DataSnapshot[]>(KEYS.SNAPSHOTS, [])).filter(x => x.id !== id);
         await saveTable(KEYS.SNAPSHOTS, items);
+        await outboxUtils.addToOutbox(KEYS.SNAPSHOTS, 'DELETE', { id });
     },
     resetData: async (mode?: 'EMPTY' | 'DEMO') => {
         await new Promise<void>((resolve) => {

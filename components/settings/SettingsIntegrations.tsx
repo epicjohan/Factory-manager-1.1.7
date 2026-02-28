@@ -5,8 +5,10 @@ import { db } from '../../services/storage';
 import { SyncService } from '../../services/sync';
 import { KEYS } from '../../services/db/core';
 import { useTable } from '../../hooks/useTable';
+import { useNotifications } from '../../contexts/NotificationContext';
 
 export const SettingsIntegrations: React.FC = () => {
+    const { addNotification } = useNotifications();
     const [serverUrl, setServerUrl] = useState('');
     const [adminEmail, setAdminEmail] = useState('');
     const [adminPassword, setAdminPassword] = useState('');
@@ -63,13 +65,16 @@ export const SettingsIntegrations: React.FC = () => {
     };
 
     const handleCloudSync = async (mode: 'UPLOAD' | 'DOWNLOAD') => {
-        if (!serverUrl) return alert("Voer eerst een Server URL in.");
+        if (!serverUrl) {
+            addNotification('ERROR', 'Fout', "Voer eerst een Server URL in.");
+            return;
+        }
         setSyncBusy(true);
         setLastSyncError(null);
         const res = mode === 'UPLOAD' ? await SyncService.uploadState(true) : await SyncService.downloadState();
         setSyncBusy(false);
         if (!res.success) setLastSyncError(res.message);
-        else alert(res.message);
+        else addNotification('SUCCESS', 'Gelukt', res.message);
         if (mode === 'DOWNLOAD' && res.success) window.location.reload();
     };
 

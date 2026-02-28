@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Upload, Eye, Download, Trash2, FileText, Camera, Hammer, UserCircle, Image, Table, ClipboardList, Ruler, BarChart, FileCode, Terminal, Archive, Box } from '../../../icons';
+import { Upload, Eye, Download, Trash2, FileText, Camera, Hammer, UserCircle, Image, Table, ClipboardList, Ruler, BarChart, FileCode, Terminal, Archive, Box, Star } from '../../../icons';
 import { ArticleFile, DocumentCategory, DMSDocument } from '../../../types';
 import { db } from '../../../services/storage';
 import { useDocumentMap } from '../../../hooks/useDocumentMap';
@@ -32,15 +32,16 @@ interface SleekDocumentListProps {
     subtitle: string;
     files: ArticleFile[];
     applicableTo: 'ARTICLE' | 'SETUP' | 'MACHINE' | 'BOTH' | 'ALL';
-    excludedCategories?: string[]; // e.g., CAM, NC
-    defaultCategoryCode?: string; // Fallback category if none selected
+    excludedCategories?: string[];
+    defaultCategoryCode?: string;
     isLocked: boolean;
     onUpload: (files: FileList | File[], role: string) => void | Promise<void>;
     onDelete: (id: string) => void;
     onPreview: (file: ArticleFile) => void;
     onDownload: (file: ArticleFile) => void;
     onLinkDocument?: (doc: DMSDocument, role: string) => void;
-    className?: string; // Container custom class instead of forcing border-t
+    onSetThumbnail?: (fileId: string) => void; // Optional: mark a file as thumbnail
+    className?: string;
 }
 
 export const SleekDocumentList: React.FC<SleekDocumentListProps> = ({
@@ -56,6 +57,7 @@ export const SleekDocumentList: React.FC<SleekDocumentListProps> = ({
     onPreview,
     onDownload,
     onLinkDocument,
+    onSetThumbnail,
     className = ""
 }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -232,7 +234,21 @@ export const SleekDocumentList: React.FC<SleekDocumentListProps> = ({
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-1 sm:gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus-within:opacity-100 transition-opacity shrink-0 relative z-10">
+                            {/* Star: always visible, outside the hover-reveal group */}
+                            {onSetThumbnail && (
+                                <button
+                                    onClick={() => onSetThumbnail(file.id)}
+                                    title={file.isThumbnail ? 'Is momenteel de thumbnail' : 'Gebruik als thumbnail'}
+                                    className={`p-2 rounded-2xl transition-all shrink-0 ${file.isThumbnail
+                                        ? 'text-green-500'
+                                        : 'text-orange-400 hover:text-green-500'
+                                        }`}
+                                >
+                                    <Star size={20} strokeWidth={2.5} fill="currentColor" />
+                                </button>
+                            )}
+
+                            <div className="flex items-center gap-1 sm:gap-2 shrink-0 relative z-10">
                                 <button onClick={() => onPreview(file)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-2xl transition-colors bg-slate-50 sm:bg-transparent dark:bg-slate-900 sm:dark:bg-transparent" title="Preview">
                                     <Eye size={16} />
                                 </button>
@@ -246,6 +262,7 @@ export const SleekDocumentList: React.FC<SleekDocumentListProps> = ({
                                 )}
                             </div>
                         </div>
+
                     ))}
                     {files.length === 0 && (
                         <div className="py-8 text-center text-slate-400 text-xs font-bold uppercase tracking-widest italic border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-[2rem]">

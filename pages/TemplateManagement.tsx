@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { db } from '../services/storage';
 import { SetupTemplate, AssetType, SetupFieldDefinition, SetupFieldType } from '../types';
 import { useAuth } from '../contexts/AuthContext';
+import { useNotifications } from '../contexts/NotificationContext';
 import { useTable } from '../hooks/useTable';
 import { KEYS, generateId } from '../services/db/core';
 import {
@@ -33,6 +34,7 @@ const COL_SPANS = [
 export const TemplateManagement: React.FC = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
+    const { addNotification } = useNotifications();
 
     const { data: templates, refresh } = useTable<SetupTemplate>(KEYS.SETUP_TEMPLATES);
 
@@ -103,7 +105,7 @@ export const TemplateManagement: React.FC = () => {
         await db.saveTemplate(templateToSave);
         refresh();
         setSelectedTemplate(templateToSave);
-        alert('Sjabloon opgeslagen!');
+        addNotification('SUCCESS', 'Gelukt', 'Sjabloon opgeslagen!');
     };
 
     const handleDeleteTemplate = async (id: string) => {

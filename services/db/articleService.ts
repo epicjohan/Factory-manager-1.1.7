@@ -39,12 +39,12 @@ export const logArticleChange = (article: Article, actionStr: string): Article =
         user: getCurrentUserName(),
         action: actionStr
     });
-    
+
     // Cap at 100 entries to prevent infinite JSON bloat
     if (updatedArticle.auditTrail.length > 100) {
         updatedArticle.auditTrail = updatedArticle.auditTrail.slice(0, 100);
     }
-    
+
     return updatedArticle;
 };
 
@@ -92,7 +92,7 @@ export const articleService = {
         const article = items[idx];
         const oldStatus = article.status;
 
-        const isLocked = newStatus === ArticleStatus.RELEASED || newStatus === ArticleStatus.OBSOLETE;
+        const isLocked = newStatus === ArticleStatus.LOCKED || newStatus === ArticleStatus.OBSOLETE;
 
         const updatedArticle: Article = {
             ...article,
@@ -129,7 +129,7 @@ export const articleService = {
         const now = getNowISO();
 
         // 1. Set old article to OBSOLETE
-        if (sourceArticle.status === ArticleStatus.RELEASED) {
+        if (sourceArticle.status === ArticleStatus.LOCKED) {
             const obsoleteArticle = {
                 ...sourceArticle,
                 status: ArticleStatus.OBSOLETE,

@@ -19,11 +19,13 @@ import {
 import { NumpadModal } from '../components/NumpadModal';
 import { useTable } from '../hooks/useTable';
 import { KEYS } from '../services/db/core';
+import { useNotifications } from '../contexts/NotificationContext';
 
 export const MachineToolGuard: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { hasPermission } = useAuth();
+    const { addNotification } = useNotifications();
 
     // REACTIVE HOOK: No more polling!
     const { data: machines } = useTable<Machine>(KEYS.MACHINES);
@@ -74,7 +76,7 @@ export const MachineToolGuard: React.FC = () => {
 
         if (!prog || !tool) return;
 
-        const existingIdx = toolStats.findIndex(t => t.programNumber === prog && t.toolNumber === tool);
+        const existingIdx = toolStats.findIndex((t: ToolStatistic) => t.programNumber === prog && t.toolNumber === tool);
 
         if (existingIdx === -1) {
             // Nieuwe tool detectie
@@ -298,7 +300,7 @@ export const MachineToolGuard: React.FC = () => {
                     <div className="flex-1 overflow-y-auto no-scrollbar pb-10">
                         <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-3">
                             {toolStats.length === 0 && <div className="col-span-full py-20 text-center text-slate-700 italic border-2 border-dashed border-white/5 rounded-[3rem]">Start een bewerking om data te verzamelen.</div>}
-                            {toolStats.sort((a, b) => a.toolNumber - b.toolNumber).map(stat => {
+                            {toolStats.sort((a: ToolStatistic, b: ToolStatistic) => a.toolNumber - b.toolNumber).map((stat: ToolStatistic) => {
                                 const isCurrent = stat.toolNumber === activeToolNum && stat.programNumber === activeProg;
 
                                 return (
@@ -440,7 +442,7 @@ export const MachineToolGuard: React.FC = () => {
                                 // --- FIX: getUsers is async and must be awaited ---
                                 const usersData = await db.getUsers();
                                 const authUser = usersData.find(u => u.pinCode === pinInput);
-                                if (authUser && hasPermission(Permission.USE_TOOLGUARD)) { pinAction(); } else { setPinInput(''); alert("Ongeldige PIN."); }
+                                if (authUser && hasPermission(Permission.USE_TOOLGUARD)) { pinAction(); } else { setPinInput(''); addNotification('ERROR', 'Fout', "Ongeldige PIN."); }
                             }} className={`h-20 rounded-2xl font-black transition-all ${pinInput.length === 4 ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/40' : 'bg-slate-800 text-slate-600'}`}>OK</button>
                         </div>
                         <button onClick={() => setShowPinModal(false)} className="mt-12 text-slate-500 font-bold uppercase text-[10px] tracking-widest hover:text-white transition-colors">Annuleren</button>

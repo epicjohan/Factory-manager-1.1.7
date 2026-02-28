@@ -29,36 +29,36 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({ mkgOperations, m
         return m ? `${m.name} (${m.machineNumber})` : 'Onbekende Machine';
     };
 
-    const handleCatalogMachineSelect = (mId: string) => { 
-        setCatMachineId(mId); 
-        if (mId) { 
-            const m = machines.find(x => x.id === mId); 
-            if (m) { 
-                setCatCode(m.machineNumber); 
-                setCatName(m.name); 
-                setCatMachineType(m.type); 
-            } 
-        } 
+    const handleCatalogMachineSelect = (mId: string) => {
+        setCatMachineId(mId);
+        if (mId) {
+            const m = machines.find(x => x.id === mId);
+            if (m) {
+                setCatCode(m.machineNumber);
+                setCatName(m.name);
+                setCatMachineType(m.type);
+            }
+        }
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        const data: PredefinedOperation = { 
-            id: editingCatalogOp?.id || generateId(), 
-            code: catCode, 
-            name: catName, 
+        const data: PredefinedOperation = {
+            id: editingCatalogOp?.id || generateId(),
+            code: catCode,
+            name: catName,
             category: catCategory,
             operationType: catOpType,
             setupTemplateId: catOpType === 'PROCESS' ? catTemplateId : undefined,
-            defaultMachineId: catOpType === 'MACHINING' ? catMachineId : undefined, 
-            defaultMachineType: catMachineType 
-        }; 
+            defaultMachineId: catOpType === 'MACHINING' ? catMachineId : undefined,
+            defaultMachineType: catMachineType
+        };
         onSave(data);
-        
+
         // Reset
-        setCatCode(''); setCatName(''); setCatCategory(''); 
+        setCatCode(''); setCatName(''); setCatCategory('');
         setCatMachineId(''); setCatTemplateId(''); setCatOpType('MACHINING');
-        setEditingCatalogOp(null); 
+        setEditingCatalogOp(null);
     };
 
     const handleEdit = (op: PredefinedOperation) => {
@@ -69,7 +69,7 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({ mkgOperations, m
         setCatOpType(op.operationType || 'MACHINING');
         setCatTemplateId(op.setupTemplateId || '');
         setCatMachineId(op.defaultMachineId || '');
-        if(op.defaultMachineType) setCatMachineType(op.defaultMachineType);
+        if (op.defaultMachineType) setCatMachineType(op.defaultMachineType);
     };
 
     return (
@@ -82,17 +82,17 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({ mkgOperations, m
                             {editingCatalogOp ? 'Bewerk Catalogus Code' : 'Nieuwe Catalogus Code'}
                         </h3>
                         <form onSubmit={handleSubmit} className="space-y-6">
-                            
+
                             {/* TYPE SELECTOR */}
                             <div className="bg-white dark:bg-slate-800 p-1.5 rounded-2xl flex border border-slate-200 dark:border-slate-700 shadow-sm mb-6">
-                                <button 
+                                <button
                                     type="button"
                                     onClick={() => setCatOpType('MACHINING')}
                                     className={`flex-1 py-3 rounded-[2rem] text-[10px] font-black uppercase tracking-widest transition-all ${catOpType === 'MACHINING' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-700'}`}
                                 >
                                     <Monitor size={14} className="inline mr-2" /> Machine
                                 </button>
-                                <button 
+                                <button
                                     type="button"
                                     onClick={() => setCatOpType('PROCESS')}
                                     className={`flex-1 py-3 rounded-[2rem] text-[10px] font-black uppercase tracking-widest transition-all ${catOpType === 'PROCESS' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-700'}`}
@@ -104,7 +104,7 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({ mkgOperations, m
                             {catOpType === 'MACHINING' ? (
                                 <div>
                                     <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1 italic">Link met Asset (Auto-fill)</label>
-                                    <select 
+                                    <select
                                         className="w-full p-4 rounded-2xl border-2 border-blue-100 dark:border-blue-900/50 bg-white dark:bg-slate-800 font-bold outline-none focus:ring-4 focus:ring-blue-500/10 shadow-sm transition-all"
                                         value={catMachineId}
                                         onChange={e => handleCatalogMachineSelect(e.target.value)}
@@ -116,7 +116,7 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({ mkgOperations, m
                             ) : (
                                 <div>
                                     <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1 italic">Koppel Proces Sjabloon</label>
-                                    <select 
+                                    <select
                                         className="w-full p-4 rounded-2xl border-2 border-orange-100 dark:border-orange-900/50 bg-white dark:bg-slate-800 font-bold outline-none focus:ring-4 focus:ring-orange-500/10 shadow-sm transition-all"
                                         value={catTemplateId}
                                         onChange={e => setCatTemplateId(e.target.value)}
@@ -161,7 +161,7 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({ mkgOperations, m
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                {mkgOperations.sort((a,b) => a.code.localeCompare(b.code)).map(mo => (
+                                {mkgOperations.sort((a, b) => a.code.localeCompare(b.code)).map(mo => (
                                     <tr key={mo.id} className="hover:bg-slate-50 dark:hover:bg-blue-900/5 group transition-colors">
                                         <td className="px-8 py-5 font-mono font-black text-blue-600 text-sm italic uppercase">{mo.code}</td>
                                         <td className="px-6 py-5 font-bold text-slate-700 dark:text-slate-300 italic uppercase">
@@ -182,9 +182,9 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({ mkgOperations, m
                                             )}
                                         </td>
                                         <td className="px-8 py-5 text-right">
-                                            <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button onClick={() => handleEdit(mo)} className="p-3 bg-slate-50 dark:bg-slate-900 rounded-[2rem] text-slate-400 hover:text-blue-500 transition-all shadow-sm"><Edit size={18}/></button>
-                                                <button onClick={() => onDelete(mo.id)} className="p-3 bg-slate-50 dark:bg-slate-900 rounded-[2rem] text-slate-400 hover:text-red-500 transition-all shadow-sm"><Trash2 size={18}/></button>
+                                            <div className="flex justify-end gap-2">
+                                                <button onClick={() => handleEdit(mo)} className="p-3 bg-slate-50 dark:bg-slate-900 rounded-[2rem] text-slate-400 hover:text-blue-500 transition-all shadow-sm"><Edit size={18} /></button>
+                                                <button onClick={() => onDelete(mo.id)} className="p-3 bg-slate-50 dark:bg-slate-900 rounded-[2rem] text-slate-400 hover:text-red-500 transition-all shadow-sm"><Trash2 size={18} /></button>
                                             </div>
                                         </td>
                                     </tr>

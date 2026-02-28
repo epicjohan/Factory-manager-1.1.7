@@ -5,10 +5,11 @@ import { KEYS, generateId, getNowISO, loadTable } from '../services/db/core';
 import {
     Article, ArticleStatus, Permission, ArticleFile, ArticleOperation, Machine,
     PredefinedOperation, SetupTemplate, ArticleBOMItem, SetupStatus, ArticleAuditEntry,
-    SetupVariant, FileRole, SetupVerificationStatus, AssetType, SetupChangeEntry
+    SetupVariant, FileRole, SetupVerificationStatus, AssetType, SetupChangeEntry, OperationNote
 } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useTable } from '../hooks/useTable';
+import { useNotifications } from '../contexts/NotificationContext';
 import { FilePreviewModal } from '../components/ui/FilePreviewModal';
 import { ArrowLeft, BookOpen, Plus, LayoutPanelLeft, ShieldAlert } from '../icons';
 import { articleService } from '../services/db/articleService';
@@ -21,6 +22,7 @@ import { PDFContextPanel } from '../components/pdm/PDFContextPanel';
 import { DuplicateSetupModal } from '../components/pdm/modals/DuplicateSetupModal';
 import { AddOperationModal } from '../components/pdm/modals/AddOperationModal';
 import { RevisionWizardModal } from '../components/pdm/modals/RevisionWizardModal';
+import { OperationNotesModal } from '../components/pdm/modals/OperationNotesModal';
 
 // Existing Components (Reused for logic/modals)
 import { ArticleList } from '../components/pdm/ArticleList';
@@ -33,6 +35,7 @@ import { logArticleChange } from '../services/db/articleService';
 
 export const ArticleManagement: React.FC = () => {
     const { user, hasPermission } = useAuth();
+    const { addNotification } = useNotifications();
 
     // Hooks
     const { data: articles, refresh: refreshArticles } = useTable<Article>(KEYS.ARTICLES);
@@ -72,19 +75,28 @@ export const ArticleManagement: React.FC = () => {
         isOpen: false, opId: null, setup: null
     });
 
+    const [articleRevisionModal, setArticleRevisionModal] = useState(false);
+    const [archiveModal, setArchiveModal] = useState(false);
+    const [notesModal, setNotesModal] = useState<{ isOpen: boolean; opId: string | null }>({
+        isOpen: false, opId: null
+    });
+
     // Permissions
     const canViewPdm = hasPermission(Permission.PDM_VIEW) || hasPermission(Permission.MANAGE_ARTICLES);
     const canCreate = hasPermission(Permission.PDM_CREATE) || hasPermission(Permission.MANAGE_ARTICLES);
     const canEditAll = hasPermission(Permission.PDM_EDIT_ALL) || hasPermission(Permission.MANAGE_ARTICLES);
     const canEditOwn = hasPermission(Permission.PDM_EDIT_OWN);
     const canRelease = hasPermission(Permission.PDM_RELEASE) || hasPermission(Permission.MANAGE_ARTICLES);
+    const canManageLock = hasPermission(Permission.PDM_MANAGE_LOCK) || hasPermission(Permission.MANAGE_ARTICLES);
+    const canAddProcessStep = hasPermission(Permission.PDM_ADD_PROCESS) || hasPermission(Permission.MANAGE_ARTICLES);
 
     const canManageCatalog = canEditAll;
     const isOwner = editingArticle?.createdBy === user?.name;
     const hasEditRights = canEditAll || (canEditOwn && isOwner) || (!editingArticle && canCreate);
-    const isReleased = editingArticle?.status === ArticleStatus.RELEASED;
+    const isLockedStatus = editingArticle?.status === ArticleStatus.LOCKED;
     const isObsolete = editingArticle?.status === ArticleStatus.OBSOLETE;
-    const isLocked = !(!isReleased && !isObsolete && hasEditRights);
+    const isLocked = !(!isLockedStatus && !isObsolete && hasEditRights);
+    const canAddOperation = !isLocked || canAddProcessStep;
 
     // --- EFFECT: Auto-select drawing when article loads ---
     useEffect(() => {
@@ -144,7 +156,7 @@ export const ArticleManagement: React.FC = () => {
     };
 
     const handleAddOperationClick = () => {
-        if (!editingArticle || isLocked) return;
+        if (!editingArticle || !canAddOperation) return;
         setShowAddOpModal(true);
     };
 
@@ -312,7 +324,29 @@ export const ArticleManagement: React.FC = () => {
         }
     };
 
-    // --- REVISION LOGIC START ---
+    // --- ARTICLE REVISION LOGIC ---
+
+    const handleArticleRevision = async (reason: string) => {
+        if (!editingArticle) return;
+        try {
+            const newId = await articleService.createNewRevision(editingArticle.id, reason);
+            // Reload the article list and open the new revision
+            await refreshArticles();
+            const allArticles = await articleService.getArticles();
+            const newArticle = allArticles.find(a => a.id === newId);
+            if (newArticle) {
+                setEditingArticle(newArticle);
+                setSelectedId(newArticle.id);
+                setSelectedType('ARTICLE');
+            }
+        } catch (e) {
+            addNotification('ERROR', 'Fout', 'Fout bij aanmaken revisie: ' + (e as Error).message);
+        } finally {
+            setArticleRevisionModal(false);
+        }
+    };
+
+    // --- SETUP REVISION LOGIC START ---
 
     const handleOpenRevisionModal = (opId: string, setup: SetupVariant) => {
         setRevisionModal({ isOpen: true, opId, setup });
@@ -342,7 +376,7 @@ export const ArticleManagement: React.FC = () => {
             status: SetupStatus.ARCHIVED,
         };
 
-        // 3. Create New Draft Setup (Clone)
+        // 3. Create New Draft Setup — structural config carried over, all filled data reset
         const newSetup: SetupVariant = {
             ...setup,
             id: newSetupId,
@@ -353,10 +387,11 @@ export const ArticleManagement: React.FC = () => {
             verificationStatus: SetupVerificationStatus.UNVERIFIED,
             verifiedBy: undefined,
             verifiedDate: undefined,
-            // Ensure deep copy of arrays if needed
-            steps: JSON.parse(JSON.stringify(setup.steps || [])),
-            tools: JSON.parse(JSON.stringify(setup.tools || [])),
-            templateData: JSON.parse(JSON.stringify(setup.templateData || {}))
+            // Clear all filled-in data — start fresh
+            steps: [],
+            tools: [],
+            templateData: {},
+            fixture: undefined,
         };
 
         // 4. Clone Files associated with this setup (Fork & Freeze)
@@ -479,13 +514,39 @@ export const ArticleManagement: React.FC = () => {
         setSelectedId(newSetupId);
     };
 
+    // --- ARCHIVE (OBSOLETE) LOGIC ---
+
+    const handleArchiveArticle = async (reason: string) => {
+        if (!editingArticle) return;
+        try {
+            const upd = await articleService.updateArticleStatus(editingArticle.id, ArticleStatus.OBSOLETE, reason);
+            if (upd) setEditingArticle(upd);
+        } catch (e) {
+            addNotification('ERROR', 'Fout', 'Fout bij archiveren: ' + (e as Error).message);
+        } finally {
+            setArchiveModal(false);
+        }
+    };
+
+    const handleAddNote = async (opId: string, note: OperationNote) => {
+        if (!editingArticle) return;
+        const updatedOps = editingArticle.operations.map(op =>
+            op.id === opId
+                ? { ...op, notes: [note, ...(op.notes || [])] }
+                : op
+        );
+        const updated = { ...editingArticle, operations: updatedOps };
+        setEditingArticle(updated);
+        await articleService.updateArticle(updated);
+    };
+
     // --- RENDER CONTENT ---
 
     const renderMainContent = () => {
         if (!editingArticle) {
             return (
                 <div className="p-8 h-full overflow-y-auto">
-                    <ArticleHeader article={null} isLocked={false} canEdit={canCreate} canRelease={canRelease} onSave={handleSaveHeader} user={user} />
+                    <ArticleHeader article={null} isLocked={false} canEdit={canCreate} canRelease={canRelease} canManageLock={canManageLock} onSave={handleSaveHeader} user={user} />
                 </div>
             );
         }
@@ -499,10 +560,12 @@ export const ArticleManagement: React.FC = () => {
                         isLocked={isLocked}
                         canEdit={hasEditRights}
                         canRelease={canRelease}
+                        canManageLock={canManageLock}
                         onSave={handleSaveHeader}
                         user={user}
                         onChangeStatus={async (s) => { const upd = await articleService.updateArticleStatus(editingArticle.id, s); if (upd) setEditingArticle(upd); }}
-                        onRevise={async () => { /* Revision Logic reuse */ }}
+                        onRevise={() => setArticleRevisionModal(true)}
+                        onObsolete={() => setArchiveModal(true)}
                     />
                     <div className={`grid grid-cols-1 gap-8 ${showContextPanel ? '' : 'xl:grid-cols-2'}`}>
                         <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-3xl border border-slate-200 dark:border-slate-700">
@@ -579,6 +642,7 @@ export const ArticleManagement: React.FC = () => {
     if (view === 'LIST') {
         return <ArticleList
             articles={articles}
+            machines={machines}
             canCreate={canCreate}
             canManageCatalog={canManageCatalog}
             onCreateNew={handleCreateArticle}
@@ -608,7 +672,7 @@ export const ArticleManagement: React.FC = () => {
     const separator = '\u00A0\u00A0\u00A0\u00A0\u00A0/\u00A0\u00A0\u00A0\u00A0\u00A0';
     const headerParts = [
         editingArticle?.drawingNumber,
-        editingArticle?.revision ? `Rev.${editingArticle.revision}` : '',
+        editingArticle?.drawingRevision ? `Rev.${editingArticle.drawingRevision}` : '',
         editingArticle?.name,
         editingArticle?.articleCode ? `(${editingArticle.articleCode})` : ''
     ].filter(Boolean).join(separator);
@@ -643,7 +707,9 @@ export const ArticleManagement: React.FC = () => {
                                 selectedId={selectedId}
                                 onSelect={handleTreeSelect}
                                 onAddOperation={handleAddOperationClick}
+                                onOpenNotes={(opId) => setNotesModal({ isOpen: true, opId })}
                                 isLocked={isLocked}
+                                canAddOperation={canAddOperation}
                             />
                         ) : <div className="p-4 text-xs text-slate-400">Nog niet opgeslagen...</div>
                     }
@@ -680,13 +746,45 @@ export const ArticleManagement: React.FC = () => {
                 mkgOperations={mkgOperations}
             />
 
-            {/* REVISION WIZARD MODAL */}
+            {/* SETUP REVISION WIZARD MODAL */}
             <RevisionWizardModal
                 isOpen={revisionModal.isOpen}
                 onClose={() => setRevisionModal({ isOpen: false, opId: null, setup: null })}
                 onConfirm={handleCreateRevision}
                 currentVersion={revisionModal.setup?.version || 1}
             />
+
+            {/* ARTICLE REVISION WIZARD MODAL */}
+            <RevisionWizardModal
+                isOpen={articleRevisionModal}
+                onClose={() => setArticleRevisionModal(false)}
+                onConfirm={handleArticleRevision}
+                currentVersion={0}
+                title="Nieuwe Artikel Revisie"
+                subtitle={`Artikel wordt gekopieerd naar revisie ${editingArticle?.revision ? String.fromCharCode(editingArticle.revision.charCodeAt(editingArticle.revision.length - 1) + 1) : '?'}. Het huidige artikel wordt gearchiveerd.`}
+            />
+
+            {/* ARCHIVE (OBSOLETE) MODAL */}
+            <RevisionWizardModal
+                isOpen={archiveModal}
+                onClose={() => setArchiveModal(false)}
+                onConfirm={handleArchiveArticle}
+                currentVersion={0}
+                title="Artikel Archiveren"
+                subtitle={`Artikel ${editingArticle?.articleCode} Rev.${editingArticle?.revision} wordt permanent gearchiveerd (Obsolete).`}
+            />
+            {/* OPERATION NOTES MODAL */}
+            {notesModal.isOpen && notesModal.opId && editingArticle && (() => {
+                const op = editingArticle.operations.find(o => o.id === notesModal.opId);
+                return op ? (
+                    <OperationNotesModal
+                        operation={op}
+                        currentUser={user?.name || 'Onbekend'}
+                        onClose={() => setNotesModal({ isOpen: false, opId: null })}
+                        onAddNote={handleAddNote}
+                    />
+                ) : null;
+            })()}
         </div>
     );
 };

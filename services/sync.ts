@@ -36,26 +36,23 @@ const TABLE_MAP: Record<string, string> = {
     [KEYS.ARTICLES]: 'articles',
     [KEYS.SETUP_TEMPLATES]: 'setup_templates',
     [KEYS.DOCUMENT_CATEGORIES]: 'document_categories',
-    [KEYS.DOCUMENTS]: 'documents'
+    [KEYS.DOCUMENTS]: 'documents',
+    [KEYS.ASSET_ENERGY_CONFIGS]: 'asset_energy_configs'
 };
 
 const COLLECTION_TO_KEY = Object.fromEntries(
     Object.entries(TABLE_MAP).map(([key, coll]) => [coll, key])
 );
 
-// BUG-06: Collections waarbij PocketBase de timestamps server-side beheert via autodate.
 // created/updated meesturen veroorzaakt stille validatiefouten of onjuiste overwrite.
-const AUTO_DATE_COLLECTIONS = new Set([
-    'articles', 'mkg_operations', 'setup_templates', 'energy_historical',
-    'system_audit_logs', 'energy_settings', 'system_config', 'documents'
-]);
+// PocketBase beheert deze timestamps server-side voor ALLE collections.
 
 const sanitizeDataForServer = (data: any, collection?: string): any => {
     if (typeof data !== 'object' || data === null) return data;
     const clean = Array.isArray(data) ? [...data] : { ...data };
 
-    // Strip autodate velden voor collections die timestamps server-side beheren
-    if (collection && AUTO_DATE_COLLECTIONS.has(collection)) {
+    // Strip autodate velden voor alle collections omdat PocketBase timestamps server-side beheert
+    if (collection) {
         delete clean.created;
         delete clean.updated;
     }
@@ -311,17 +308,21 @@ export const SyncService = {
             [KEYS.LOGS_ENERGY_HISTORICAL]: 'energyHistorical',
             [KEYS.MKG_OPERATIONS]: 'mkgOperations',
             [KEYS.ARTICLES]: 'articles',
-            [KEYS.SETUP_TEMPLATES]: 'setupTemplates'
+            [KEYS.SETUP_TEMPLATES]: 'setupTemplates',
+            [KEYS.ROLES]: 'roles',
+            [KEYS.DOCUMENT_CATEGORIES]: 'documentCategories',
+            [KEYS.ASSET_ENERGY_CONFIGS]: 'assetEnergyConfigs'
         };
 
         const stateKey = propMap[tableKey];
-        if (!stateKey) return;
 
-        const store = await getStore();
-        const items = (store as any)[stateKey] || [];
-        const filtered = items.filter((i: any) => i.id !== id);
+        if (stateKey) {
+            const store = await getStore();
+            const items = (store as any)[stateKey] || [];
+            const filtered = items.filter((i: any) => i.id !== id);
+            await setStore({ ...store, [stateKey]: filtered });
+        }
 
-        await setStore({ ...store, [stateKey]: filtered });
         const currentTableData = await loadTable<any[]>(tableKey, []);
         const filteredTable = currentTableData.filter(i => i.id !== id);
         await saveTable(tableKey, filteredTable);
@@ -340,12 +341,13 @@ export const SyncService = {
             [KEYS.LOGS_ENERGY_HISTORICAL]: 'energyHistorical',
             [KEYS.MKG_OPERATIONS]: 'mkgOperations',
             [KEYS.ARTICLES]: 'articles',
-            [KEYS.SETUP_TEMPLATES]: 'setupTemplates'
+            [KEYS.SETUP_TEMPLATES]: 'setupTemplates',
+            [KEYS.ROLES]: 'roles',
+            [KEYS.DOCUMENT_CATEGORIES]: 'documentCategories',
+            [KEYS.ASSET_ENERGY_CONFIGS]: 'assetEnergyConfigs'
         };
 
         const stateKey = propMap[tableKey];
-        if (!stateKey) return;
-
         const store = await getStore();
         const parsedData = ensureParsedData(remoteData);
 
@@ -371,7 +373,7 @@ export const SyncService = {
             return;
         }
 
-        const items = (store as any)[stateKey] || [];
+        const items = stateKey ? ((store as any)[stateKey] || []) : await loadTable<any[]>(tableKey, []);
         let hasChanges = false;
         let updatedItems: any[];
 
@@ -394,12 +396,10 @@ export const SyncService = {
         }
 
         if (hasChanges) {
-            await setStore({ ...store, [stateKey]: updatedItems });
-            const currentTableData = await loadTable<any[]>(tableKey, []);
-            const tIdx = currentTableData.findIndex(i => i.id === parsedData.id);
-            if (tIdx !== -1) currentTableData[tIdx] = parsedData;
-            else currentTableData.push(parsedData);
-            await saveTable(tableKey, currentTableData);
+            if (stateKey) {
+                await setStore({ ...store, [stateKey]: updatedItems });
+            }
+            await saveTable(tableKey, updatedItems);
         }
     },
 
@@ -520,10 +520,6 @@ export const SyncService = {
                 body = formData;
             } else {
                 // Als er geen nieuwe bestanden zijn, gewoon JSON sturen
-                // Voor Articles: Zorg dat filesMeta wel wordt meegestuurd als JSON update
-                if (entry.table === KEYS.ARTICLES && cleanData.filesMeta) {
-                    // Als het een update is zonder nieuwe files, update alleen metadata
-                }
                 body = JSON.stringify(cleanData);
             }
 
@@ -656,16 +652,18 @@ export const SyncService = {
             [KEYS.LOGS_ENERGY_HISTORICAL]: 'energyHistorical',
             [KEYS.MKG_OPERATIONS]: 'mkgOperations',
             [KEYS.ARTICLES]: 'articles',
-            [KEYS.SETUP_TEMPLATES]: 'setupTemplates'
+            [KEYS.SETUP_TEMPLATES]: 'setupTemplates',
+            [KEYS.ROLES]: 'roles',
+            [KEYS.DOCUMENT_CATEGORIES]: 'documentCategories',
+            [KEYS.ASSET_ENERGY_CONFIGS]: 'assetEnergyConfigs'
         };
 
         const stateKey = propMap[tableKey];
-        if (!stateKey) return;
 
         const store = await getStore();
         const outboxRaw = await db.getOutbox();
         const outbox = Array.isArray(outboxRaw) ? outboxRaw : [];
-        const localItems = (store as any)[stateKey] || [];
+        const localItems = stateKey ? ((store as any)[stateKey] || []) : await loadTable<any[]>(tableKey, []);
         const updatedLocal = [...localItems];
         let hasChanges = false;
 
@@ -698,7 +696,9 @@ export const SyncService = {
         });
 
         if (hasChanges) {
-            await setStore({ ...store, [stateKey]: updatedLocal });
+            if (stateKey) {
+                await setStore({ ...store, [stateKey]: updatedLocal });
+            }
             await saveTable(tableKey, updatedLocal);
         }
     },

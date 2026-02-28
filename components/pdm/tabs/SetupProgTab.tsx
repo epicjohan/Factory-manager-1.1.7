@@ -13,6 +13,7 @@ import { SleekDocumentList } from '../ui/SleekDocumentList';
 import { DocumentLibraryModal } from '../modals/DocumentLibraryModal';
 import { DocumentRenameModal } from '../modals/DocumentRenameModal';
 import { DocumentVersionSequenceModal } from '../modals/DocumentVersionSequenceModal';
+import { useNotifications } from '../../../contexts/NotificationContext';
 
 interface SetupProgTabProps {
     setup: SetupVariant;
@@ -27,6 +28,7 @@ interface SetupProgTabProps {
 export const SetupProgTab: React.FC<SetupProgTabProps> = ({
     setup, allFiles, isLocked, user, onUpdateFiles, onPreview, onUpdateSetup
 }) => {
+    const { addNotification } = useNotifications();
     const camInputRef = useRef<HTMLInputElement>(null);
     const ncInputRef = useRef<HTMLInputElement>(null);
 
@@ -231,7 +233,7 @@ export const SetupProgTab: React.FC<SetupProgTabProps> = ({
                 }
             } catch (err) {
                 console.error("Fout bij opslaan document", err);
-                alert("Er ging iets mis bij het opslaan van het document.");
+                addNotification('ERROR', 'Fout', "Er ging iets mis bij het opslaan van het document.");
             }
         };
         reader.readAsDataURL(file);

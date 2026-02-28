@@ -3,9 +3,7 @@ import { AssetType, UploadedDocument } from './common';
 
 export enum ArticleStatus {
   DRAFT = 'DRAFT',
-  REVIEW = 'REVIEW',
-  PROTOTYPE = 'PROTOTYPE',
-  RELEASED = 'RELEASED',
+  LOCKED = 'LOCKED',
   OBSOLETE = 'OBSOLETE'
 }
 
@@ -51,6 +49,7 @@ export interface ArticleFile {
   setupId?: string;        // Koppeling aan specifieke machine-setup
   lockedBy?: string;       // Alleen voor PRODUCTIE bestanden
   lockedAt?: string;
+  isThumbnail?: boolean;   // Gebruiker-geselecteerde thumbnail voor de artikellijst
 }
 
 export interface DMSDocument {
@@ -147,12 +146,20 @@ export interface SetupVariant {
   frozenToolFields?: SetupFieldDefinition[];
 }
 
+export interface OperationNote {
+  id: string;
+  date: string;
+  user: string;
+  text: string;
+}
+
 export interface ArticleOperation {
   id: string;
   order: number;
   description: string;
   mkgOperationCode?: string;
   setups: SetupVariant[];
+  notes?: OperationNote[];
 }
 
 export interface ArticleBOMItem {

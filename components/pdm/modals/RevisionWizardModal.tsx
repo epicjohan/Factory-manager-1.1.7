@@ -7,10 +7,14 @@ interface RevisionWizardModalProps {
     onClose: () => void;
     onConfirm: (reason: string) => void;
     currentVersion: number;
+    title?: string;
+    subtitle?: string;
 }
 
-export const RevisionWizardModal: React.FC<RevisionWizardModalProps> = ({ 
-    isOpen, onClose, onConfirm, currentVersion 
+export const RevisionWizardModal: React.FC<RevisionWizardModalProps> = ({
+    isOpen, onClose, onConfirm, currentVersion,
+    title = 'Nieuwe Setup Versie',
+    subtitle
 }) => {
     const [reason, setReason] = useState('');
 
@@ -25,13 +29,15 @@ export const RevisionWizardModal: React.FC<RevisionWizardModalProps> = ({
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-center justify-center p-6 animate-in fade-in duration-200">
             <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-[2rem] shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col">
-                
+
                 <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
                     <div>
                         <h3 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight flex items-center gap-2">
-                            <GitBranch size={18} className="text-blue-600" /> Nieuwe Setup Versie
+                            <GitBranch size={18} className="text-blue-600" /> {title}
                         </h3>
-                        <p className="text-xs text-slate-500 font-bold">Van Versie {currentVersion} naar {currentVersion + 1}</p>
+                        <p className="text-xs text-slate-500 font-bold">
+                            {subtitle ?? `Van Versie ${currentVersion} naar ${currentVersion + 1}`}
+                        </p>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors text-slate-400">
                         <X size={20} />
@@ -50,7 +56,7 @@ export const RevisionWizardModal: React.FC<RevisionWizardModalProps> = ({
                         <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">
                             Reden van wijziging *
                         </label>
-                        <textarea 
+                        <textarea
                             autoFocus
                             rows={3}
                             className="w-full p-4 rounded-[2rem] border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium text-slate-800 dark:text-white outline-none focus:border-blue-500 transition-all text-sm"
@@ -66,7 +72,7 @@ export const RevisionWizardModal: React.FC<RevisionWizardModalProps> = ({
                         Annuleren
                     </button>
                     <button onClick={handleConfirm} disabled={!reason.trim()} className="flex-[2] py-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-[2rem] font-black uppercase text-xs tracking-widest shadow-xl transition-all active:scale-95">
-                        Start Versie {currentVersion + 1}
+                        Bevestigen
                     </button>
                 </div>
             </div>

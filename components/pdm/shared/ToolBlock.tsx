@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Trash2, Edit2, Eye, RotateCcw, AlertTriangle, ShieldCheck, Wrench } from '../../../icons';
-import { ArticleTool, SetupTemplate, ArticleFile, DMSDocument } from '../../../types';
+import { ArticleTool, SetupFieldDefinition, ArticleFile, DMSDocument } from '../../../types';
 import { SearchableSelect } from '../../ui/SearchableSelect';
 import { SleekDocumentList } from '../ui/SleekDocumentList';
 import { generateId } from '../../../services/db/core';
@@ -13,10 +13,11 @@ interface ToolBlockProps {
     onDelete: () => void;
     onReplace?: () => void; // Optional handler for replacing a tool in locked state
     disabled?: boolean;
-    template?: SetupTemplate | null;
+    toolFields?: SetupFieldDefinition[];
+    isLegacyMode?: boolean;
 }
 
-export const ToolBlock: React.FC<ToolBlockProps> = ({ tool, onUpdate, onDelete, onReplace, disabled, template }) => {
+export const ToolBlock: React.FC<ToolBlockProps> = ({ tool, onUpdate, onDelete, onReplace, disabled, toolFields = [], isLegacyMode = false }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const { user } = useAuth();
 
@@ -122,7 +123,7 @@ export const ToolBlock: React.FC<ToolBlockProps> = ({ tool, onUpdate, onDelete, 
         document.body.removeChild(link);
     };
 
-    const hasDynamicFields = template && template.toolFields && template.toolFields.length > 0;
+    const hasDynamicFields = !isLegacyMode;
     const isReplaced = tool.status === 'REPLACED';
 
     return (
@@ -209,7 +210,7 @@ export const ToolBlock: React.FC<ToolBlockProps> = ({ tool, onUpdate, onDelete, 
                     {/* Dynamic or Legacy Fields */}
                     {hasDynamicFields ? (
                         <div className="grid grid-cols-12 gap-6 pt-2">
-                            {template.toolFields!.map(field => {
+                            {toolFields.map(field => {
                                 const val = tool.toolData?.[field.key] ?? field.defaultValue ?? '';
                                 const isFilled = val !== '' && val !== null && val !== undefined;
                                 const isHighlightActive = field.highlightFilled && isFilled;

@@ -79,7 +79,11 @@ export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
             ? templates.find(t => t.id === activeMachine.setupTemplateId)
             : null;
 
-    const effectiveFields = setup.frozenFields && setup.frozenFields.length > 0 ? setup.frozenFields : (liveTemplate?.fields || []);
+    const effectiveFields = setup.frozenFields !== undefined ? setup.frozenFields : (liveTemplate?.fields || []);
+    const effectiveToolFields = setup.frozenToolFields !== undefined ? setup.frozenToolFields : (liveTemplate?.toolFields || []);
+
+    // Legacy mode is when we have NO captured frozen state AND no live template attached
+    const isLegacyMode = setup.frozenFields === undefined && setup.frozenToolFields === undefined && !liveTemplate;
 
     // Status Logic
     const currentStatus = setup.status || SetupStatus.DRAFT;
@@ -367,7 +371,9 @@ export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
                         <SetupToolsTab
                             tools={setup.tools || []}
                             isLocked={isSetupLocked}
-                            template={liveTemplate || null}
+                            toolFields={effectiveToolFields}
+                            isLegacyMode={isLegacyMode}
+                            templateName={liveTemplate?.name}
                             changeLog={setup.changeLog || []}
                             onUpdateTool={handleUpdateTool}
                             onAddTool={handleAddTool}

@@ -187,6 +187,7 @@ export const db = {
         const current = await settingsService.getSnapshots();
         current.unshift(newSnapshot);
         await saveTable(KEYS.SNAPSHOTS, current.slice(0, 15));
+        await outboxUtils.addToOutbox(KEYS.SNAPSHOTS, 'INSERT', newSnapshot);
     },
     restoreSnapshot: async (id: string) => {
         const snaps = await settingsService.getSnapshots();

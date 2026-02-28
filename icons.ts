@@ -346,3 +346,4 @@ import { Image as _phImage } from "@phosphor-icons/react"; export const Image = 
 import { X as _phX5 } from "@phosphor-icons/react"; export const ScanEye = _phX5;
 
 import { Binary as _phBinary } from "@phosphor-icons/react"; export const Binary = _phBinary;
+import { LockKeyOpen as _LockKeyOpen } from "@phosphor-icons/react"; export { _LockKeyOpen as LockOpen };

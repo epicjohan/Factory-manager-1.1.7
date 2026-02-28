@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { X, Search, File, Camera, Hammer, Image, FileCode, CheckCircle2, UserCircle } from '../../../icons';
+import { X, Search, FileText, Camera, Hammer, Image, FileCode, CheckCircle2, UserCircle, Archive, Box, LayoutTemplate } from '../../../icons';
 import { documentService } from '../../../services/db/documentService';
 import { DMSDocument } from '../../../types';
 
@@ -8,9 +8,12 @@ interface DocumentLibraryModalProps {
     onSelect: (doc: DMSDocument) => void;
 }
 
+export type LibraryFilterType = 'ALL' | 'IMAGE' | 'PDF' | 'CODE' | 'OTHER';
+
 export const DocumentLibraryModal: React.FC<DocumentLibraryModalProps> = ({ onClose, onSelect }) => {
     const [documents, setDocuments] = useState<DMSDocument[]>([]);
     const [search, setSearch] = useState('');
+    const [typeFilter, setTypeFilter] = useState<LibraryFilterType>('ALL');
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -34,17 +37,38 @@ export const DocumentLibraryModal: React.FC<DocumentLibraryModalProps> = ({ onCl
 
     const filteredDocs = useMemo(() => {
         const lowerSearch = search.toLowerCase();
-        return documents.filter(d =>
-            d.name.toLowerCase().includes(lowerSearch) ||
-            (d.documentNumber && d.documentNumber.toLowerCase().includes(lowerSearch))
-        );
-    }, [documents, search]);
+
+        return documents.filter(d => {
+            // Text Search
+            const matchesSearch = d.name.toLowerCase().includes(lowerSearch) ||
+                (d.documentNumber && d.documentNumber.toLowerCase().includes(lowerSearch));
+            if (!matchesSearch) return false;
+
+            // Type Filter
+            if (typeFilter === 'ALL') return true;
+
+            const t = (d.type || '').toLowerCase();
+            const n = d.name.toLowerCase();
+
+            const isImage = t.startsWith('image/');
+            const isPdf = t.includes('pdf') || n.endsWith('.pdf');
+            const isCode = t.includes('nc') || t.includes('cam') || n.endsWith('.nc') || n.endsWith('.txt') || n.endsWith('.cam');
+
+            switch (typeFilter) {
+                case 'IMAGE': return isImage;
+                case 'PDF': return isPdf;
+                case 'CODE': return isCode;
+                case 'OTHER': return !isImage && !isPdf && !isCode;
+                default: return true;
+            }
+        });
+    }, [documents, search, typeFilter]);
 
     const getIcon = (type: string) => {
         if (type.startsWith('image/')) return <Image size={24} className="text-blue-500" />;
-        if (type.includes('pdf')) return <File size={24} className="text-red-500" />;
+        if (type.includes('pdf')) return <FileText size={24} className="text-red-500" />;
         if (type.includes('nc') || type.includes('cam')) return <FileCode size={24} className="text-orange-500" />;
-        return <File size={24} className="text-slate-500" />;
+        return <FileText size={24} className="text-slate-500" />;
     };
 
     return (
@@ -68,6 +92,35 @@ export const DocumentLibraryModal: React.FC<DocumentLibraryModalProps> = ({ onCl
                         onChange={(e) => setSearch(e.target.value)}
                         className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-sm"
                     />
+                </div>
+
+                {/* Filter Buttons */}
+                <div className="flex flex-wrap gap-2 mb-6">
+                    {(['ALL', 'IMAGE', 'PDF', 'CODE', 'OTHER'] as LibraryFilterType[]).map(filter => {
+                        const isActive = typeFilter === filter;
+                        let icon = null;
+                        let label = '';
+                        switch (filter) {
+                            case 'ALL': label = 'Alle'; icon = <Archive size={14} />; break;
+                            case 'IMAGE': label = "Foto's"; icon = <Image size={14} />; break;
+                            case 'PDF': label = "PDF's"; icon = <FileText size={14} />; break;
+                            case 'CODE': label = 'NC / CAM'; icon = <FileCode size={14} />; break;
+                            case 'OTHER': label = 'Overige'; icon = <Box size={14} />; break;
+                        }
+
+                        return (
+                            <button
+                                key={filter}
+                                onClick={() => setTypeFilter(filter)}
+                                className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border transition-all ${isActive
+                                        ? 'bg-blue-600 text-white border-blue-600 shadow-md'
+                                        : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-blue-400 hover:text-blue-600'
+                                    }`}
+                            >
+                                {icon} {label}
+                            </button>
+                        );
+                    })}
                 </div>
 
                 <div className="flex-1 overflow-y-auto min-h-0 pr-2 space-y-3 custom-scrollbar">

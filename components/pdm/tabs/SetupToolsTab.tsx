@@ -1,7 +1,6 @@
-
 import React, { useState, useMemo } from 'react';
 import { Wrench, Plus, Info, RotateCcw, AlertTriangle, X, History, Clock, Trash2 } from '../../../icons';
-import { ArticleTool, SetupTemplate, SetupChangeEntry, SetupVariant } from '../../../types';
+import { ArticleTool, SetupTemplate, SetupChangeEntry, SetupVariant, SetupFieldDefinition } from '../../../types';
 import { ToolBlock } from '../shared/ToolBlock';
 import { generateId } from '../../../services/db/core';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -9,7 +8,9 @@ import { useAuth } from '../../../contexts/AuthContext';
 interface SetupToolsTabProps {
     tools: ArticleTool[];
     isLocked: boolean;
-    template: SetupTemplate | null;
+    toolFields: SetupFieldDefinition[];
+    isLegacyMode: boolean;
+    templateName?: string;
     changeLog: SetupChangeEntry[];
     onUpdateTool: (toolId: string, updates: Partial<ArticleTool>) => void;
     onAddTool: () => void;
@@ -18,7 +19,7 @@ interface SetupToolsTabProps {
 }
 
 export const SetupToolsTab: React.FC<SetupToolsTabProps> = ({
-    tools, isLocked, template, changeLog, onUpdateTool, onAddTool, onDeleteTool, onUpdateSetup
+    tools, isLocked, toolFields, isLegacyMode, templateName, changeLog, onUpdateTool, onAddTool, onDeleteTool, onUpdateSetup
 }) => {
     const { user } = useAuth();
 
@@ -124,11 +125,11 @@ export const SetupToolsTab: React.FC<SetupToolsTabProps> = ({
 
     return (
         <div className="space-y-6 animate-in fade-in">
-            {template && template.toolFields && template.toolFields.length > 0 && (
+            {!isLegacyMode && templateName && (
                 <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-[2rem] border border-blue-100 dark:border-blue-900 mb-4 flex items-center gap-3">
                     <Info className="text-blue-500 shrink-0" size={18} />
                     <div>
-                        <h4 className="font-bold text-blue-800 dark:text-blue-300 text-xs">Tools geconfigureerd via sjabloon: {template.name}</h4>
+                        <h4 className="font-bold text-blue-800 dark:text-blue-300 text-xs">Tools geconfigureerd via sjabloon: {templateName}</h4>
                     </div>
                 </div>
             )}
@@ -158,7 +159,8 @@ export const SetupToolsTab: React.FC<SetupToolsTabProps> = ({
                             onUpdate={(updates) => onUpdateTool(tool.id, updates)}
                             onDelete={() => openDeleteModal(tool)}
                             onReplace={() => openReplaceModal(tool.id)}
-                            template={template}
+                            toolFields={toolFields}
+                            isLegacyMode={isLegacyMode}
                         />
 
                         {/* History Info Banner for Active Tools that replaced something */}

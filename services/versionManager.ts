@@ -7,9 +7,9 @@ export { APP_INFO };
 
 export const VersionManager = {
     getAppInfo: () => APP_INFO,
-    
+
     getCurrentVersion: () => APP_INFO.VERSION,
-    
+
     checkVersionMismatch: async (): Promise<boolean> => {
         const config = await loadTable<any>(KEYS.SYSTEM_CONFIG, null);
         if (!config || !config.systemVersion) return true;
@@ -19,10 +19,10 @@ export const VersionManager = {
     confirmDatabaseUpdate: async () => {
         try {
             const serverConfig = await db.getServerSettings();
-            
+
             const existingLocal = await loadTable<any>(KEYS.SYSTEM_CONFIG, null);
             const now = getNowISO();
-            
+
             const updatedConfig = {
                 ...(existingLocal || {}),
                 id: (existingLocal && existingLocal.id) ? existingLocal.id : 'sysconfigroot01',
@@ -34,10 +34,10 @@ export const VersionManager = {
             if (!existingLocal) {
                 (updatedConfig as any).created = now;
             }
-            
+
             await saveTable(KEYS.SYSTEM_CONFIG, updatedConfig);
             await outboxUtils.addToOutbox(KEYS.SYSTEM_CONFIG, 'UPDATE', updatedConfig);
-            
+
             const meta = await loadTable<any>(KEYS.METADATA, {});
             await saveTable(KEYS.METADATA, {
                 ...meta,
@@ -49,11 +49,11 @@ export const VersionManager = {
             await outboxUtils.logAudit('VERSION_UPGRADE', userName, `Systeem geactiveerd op versie ${APP_INFO.VERSION}`);
 
             setTimeout(() => {
-                window.location.href = '/'; 
+                window.location.href = '/';
             }, 800);
         } catch (e) {
             console.error("Handshake mislukt:", e);
-            alert("Activatie mislukt. Controleer de serververbinding.");
+            window.dispatchEvent(new CustomEvent('app-notification', { detail: { type: 'ERROR', title: 'Fout', message: 'Activatie mislukt. Controleer de serververbinding.' } }));
         }
     }
 };

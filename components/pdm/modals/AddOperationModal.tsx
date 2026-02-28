@@ -12,8 +12,8 @@ interface AddOperationModalProps {
     mkgOperations: PredefinedOperation[];
 }
 
-export const AddOperationModal: React.FC<AddOperationModalProps> = ({ 
-    isOpen, onClose, onConfirm, machines, templates, mkgOperations 
+export const AddOperationModal: React.FC<AddOperationModalProps> = ({
+    isOpen, onClose, onConfirm, machines, templates, mkgOperations
 }) => {
     const [opType, setOpType] = useState<'MACHINE' | 'PROCESS'>('MACHINE');
     const [selectedId, setSelectedId] = useState('');
@@ -23,16 +23,22 @@ export const AddOperationModal: React.FC<AddOperationModalProps> = ({
         return mkgOperations.filter(op => op.operationType === 'PROCESS');
     }, [mkgOperations]);
 
+    const wasOpen = React.useRef<string | false>(false);
+
     // Pre-select first available item when type changes or modal opens
     useEffect(() => {
-        if (isOpen) {
+        if (isOpen && (!wasOpen.current || opType !== wasOpen.current)) {
             if (opType === 'MACHINE') {
-                if (machines.length > 0) setSelectedId(machines[0].id);
+                const availableMachines = machines.filter(m => !m.isArchived);
+                if (availableMachines.length > 0) setSelectedId(availableMachines[0].id);
                 else setSelectedId('');
             } else {
                 if (catalogProcesses.length > 0) setSelectedId(catalogProcesses[0].id);
                 else setSelectedId('');
             }
+            wasOpen.current = opType as any;
+        } else if (!isOpen) {
+            wasOpen.current = false;
         }
     }, [isOpen, opType, machines, catalogProcesses]);
 
@@ -47,7 +53,7 @@ export const AddOperationModal: React.FC<AddOperationModalProps> = ({
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-center justify-center p-6 animate-in fade-in duration-200">
             <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-[2rem] shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col">
-                
+
                 <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
                     <div>
                         <h3 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight flex items-center gap-2">
@@ -61,17 +67,17 @@ export const AddOperationModal: React.FC<AddOperationModalProps> = ({
                 </div>
 
                 <div className="p-8 space-y-6">
-                    
+
                     {/* TYPE TOGGLE */}
                     <div className="bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl flex border border-slate-200 dark:border-slate-700 shadow-inner">
-                        <button 
+                        <button
                             type="button"
                             onClick={() => setOpType('MACHINE')}
                             className={`flex-1 py-3 rounded-[2rem] text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${opType === 'MACHINE' ? 'bg-white dark:bg-slate-700 text-orange-600 shadow-md' : 'text-slate-500 hover:text-slate-700'}`}
                         >
                             <Monitor size={16} /> Machine
                         </button>
-                        <button 
+                        <button
                             type="button"
                             onClick={() => setOpType('PROCESS')}
                             className={`flex-1 py-3 rounded-[2rem] text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${opType === 'PROCESS' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-md' : 'text-slate-500 hover:text-slate-700'}`}
@@ -90,7 +96,7 @@ export const AddOperationModal: React.FC<AddOperationModalProps> = ({
                                 {opType === 'MACHINE' ? 'Selecteer Machine' : 'Selecteer Proces'}
                             </h4>
                             <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                                {opType === 'MACHINE' 
+                                {opType === 'MACHINE'
                                     ? 'Er wordt direct een setup aangemaakt met de juiste templates en parameters voor deze machine.'
                                     : 'Kies een handmatig proces uit de catalogus (bijv. Assemblage, Inpakken).'
                                 }
@@ -104,7 +110,7 @@ export const AddOperationModal: React.FC<AddOperationModalProps> = ({
                             {opType === 'MACHINE' ? 'Beschikbare Assets' : 'Beschikbare Processen (Catalogus)'}
                         </label>
                         <div className="relative">
-                            <select 
+                            <select
                                 className="w-full p-4 rounded-[2rem] border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-bold text-slate-800 dark:text-white outline-none focus:border-blue-500 transition-all text-sm"
                                 value={selectedId}
                                 onChange={(e) => setSelectedId(e.target.value)}

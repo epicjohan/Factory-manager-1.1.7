@@ -110,7 +110,7 @@ export const ArticleBOM: React.FC<ArticleBOMProps> = ({ items, allArticles, curr
                                     </div>
                                     <div className="text-xs text-slate-500 font-mono mt-0.5">{a.articleCode} • Rev {a.revision}</div>
                                 </div>
-                                <div className="flex items-center gap-2 text-purple-600 font-bold text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="flex items-center gap-2 text-purple-600 font-bold text-xs">
                                     Toevoegen <ArrowRight size={14} />
                                 </div>
                             </button>

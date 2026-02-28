@@ -117,6 +117,15 @@ export const ArticleFiles: React.FC<ArticleFilesProps> = ({ files, isLocked, onU
         document.body.removeChild(link);
     };
 
+    const handleSetThumbnail = (fileId: string) => {
+        // Toggle: if clicking the current thumbnail, deselect it; otherwise set new one
+        const updated = files.map(f => ({
+            ...f,
+            isThumbnail: f.id === fileId ? !f.isThumbnail : false
+        }));
+        onUpdate(updated, `Thumbnail ingesteld.`);
+    };
+
     return (
         <div className="animate-in fade-in duration-300 text-left">
             <SleekDocumentList
@@ -131,6 +140,7 @@ export const ArticleFiles: React.FC<ArticleFilesProps> = ({ files, isLocked, onU
                 onPreview={onPreview}
                 onDownload={handleDownload}
                 onLinkDocument={handleSelectLibraryDoc}
+                onSetThumbnail={handleSetThumbnail}
             />
 
             {sourceFiles.length === 0 && isLocked && (

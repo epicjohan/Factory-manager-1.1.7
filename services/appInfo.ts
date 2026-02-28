@@ -1,6 +1,6 @@
 export const APP_INFO = {
     NAME: 'Factory Manager',
-    VERSION: '1.1.4',
+    VERSION: '1.1.5',
     BUILD: '2025.05.25.01',
     AUTHOR: 'J.Houben',
     YEAR: '2025',
