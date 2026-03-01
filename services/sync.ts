@@ -37,7 +37,8 @@ const TABLE_MAP: Record<string, string> = {
     [KEYS.SETUP_TEMPLATES]: 'setup_templates',
     [KEYS.DOCUMENT_CATEGORIES]: 'document_categories',
     [KEYS.DOCUMENTS]: 'documents',
-    [KEYS.ASSET_ENERGY_CONFIGS]: 'asset_energy_configs'
+    [KEYS.ASSET_ENERGY_CONFIGS]: 'asset_energy_configs',
+    [KEYS.LOGS_ENERGY_QUARTERLY]: 'logs_energy_quarterly'
 };
 
 const COLLECTION_TO_KEY = Object.fromEntries(

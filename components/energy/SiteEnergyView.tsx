@@ -1,15 +1,15 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { db } from '../../services/storage';
 import { KEYS } from '../../services/db/core';
-import { 
-  Zap, Sun, Factory, TrendingUp, ArrowLeft, ArrowRight, 
-  ChevronRight, Download, History, BarChart2,
-  // Removed non-existent ArrowDownZap import to fix build error
-  Layout, FlaskConical, Activity, Gauge, ShieldAlert, AlertTriangle
+import {
+    Zap, Sun, Factory, TrendingUp, ArrowLeft, ArrowRight,
+    ChevronRight, Download, History, BarChart2,
+    // Removed non-existent ArrowDownZap import to fix build error
+    FlaskConical, Activity, Gauge, ShieldAlert, AlertTriangle
 } from '../../icons';
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
-  ResponsiveContainer, ReferenceLine
+import {
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+    ResponsiveContainer, ReferenceLine
 } from 'recharts';
 import { useTable } from '../../hooks/useTable';
 import { EnergyHistoricalLog, EnergyLiveData, EnergySettings } from '../../types';
@@ -22,13 +22,13 @@ export const SiteEnergyView: React.FC = () => {
     const [viewTab, setViewTab] = useState<ViewTab>('COMBINED');
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [energySettings, setEnergySettings] = useState<EnergySettings>({ kwhPrice: 0.35, maxPowerLimit: 17000 });
-    
+
     const [isDemoMode, setIsDemoMode] = useState(false);
     const [demoTick, setDemoTick] = useState(0);
 
     const { data: energyLiveList } = useTable<EnergyLiveData>(KEYS.ENERGY_LIVE);
     const { data: history } = useTable<EnergyHistoricalLog>(KEYS.LOGS_ENERGY_HISTORICAL);
-    
+
     useEffect(() => {
         const init = async () => {
             const meta = await db.getMetadata();
@@ -39,12 +39,12 @@ export const SiteEnergyView: React.FC = () => {
         init();
 
         const handleSettingsUpdate = (e: any) => {
-             if (e.detail) setEnergySettings(e.detail);
+            if (e.detail) setEnergySettings(e.detail);
         };
 
         window.addEventListener('db-updated', init);
         window.addEventListener(`db:${KEYS.SETTINGS_ENERGY}:updated`, handleSettingsUpdate);
-        
+
         return () => {
             window.removeEventListener('db-updated', init);
             window.removeEventListener(`db:${KEYS.SETTINGS_ENERGY}:updated`, handleSettingsUpdate);
@@ -74,37 +74,41 @@ export const SiteEnergyView: React.FC = () => {
                 active_power_w: Math.round(active_power_w),
                 production_w: Math.round(production_w),
                 net_power_w: Math.round(active_power_w - production_w),
-                total_kwh: 125000 + (demoTick * 0.5), 
+                total_kwh: 125000 + (demoTick * 0.5),
                 total_production_kwh: 45000 + (demoTick * 0.2),
                 updated: new Date().toISOString()
             } as EnergyLiveData;
         }
-        return energyLiveList[0] || { 
-            active_power_w: 0, production_w: 0, net_power_w: 0, 
+        return energyLiveList[0] || {
+            active_power_w: 0, production_w: 0, net_power_w: 0,
             total_kwh: 0, total_production_kwh: 0
         };
     }, [energyLiveList, isDemoMode, demoTick]);
 
-    // --- GEAVANCEERDE PIEK BEREKENING (NETTO VS BRUTO) ---
+    // --- GEAVANCEERDE PIEK BEREKENING (KWARTIERDATA * 4) ---
     const peakStats = useMemo(() => {
         const todayStr = new Date().toISOString().split('T')[0];
         const todayLogs = history.filter(log => {
             return new Date(log.timestamp).toISOString().split('T')[0] === todayStr;
         });
-        
-        // Bruto piek uit historie (max van individuele kwartierpieken)
-        const historicalGrossMax = todayLogs.length > 0 ? Math.max(...todayLogs.map(l => l.peak_w)) : 0;
-        
-        // Netto piek proxy (max van gem_verbruik - gem_productie)
-        const historicalNetMax = todayLogs.length > 0 
-            ? Math.max(...todayLogs.map(l => l.avg_consumption_w - l.avg_production_w)) 
+
+        // Bruto piek: hoogste kwartierdata (verbruik in Wh) keer 4 om Watt te krijgen
+        const historicalGrossMax = todayLogs.length > 0
+            ? Math.max(...todayLogs.map(l => l.consumption_wh * 4))
             : 0;
 
+        // Netto piek: hoogste (verbruik - productie) kwartierdata keer 4
+        const historicalNetMax = todayLogs.length > 0
+            ? Math.max(...todayLogs.map(l => Math.max(0, l.consumption_wh - l.production_wh) * 4))
+            : 0;
+
+        // We gebruiken uitsluitend de kwartierdata berekening voor de piek, 
+        // omdat momentane 'live' datastromen een vertekend beeld geven van de daadwerkelijke factuur-piek.
         return {
-            gross: Math.max(historicalGrossMax, live.active_power_w),
-            net: Math.max(historicalNetMax, live.net_power_w)
+            gross: historicalGrossMax,
+            net: historicalNetMax
         };
-    }, [history, live]);
+    }, [history]);
 
     const chartData = useMemo(() => {
         if (isDemoMode) {
@@ -118,10 +122,10 @@ export const SiteEnergyView: React.FC = () => {
                     cons += Math.random() * 15000;
                     let prod = (hour >= 6 && hour <= 20) ? 60000 * Math.sin(((hour - 6) / 14) * Math.PI) * (0.7 + Math.random() * 0.3) : 0;
                     data.push({
-                        label: `${hour.toString().padStart(2, '0')}:${((i%4)*15).toString().padStart(2, '0')}`,
+                        label: `${hour.toString().padStart(2, '0')}:${((i % 4) * 15).toString().padStart(2, '0')}`,
                         consumption: Math.round(cons),
                         production: Math.round(prod),
-                        rawDate: new Date(baseTime.setHours(hour, (i%4)*15))
+                        rawDate: new Date(baseTime.setHours(hour, (i % 4) * 15))
                     });
                 }
             } else {
@@ -151,12 +155,12 @@ export const SiteEnergyView: React.FC = () => {
             const date = new Date(log.timestamp);
             const key = level === 'DAY' ? log.timestamp : (level === 'MONTH' ? date.getDate().toString() : date.getMonth().toString());
             if (!groups[key]) groups[key] = { label: '', consumption: 0, production: 0, rawDate: date };
-            
+
             const factor = level === 'DAY' ? 1 : 1000;
             groups[key].consumption += log.consumption_wh / factor;
             groups[key].production += log.production_wh / factor;
-            groups[key].label = level === 'DAY' ? date.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' }) : 
-                               (level === 'MONTH' ? date.getDate().toString() : date.toLocaleString('nl-NL', { month: 'short' }));
+            groups[key].label = level === 'DAY' ? date.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' }) :
+                (level === 'MONTH' ? date.getDate().toString() : date.toLocaleString('nl-NL', { month: 'short' }));
         });
         return Object.values(groups).sort((a, b) => a.rawDate.getTime() - b.rawDate.getTime());
     }, [history, level, selectedDate, isDemoMode]);
@@ -182,7 +186,7 @@ export const SiteEnergyView: React.FC = () => {
         <div className="w-full space-y-8 text-left animate-in fade-in duration-1000">
             {/* KPI GRID */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                
+
                 {/* NETTO GRID BALANS */}
                 <div className="bg-slate-900 border-2 border-blue-500/20 p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-all">
@@ -198,11 +202,10 @@ export const SiteEnergyView: React.FC = () => {
                 </div>
 
                 {/* DYNAMISCHE DAGPIEK KAART */}
-                <div className={`border-2 p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden group transition-all duration-500 ${
-                    peakWarning ? 'bg-red-600 border-red-400 text-white animate-pulse' : 
-                    peakApproaching ? 'bg-orange-500 border-orange-400 text-white' : 
-                    'bg-white dark:bg-slate-850 border-slate-200 dark:border-slate-800'
-                }`}>
+                <div className={`border-2 p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden group transition-all duration-500 ${peakWarning ? 'bg-red-600 border-red-400 text-white animate-pulse' :
+                    peakApproaching ? 'bg-orange-500 border-orange-400 text-white' :
+                        'bg-white dark:bg-slate-850 border-slate-200 dark:border-slate-800'
+                    }`}>
                     <div className="absolute top-0 right-0 p-4 opacity-10">
                         {/* Fix: Replaced non-existent ArrowDownZap with Zap as background decoration icon */}
                         <Zap size={100} />
@@ -219,7 +222,7 @@ export const SiteEnergyView: React.FC = () => {
                         </span>
                         <span className={`text-sm font-black uppercase tracking-widest ${peakApproaching ? 'text-white/50' : 'text-slate-400'}`}>W</span>
                     </div>
-                    
+
                     {/* TECHNISCHE BRUTO REFERENTIE */}
                     <div className={`mt-6 pt-4 border-t ${peakApproaching ? 'border-white/20' : 'border-slate-100 dark:border-slate-800'}`}>
                         <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
@@ -290,20 +293,20 @@ export const SiteEnergyView: React.FC = () => {
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={chartData} barGap={4}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" opacity={0.3} />
-                                <XAxis dataKey="label" stroke="#475569" tick={{fontSize: 10, fontWeight: '900'}} axisLine={false} tickLine={false} dy={10} />
-                                <YAxis stroke="#475569" tick={{fontSize: 10, fontFamily: 'monospace'}} axisLine={false} tickLine={false} tickFormatter={(val) => `${val}${level === 'DAY' ? 'Wh' : 'kWh'}`} />
+                                <XAxis dataKey="label" stroke="#475569" tick={{ fontSize: 10, fontWeight: '900' }} axisLine={false} tickLine={false} dy={10} />
+                                <YAxis stroke="#475569" tick={{ fontSize: 10, fontFamily: 'monospace' }} axisLine={false} tickLine={false} tickFormatter={(val) => `${val}${level === 'DAY' ? 'Wh' : 'kWh'}`} />
                                 <Tooltip contentStyle={{ backgroundColor: '#020617', border: '1px solid #1e293b', borderRadius: '16px' }} cursor={{ fill: 'rgba(59, 130, 246, 0.1)' }} />
-                                
+
                                 {level === 'DAY' && energySettings.maxPowerLimit > 0 && (
-                                    <ReferenceLine 
-                                        y={energySettings.maxPowerLimit / 4} 
-                                        stroke="#ef4444" 
+                                    <ReferenceLine
+                                        y={energySettings.maxPowerLimit / 4}
+                                        stroke="#ef4444"
                                         strokeWidth={2}
-                                        strokeDasharray="5 5" 
-                                        label={{ value: `LIMIET: ${(energySettings.maxPowerLimit/1000).toFixed(1)}kW`, position: 'insideTopRight', fill: '#ef4444', fontSize: 10, fontWeight: '900' }} 
+                                        strokeDasharray="5 5"
+                                        label={{ value: `LIMIET: ${(energySettings.maxPowerLimit / 1000).toFixed(1)}kW`, position: 'insideTopRight', fill: '#ef4444', fontSize: 10, fontWeight: '900' }}
                                     />
                                 )}
-                                
+
                                 {viewTab !== 'PRODUCTION' && (
                                     <Bar dataKey="consumption" fill="#3b82f6" name="Machine Verbruik" radius={[2, 2, 0, 0]} onClick={handleDrillDown} cursor="pointer" />
                                 )}
@@ -331,7 +334,7 @@ export const SiteEnergyView: React.FC = () => {
                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Zon Opbrengst</span>
                         </div>
                     </div>
-                    <button onClick={() => {}} className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-[2rem] text-[10px] font-black uppercase tracking-widest transition-all shadow-xl">
+                    <button onClick={() => { }} className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-[2rem] text-[10px] font-black uppercase tracking-widest transition-all shadow-xl">
                         <Download size={14} className="inline mr-2" /> PDF Rapport
                     </button>
                 </div>
