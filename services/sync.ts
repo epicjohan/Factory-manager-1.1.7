@@ -48,6 +48,24 @@ const COLLECTION_TO_KEY = Object.fromEntries(
 // created/updated meesturen veroorzaakt stille validatiefouten of onjuiste overwrite.
 // PocketBase beheert deze timestamps server-side voor ALLE collections.
 
+// Safe fetch met ingebouwde Timeout om hangende TCP sockets (en een forever-busy SyncLoop) te voorkomen
+const fetchWithTimeout = async (url: string, options: RequestInit & { timeout?: number } = {}) => {
+    const { timeout = 30000, ...fetchOptions } = options;
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    try {
+        const response = await fetch(url, { ...fetchOptions, signal: controller.signal });
+        clearTimeout(id);
+        return response;
+    } catch (error: any) {
+        clearTimeout(id);
+        if (error.name === 'AbortError') {
+            throw new Error(`Time-out opgetreden na ${timeout}ms voor URL: ${url.split('?')[0]}`);
+        }
+        throw error;
+    }
+};
+
 const sanitizeDataForServer = (data: any, collection?: string): any => {
     if (typeof data !== 'object' || data === null) return data;
     const clean = Array.isArray(data) ? [...data] : { ...data };
@@ -113,12 +131,12 @@ export const SyncService = {
     authenticate: async (url: string, email: string, pass: string): Promise<{ success: boolean; token?: string; message: string }> => {
         try {
             const cleanUrl = url.endsWith('/') ? url.slice(0, -1) : url;
-            const res = await fetch(`${cleanUrl}/api/collections/_superusers/auth-with-password`, {
+            const res = await fetchWithTimeout(`${cleanUrl}/api/collections/_superusers/auth-with-password`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ identity: email, password: pass }),
-                timeout: 10000
-            } as any);
+                timeout: 15000
+            });
 
             if (res.ok) {
                 const data = await res.json();
@@ -527,12 +545,12 @@ export const SyncService = {
             const currentHeaders = getHeaders(undefined, hasBinaryContent ? null : 'application/json');
 
             try {
-                let res = await fetch(endpoint, {
+                let res = await fetchWithTimeout(endpoint, {
                     method: entry.action === 'INSERT' ? 'POST' : entry.action === 'UPDATE' ? 'PATCH' : 'DELETE',
                     headers: currentHeaders,
                     body: entry.action === 'DELETE' ? undefined : body,
-                    timeout: 60000
-                } as any);
+                    timeout: 45000
+                });
 
                 // Fallback: Als UPDATE faalt met 404, probeer INSERT (Self-healing)
                 if (!res.ok && res.status === 404 && entry.action === 'UPDATE' && entry.data.id) {
@@ -544,12 +562,12 @@ export const SyncService = {
                         formData.append('id', entry.data.id);
                     }
 
-                    res = await fetch(insertEndpoint, {
+                    res = await fetchWithTimeout(insertEndpoint, {
                         method: 'POST',
                         headers: currentHeaders,
                         body: body,
-                        timeout: 60000
-                    } as any);
+                        timeout: 45000
+                    });
                 }
 
                 if (res.ok) {
@@ -564,8 +582,10 @@ export const SyncService = {
                     const errorMsg = errorJson.message || `Server Error ${res.status}`;
 
                     if (res.status === 400 || res.status === 404) {
-                        // Markeer als gefaald, maar blokkeer niet de rest
-                        await outboxUtils.updateOutboxEntry(entry.id, { error: `${errorMsg} (Data: ${JSON.stringify(errorJson.data)})` });
+                        // Markeer als gefaald en VERWIJDER uit outbox (Irrecoverable Error!)
+                        // Als we dit niet doen, blijft de app deze corrupte wijziging oneindig proberen.
+                        console.error(`Irrecoverable sync error for ${entry.table}`, errorJson);
+                        await db.removeFromOutbox([entry.id]);
                         continue;
                     }
 
@@ -609,7 +629,7 @@ export const SyncService = {
             });
 
             const fullUrl = `${url}/api/collections/${collection}/records?${params.toString()}`;
-            const res = await fetch(fullUrl, { headers, timeout: 20000 } as any);
+            const res = await fetchWithTimeout(fullUrl, { headers, timeout: 25000 });
 
             if (!res.ok) {
                 if (res.status === 401) {
@@ -708,9 +728,9 @@ export const SyncService = {
         const headers = getHeaders();
         try {
             const [energyRes, machinesRes, statusRes] = await Promise.all([
-                fetch(`${url}/api/collections/energy_live/records?sort=-updated&perPage=1`, { headers, timeout: 5000 } as any),
-                fetch(`${url}/api/collections/machines/records?perPage=100&fields=id,liveStats`, { headers, timeout: 5000 } as any),
-                fetch(`${url}/api/collections/system_status/records?perPage=50`, { headers, timeout: 5000 } as any)
+                fetchWithTimeout(`${url}/api/collections/energy_live/records?sort=-updated&perPage=1`, { headers, timeout: 10000 }),
+                fetchWithTimeout(`${url}/api/collections/machines/records?perPage=100&fields=id,liveStats`, { headers, timeout: 10000 }),
+                fetchWithTimeout(`${url}/api/collections/system_status/records?perPage=50`, { headers, timeout: 10000 })
             ]);
             if (energyRes.ok) {
                 const data = await energyRes.json();
