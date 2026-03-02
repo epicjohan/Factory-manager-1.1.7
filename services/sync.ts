@@ -394,6 +394,21 @@ export const SyncService = {
             return;
         }
 
+        if (tableKey === KEYS.SETTINGS_ENERGY) {
+            const currentSettings = store.energySettings || await loadTable<any>(KEYS.SETTINGS_ENERGY, {});
+            const remoteTS = new Date(parsedData.updated || 0).getTime();
+            const localTS = currentSettings.updatedAt || 0;
+
+            if (remoteTS >= localTS) {
+                const merged = { ...currentSettings, ...parsedData, lastRemoteUpdate: Date.now() };
+                await saveTable(KEYS.SETTINGS_ENERGY, merged);
+                await setStore({ ...store, energySettings: merged });
+                window.dispatchEvent(new CustomEvent(`db:${tableKey}:updated`, { detail: merged }));
+                window.dispatchEvent(new CustomEvent('db-updated', { detail: { table: tableKey } }));
+            }
+            return;
+        }
+
         const items = stateKey ? ((store as any)[stateKey] || []) : await loadTable<any[]>(tableKey, []);
         let hasChanges = false;
         let updatedItems: any[];
