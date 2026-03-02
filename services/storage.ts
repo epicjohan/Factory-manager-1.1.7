@@ -143,6 +143,7 @@ export const db = {
         const items = await db.getMkgOperations();
         items.push(op);
         await saveTable(KEYS.MKG_OPERATIONS, items);
+        window.dispatchEvent(new CustomEvent(`db:${KEYS.MKG_OPERATIONS}:updated`, { detail: items }));
         await outboxUtils.addToOutbox(KEYS.MKG_OPERATIONS, 'INSERT', op);
     },
     getDocumentCategories: () => loadTable<DocumentCategory[]>(KEYS.DOCUMENT_CATEGORIES, []),
@@ -150,18 +151,21 @@ export const db = {
         const items = await db.getDocumentCategories();
         items.push(category);
         await saveTable(KEYS.DOCUMENT_CATEGORIES, items);
+        window.dispatchEvent(new CustomEvent(`db:${KEYS.DOCUMENT_CATEGORIES}:updated`, { detail: items }));
         await outboxUtils.addToOutbox(KEYS.DOCUMENT_CATEGORIES, 'INSERT', category);
     },
     updateDocumentCategory: async (category: DocumentCategory) => {
         const items = await db.getDocumentCategories();
         const updated = items.map(c => c.id === category.id ? category : c);
         await saveTable(KEYS.DOCUMENT_CATEGORIES, updated);
+        window.dispatchEvent(new CustomEvent(`db:${KEYS.DOCUMENT_CATEGORIES}:updated`, { detail: updated }));
         await outboxUtils.addToOutbox(KEYS.DOCUMENT_CATEGORIES, 'UPDATE', category);
     },
     deleteDocumentCategory: async (id: string) => {
         const items = await db.getDocumentCategories();
         const filtered = items.filter(c => c.id !== id);
         await saveTable(KEYS.DOCUMENT_CATEGORIES, filtered);
+        window.dispatchEvent(new CustomEvent(`db:${KEYS.DOCUMENT_CATEGORIES}:updated`, { detail: filtered }));
         await outboxUtils.addToOutbox(KEYS.DOCUMENT_CATEGORIES, 'DELETE', { id });
     },
     updateMkgOperation: async (op: PredefinedOperation) => {
@@ -169,11 +173,13 @@ export const db = {
         op.updated = now;
         const items = (await db.getMkgOperations()).map(x => x.id === op.id ? op : x);
         await saveTable(KEYS.MKG_OPERATIONS, items);
+        window.dispatchEvent(new CustomEvent(`db:${KEYS.MKG_OPERATIONS}:updated`, { detail: items }));
         await outboxUtils.addToOutbox(KEYS.MKG_OPERATIONS, 'UPDATE', op);
     },
     deleteMkgOperation: async (id: string) => {
         const items = (await db.getMkgOperations()).filter(x => x.id !== id);
         await saveTable(KEYS.MKG_OPERATIONS, items);
+        window.dispatchEvent(new CustomEvent(`db:${KEYS.MKG_OPERATIONS}:updated`, { detail: items }));
         await outboxUtils.addToOutbox(KEYS.MKG_OPERATIONS, 'DELETE', { id });
     },
 
