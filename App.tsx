@@ -106,7 +106,19 @@ const BackgroundSimulator: React.FC = () => {
 };
 
 const App: React.FC = () => {
-    useEffect(() => { SyncService.start(); return () => SyncService.stop(); }, []);
+    useEffect(() => {
+        SyncService.start();
+
+        const forceSync = () => {
+            SyncService.runSyncLoop();
+        };
+        window.addEventListener('trigger-sync', forceSync);
+
+        return () => {
+            SyncService.stop();
+            window.removeEventListener('trigger-sync', forceSync);
+        };
+    }, []);
     return (
         <ErrorBoundary>
             <NotificationProvider>

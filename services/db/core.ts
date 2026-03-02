@@ -194,13 +194,14 @@ export const outboxUtils = {
                     } else {
                         outbox.push({ id: generateId(), table, action, data, timestamp: Date.now() });
                     }
-                } else {
-                    outbox.push({ id: generateId(), table, action, data, timestamp: Date.now() });
                 }
 
                 if (outbox.length > 1000) outbox = outbox.slice(-1000);
                 await saveTable(KEYS.OUTBOX, outbox);
                 window.dispatchEvent(new CustomEvent('outbox-changed'));
+
+                // Activeer direct de achtergrond synchronisatie zodat de gebruiker nier hoeft te wachten
+                window.dispatchEvent(new CustomEvent('trigger-sync'));
             } catch (e) {
                 console.error("Outbox Queue Error:", e);
             }
