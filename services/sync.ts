@@ -640,35 +640,41 @@ export const SyncService = {
             // Sla energy_live over (aparte stream), en system_audit_logs worden apart gepulled
             if (tableKey === KEYS.ENERGY_LIVE) continue;
 
-            const filterString = `updated >= '${pbFilterValue}'`;
-            const params = new URLSearchParams({
-                filter: filterString,
-                perPage: '500',
-                sort: '-updated'
-            });
+            try {
+                const filterString = `updated >= '${pbFilterValue}'`;
+                const params = new URLSearchParams({
+                    filter: filterString,
+                    perPage: '500',
+                    sort: '-updated'
+                });
 
-            const fullUrl = `${url}/api/collections/${collection}/records?${params.toString()}`;
-            const res = await fetchWithTimeout(fullUrl, { headers, timeout: 25000 });
+                const fullUrl = `${url}/api/collections/${collection}/records?${params.toString()}`;
+                const res = await fetchWithTimeout(fullUrl, { headers, timeout: 25000 });
 
-            if (!res.ok) {
-                if (res.status === 401) {
-                    cachedToken = null;
-                    const meta = await loadTable<any>(KEYS.METADATA, {});
-                    await saveTable(KEYS.METADATA, { ...meta, lastAuthToken: null });
+                if (!res.ok) {
+                    if (res.status === 401) {
+                        cachedToken = null;
+                        const meta = await loadTable<any>(KEYS.METADATA, {});
+                        await saveTable(KEYS.METADATA, { ...meta, lastAuthToken: null });
+                    }
+                    continue;
                 }
+
+                const data = await res.json();
+                if (data.items && data.items.length > 0) {
+                    const mostRecent = data.items[0].updated;
+                    if (mostRecent > newestSeenISO) newestSeenISO = mostRecent;
+
+                    if (tableKey === KEYS.SYSTEM_CONFIG || tableKey === KEYS.SETTINGS_ENERGY) {
+                        await SyncService.updateLocalRecordAfterSync(tableKey, data.items[0]);
+                    } else {
+                        await SyncService.mergeRemoteRecords(tableKey, data.items);
+                    }
+                }
+            } catch (tableError) {
+                console.error(`Fout tijdens pullDeltas voor tabel ${tableKey}:`, tableError);
+                // We slaan deze tabel over en gaan door met de volgende om te voorkomen dat de hele sync vastloopt
                 continue;
-            }
-
-            const data = await res.json();
-            if (data.items && data.items.length > 0) {
-                const mostRecent = data.items[0].updated;
-                if (mostRecent > newestSeenISO) newestSeenISO = mostRecent;
-
-                if (tableKey === KEYS.SYSTEM_CONFIG || tableKey === KEYS.SETTINGS_ENERGY) {
-                    await SyncService.updateLocalRecordAfterSync(tableKey, data.items[0]);
-                } else {
-                    await SyncService.mergeRemoteRecords(tableKey, data.items);
-                }
             }
         }
 
