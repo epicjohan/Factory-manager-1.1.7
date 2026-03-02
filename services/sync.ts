@@ -345,6 +345,8 @@ export const SyncService = {
         const currentTableData = await loadTable<any[]>(tableKey, []);
         const filteredTable = currentTableData.filter(i => i.id !== id);
         await saveTable(tableKey, filteredTable);
+        window.dispatchEvent(new CustomEvent(`db:${tableKey}:updated`, { detail: filteredTable }));
+        window.dispatchEvent(new CustomEvent('db-updated', { detail: { table: tableKey } }));
     },
 
     updateLocalRecordAfterSync: async (tableKey: string, remoteData: any) => {
@@ -419,6 +421,8 @@ export const SyncService = {
                 await setStore({ ...store, [stateKey]: updatedItems });
             }
             await saveTable(tableKey, updatedItems);
+            window.dispatchEvent(new CustomEvent(`db:${tableKey}:updated`, { detail: updatedItems }));
+            window.dispatchEvent(new CustomEvent('db-updated', { detail: { table: tableKey } }));
         }
     },
 
@@ -721,6 +725,8 @@ export const SyncService = {
                 await setStore({ ...store, [stateKey]: updatedLocal });
             }
             await saveTable(tableKey, updatedLocal);
+            window.dispatchEvent(new CustomEvent(`db:${tableKey}:updated`, { detail: updatedLocal }));
+            window.dispatchEvent(new CustomEvent('db-updated', { detail: { table: tableKey } }));
         }
     },
 
