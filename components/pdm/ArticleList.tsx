@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Layers, BookOpen, Plus, Search, Filter, FileText, X, ChevronDown, ChevronUp } from '../../icons';
+import { Layers, BookOpen, Plus, Search, Filter, FileText, X, ChevronDown, ChevronUp, FileUp } from '../../icons';
 import { Article, ArticleStatus, ArticleFile, Machine, AssetType } from '../../types';
 import { FileRole, DMSDocument } from '../../types/pdm';
 import { SyncService } from '../../services/sync';
@@ -17,6 +17,7 @@ interface ArticleListProps {
     onCreateNew: () => void;
     onEdit: (article: Article) => void;
     onOpenCatalog: () => void;
+    onImportExcel: () => void;
     serverUrl?: string;
 }
 
@@ -180,7 +181,7 @@ const DrawingThumbnail: React.FC<{ article: Article; serverUrl?: string }> = ({ 
 
 // ─── Main Component ───────────────────────────────────────────────
 export const ArticleList: React.FC<ArticleListProps> = ({
-    articles, machines, canCreate, canManageCatalog, onCreateNew, onEdit, onOpenCatalog, serverUrl
+    articles, machines, canCreate, canManageCatalog, onCreateNew, onEdit, onOpenCatalog, onImportExcel, serverUrl
 }) => {
     const {
         searchTerm, activeStatuses, sortBy, sortDir, activeMachineIds,
@@ -279,9 +280,14 @@ export const ArticleList: React.FC<ArticleListProps> = ({
                         </button>
                     )}
                     {canCreate && (
-                        <button onClick={onCreateNew} className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-[2rem] font-bold shadow-lg shadow-blue-500/30 flex items-center gap-2 transition-all text-sm">
-                            <Plus size={18} /> Nieuw Artikel
-                        </button>
+                        <div className="flex gap-2">
+                            <button onClick={onImportExcel} className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-[2rem] font-bold shadow-lg shadow-emerald-500/30 flex items-center gap-2 transition-all text-sm">
+                                <FileUp size={18} /> Excel Import
+                            </button>
+                            <button onClick={onCreateNew} className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-[2rem] font-bold shadow-lg shadow-blue-500/30 flex items-center gap-2 transition-all text-sm">
+                                <Plus size={18} /> Nieuw Artikel
+                            </button>
+                        </div>
                     )}
                 </div>
             </div>

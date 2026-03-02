@@ -23,6 +23,7 @@ import { DuplicateSetupModal } from '../components/pdm/modals/DuplicateSetupModa
 import { AddOperationModal } from '../components/pdm/modals/AddOperationModal';
 import { RevisionWizardModal } from '../components/pdm/modals/RevisionWizardModal';
 import { OperationNotesModal } from '../components/pdm/modals/OperationNotesModal';
+import { ImportExcelModal } from '../components/pdm/modals/ImportExcelModal';
 
 // Existing Components (Reused for logic/modals)
 import { ArticleList } from '../components/pdm/ArticleList';
@@ -80,6 +81,8 @@ export const ArticleManagement: React.FC = () => {
     const [notesModal, setNotesModal] = useState<{ isOpen: boolean; opId: string | null }>({
         isOpen: false, opId: null
     });
+
+    const [importModalOpen, setImportModalOpen] = useState(false);
 
     // Permissions
     const canViewPdm = hasPermission(Permission.PDM_VIEW) || hasPermission(Permission.MANAGE_ARTICLES);
@@ -640,16 +643,31 @@ export const ArticleManagement: React.FC = () => {
     // --- MAIN RENDER ---
 
     if (view === 'LIST') {
-        return <ArticleList
-            articles={articles}
-            machines={machines}
-            canCreate={canCreate}
-            canManageCatalog={canManageCatalog}
-            onCreateNew={handleCreateArticle}
-            onEdit={handleEditArticle}
-            onOpenCatalog={() => setView('CATALOG')}
-            serverUrl={serverUrl}
-        />;
+        return (
+            <>
+                <ArticleList
+                    articles={articles}
+                    machines={machines}
+                    canCreate={canCreate}
+                    canManageCatalog={canManageCatalog}
+                    onCreateNew={handleCreateArticle}
+                    onEdit={handleEditArticle}
+                    onOpenCatalog={() => setView('CATALOG')}
+                    onImportExcel={() => setImportModalOpen(true)}
+                    serverUrl={serverUrl}
+                />
+
+                <ImportExcelModal
+                    isOpen={importModalOpen}
+                    onClose={() => setImportModalOpen(false)}
+                    onImportSuccess={() => {
+                        setImportModalOpen(false);
+                        refreshArticles();
+                        addNotification('SUCCESS', 'Import Voltooid', 'De MKG artikelen zijn succesvol ingeladen.');
+                    }}
+                />
+            </>
+        );
     }
 
     if (view === 'CATALOG') {
