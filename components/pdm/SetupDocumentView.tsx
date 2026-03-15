@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { SetupVariant, Machine, PredefinedOperation, SetupTemplate, Article, ArticleFile, SetupStatus, UserRole } from '../../types';
-import { ChevronDown, ChevronRight, LayoutTemplate, Wrench, Hammer, ClipboardList, FileCode, CheckCircle2, AlertTriangle, Trash2, Box, Monitor, Copy, Star, Check, GitBranch, ShieldCheck, History } from '../../icons';
+import { ChevronDown, ChevronRight, LayoutTemplate, Wrench, Hammer, ClipboardList, FileCode, CheckCircle2, AlertTriangle, Trash2, Box, Monitor, Copy, Star, GitBranch, ShieldCheck, History, Lock } from '../../icons';
 import { SetupGeneralTab } from './tabs/SetupGeneralTab';
 import { SetupFixtureTab } from './tabs/SetupFixtureTab';
 import { SetupToolsTab } from './tabs/SetupToolsTab';
@@ -19,7 +19,7 @@ interface SetupDocumentViewProps {
     machines: Machine[];
     mkgOperations: PredefinedOperation[];
     templates: SetupTemplate[];
-    isLocked: boolean; // This is the Article-level lock
+    isArticleObsolete: boolean; // Setups worden ALLEEN geblokkeerd als artikel OBSOLETE is, niet bij LOCKED
     user: any;
     onUpdateSetup: (opId: string, setupId: string, updates: Partial<SetupVariant>, customLogMessage?: string) => void;
     onDuplicateSetup: (opId: string, setup: SetupVariant) => void;
@@ -63,7 +63,7 @@ const CollapsibleSection = ({
 };
 
 export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
-    article, setup, activeOpId, machines, mkgOperations, templates, isLocked, user,
+    article, setup, activeOpId, machines, mkgOperations, templates, isArticleObsolete, user,
     onUpdateSetup, onDuplicateSetup, onDeleteSetup, onSetDefault, onPreviewFile, onUpdateFiles, onRevision
 }) => {
 
@@ -92,10 +92,14 @@ export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
     const isReview = currentStatus === SetupStatus.REVIEW;
     const isDraft = currentStatus === SetupStatus.DRAFT;
 
-    // Setup Lock: True if Article is locked OR Setup is NOT Draft
-    const isSetupLocked = isLocked || !isDraft;
+    // Setup Lock: Alleen geblokkeerd als artikel OBSOLETE is, of als de setup zelf niet in DRAFT staat.
+    // Artikel LOCKED heeft GEEN invloed — operators moeten setups kunnen blijven bewerken.
+    const isSetupLocked = isArticleObsolete || !isDraft;
 
     const canManage = user?.role === UserRole.MANAGER || user?.role === UserRole.ADMIN;
+
+    // Bevestigingsmodal voor vrijgeven
+    const [showReleaseConfirm, setShowReleaseConfirm] = useState(false);
 
     // Update handlers wrappers
     const handleUpdateSetupWrapper = (updates: Partial<SetupVariant>, customLog?: string) => onUpdateSetup(activeOpId, setup.id, updates, customLog);
@@ -143,7 +147,7 @@ export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
                     </div>
                 </div>
                 <div className="flex gap-2">
-                    {!isLocked && !isArchived && (
+                    {!isArticleObsolete && !isArchived && (
                         <>
                             {!setup.isDefault && (
                                 <button
@@ -200,7 +204,8 @@ export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
 
                 <div className="flex gap-2">
                     {/* DRAFT -> REVIEW */}
-                    {isDraft && !isLocked && (
+                    {/* NOTE: artikel-lock heeft géén invloed op setup-statuswijzigingen */}
+                    {isDraft && (
                         <button
                             onClick={() => changeStatus(SetupStatus.REVIEW)}
                             className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-sm transition-all active:scale-95"
@@ -210,7 +215,7 @@ export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
                     )}
 
                     {/* REVIEW -> RELEASE / DRAFT */}
-                    {isReview && canManage && !isLocked && (
+                    {isReview && canManage && (
                         <>
                             <button
                                 onClick={() => changeStatus(SetupStatus.DRAFT)}
@@ -219,16 +224,16 @@ export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
                                 Afkeuren
                             </button>
                             <button
-                                onClick={() => changeStatus(SetupStatus.RELEASED)}
+                                onClick={() => setShowReleaseConfirm(true)}
                                 className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-sm transition-all active:scale-95"
                             >
-                                Goedkeuren & Vrijgeven
+                                Goedkeuren &amp; Vrijgeven
                             </button>
                         </>
                     )}
 
                     {/* RELEASED -> NEW VERSION */}
-                    {isReleased && !isLocked && (
+                    {isReleased && (
                         <button
                             onClick={() => onRevision(activeOpId, setup)}
                             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-sm flex items-center gap-2 transition-all active:scale-95"
@@ -379,6 +384,9 @@ export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
                             onAddTool={handleAddTool}
                             onDeleteTool={handleDeleteTool}
                             onUpdateSetup={handleUpdateSetupWrapper}
+                            article={article}
+                            setup={setup}
+                            machines={machines}
                         />
                     </CollapsibleSection>
                 )}
@@ -417,6 +425,80 @@ export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
                     </CollapsibleSection>
                 )}
             </div>
+            {/* VRIJGAVE BEVESTIGINGSMODAL */}
+            {showReleaseConfirm && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[200] animate-in fade-in duration-200 p-4">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md border border-slate-200 dark:border-slate-700 overflow-hidden">
+                        {/* Header */}
+                        <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex items-center gap-4 bg-green-50 dark:bg-green-900/20">
+                            <div className="p-3 bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 rounded-xl">
+                                <Lock size={24} />
+                            </div>
+                            <div>
+                                <h2 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight">Setup Vrijgeven</h2>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">Deze actie kan niet ongedaan worden gemaakt</p>
+                            </div>
+                        </div>
+
+                        {/* Body */}
+                        <div className="p-6 space-y-5">
+                            <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                                Je staat op het punt <span className="text-green-600 dark:text-green-400 font-black">{setup.name}</span> vrij te geven voor productie.
+                            </p>
+
+                            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl overflow-hidden">
+                                {/* Waarschuwing header */}
+                                <div className="flex items-center gap-2 px-4 py-2.5 border-b border-amber-200 dark:border-amber-800 bg-amber-100/60 dark:bg-amber-900/40">
+                                    <AlertTriangle size={14} className="text-amber-600 dark:text-amber-400 shrink-0" />
+                                    <span className="text-[10px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-widest">Wat betekent vrijgeven?</span>
+                                </div>
+
+                                {/* Punten */}
+                                <div className="divide-y divide-amber-100 dark:divide-amber-900/50">
+                                    <div className="flex items-start gap-3 px-4 py-3">
+                                        <Lock size={15} className="text-amber-500 dark:text-amber-400 mt-0.5 shrink-0" />
+                                        <div>
+                                            <p className="text-xs font-black text-amber-800 dark:text-amber-300">Setup wordt vergrendeld</p>
+                                            <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">Alle velden zijn na vrijgave niet meer aanpasbaar.</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-3 px-4 py-3">
+                                        <GitBranch size={15} className="text-amber-500 dark:text-amber-400 mt-0.5 shrink-0" />
+                                        <div>
+                                            <p className="text-xs font-black text-amber-800 dark:text-amber-300">Wijzigingen via nieuwe versie</p>
+                                            <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">Gebruik "Nieuwe Versie" om aanpassingen te maken na vrijgave.</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-3 px-4 py-3">
+                                        <ShieldCheck size={15} className="text-amber-500 dark:text-amber-400 mt-0.5 shrink-0" />
+                                        <div>
+                                            <p className="text-xs font-black text-amber-800 dark:text-amber-300">Zichtbaar op de productievloer</p>
+                                            <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">De vrijgegeven versie is direct beschikbaar voor operators.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        {/* Footer */}
+                        <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-700 flex justify-end gap-3 bg-slate-50 dark:bg-slate-900/50">
+                            <button
+                                onClick={() => setShowReleaseConfirm(false)}
+                                className="px-5 py-2.5 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl font-bold text-sm transition-all"
+                            >
+                                Annuleren
+                            </button>
+                            <button
+                                onClick={() => { changeStatus(SetupStatus.RELEASED); setShowReleaseConfirm(false); }}
+                                className="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-black text-sm shadow-lg shadow-green-500/30 flex items-center gap-2 transition-all active:scale-95"
+                            >
+                                <ShieldCheck size={16} /> Bevestigen &amp; Vrijgeven
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

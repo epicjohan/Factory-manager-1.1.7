@@ -612,7 +612,7 @@ export const ArticleManagement: React.FC = () => {
                         machines={machines}
                         mkgOperations={mkgOperations}
                         templates={templates}
-                        isLocked={isLocked} // Article level lock
+                        isArticleObsolete={isObsolete} // Alleen OBSOLETE blokkeert setups volledig
                         user={user}
                         onUpdateSetup={handleUpdateSetup}
                         onDuplicateSetup={handleDuplicateSetup}

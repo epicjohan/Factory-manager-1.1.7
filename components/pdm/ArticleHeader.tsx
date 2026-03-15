@@ -50,11 +50,13 @@ export const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, isLocked,
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        // NOTE: `revision` is intentionally omitted — PLM revisie mag NOOIT
+        // direct worden opgeslagen via de stamgegevens-form. Uitsluitend via
+        // articleService.createNewRevision() (knop "Nieuwe Revisie").
         onSave({
             articleCode: formCode,
             drawingNumber: formDrawing,
             drawingRevision: formDrawingRev,
-            revision: formRev,
             posNumber: formPos,
             name: formName,
             description2: formDesc2

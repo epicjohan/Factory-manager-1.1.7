@@ -1,9 +1,11 @@
-import React, { useState, useMemo } from 'react';
-import { Wrench, Plus, Info, RotateCcw, AlertTriangle, X, History, Clock, Trash2 } from '../../../icons';
-import { ArticleTool, SetupTemplate, SetupChangeEntry, SetupVariant, SetupFieldDefinition } from '../../../types';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Wrench, Plus, Info, RotateCcw, AlertTriangle, X, History, Clock, Trash2, Printer } from '../../../icons';
+import { ArticleTool, SetupTemplate, SetupChangeEntry, SetupVariant, SetupFieldDefinition, Article } from '../../../types';
+import { Machine } from '../../../types';
 import { ToolBlock } from '../shared/ToolBlock';
-import { generateId } from '../../../services/db/core';
+import { generateId, loadTable, KEYS } from '../../../services/db/core';
 import { useAuth } from '../../../contexts/AuthContext';
+import { SetupSheet } from '../SetupSheet';
 
 interface SetupToolsTabProps {
     tools: ArticleTool[];
@@ -16,12 +18,29 @@ interface SetupToolsTabProps {
     onAddTool: () => void;
     onDeleteTool: (toolId: string) => void;
     onUpdateSetup?: (updates: Partial<SetupVariant>) => void;
+    // Voor Setup Sheet
+    article?: Article;
+    setup?: SetupVariant;
+    machines?: Machine[];
 }
 
 export const SetupToolsTab: React.FC<SetupToolsTabProps> = ({
-    tools, isLocked, toolFields, isLegacyMode, templateName, changeLog, onUpdateTool, onAddTool, onDeleteTool, onUpdateSetup
+    tools, isLocked, toolFields, isLegacyMode, templateName, changeLog, onUpdateTool, onAddTool, onDeleteTool, onUpdateSetup,
+    article, setup, machines
 }) => {
     const { user } = useAuth();
+
+    // Setup Sheet state
+    const [showSheet, setShowSheet] = useState(false);
+    const [companyName, setCompanyName] = useState('Factory Manager');
+
+    useEffect(() => {
+        loadTable<any>(KEYS.METADATA, {}).then(meta => {
+            if (meta?.companyName) setCompanyName(meta.companyName);
+        });
+    }, []);
+
+    const activeMachine = machines?.find(m => m.id === setup?.machineId) || null;
 
     // State
     const [showHistory, setShowHistory] = useState(false);
@@ -145,9 +164,21 @@ export const SetupToolsTab: React.FC<SetupToolsTabProps> = ({
                         <History size={12} /> {showHistory ? 'Verberg Historie' : 'Toon Historie'}
                     </button>
                 </div>
-                {!isLocked && (
-                    <button onClick={onAddTool} className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-[2rem] font-black text-[11px] uppercase shadow-lg shadow-blue-500/20 transition-all hover:scale-105 active:scale-95"><Plus size={16} /> Tool Toevoegen</button>
-                )}
+                <div className="flex items-center gap-2">
+                    {/* Setup Sheet knoppen */}
+                    {article && setup && (
+                        <button
+                            onClick={() => setShowSheet(true)}
+                            className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-[2rem] font-bold text-[11px] uppercase tracking-widest transition-all"
+                            title="Setup Sheet openen / printen / PDF downloaden"
+                        >
+                            <Printer size={14} /> Setup Sheet
+                        </button>
+                    )}
+                    {!isLocked && (
+                        <button onClick={onAddTool} className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-[2rem] font-black text-[11px] uppercase shadow-lg shadow-blue-500/20 transition-all hover:scale-105 active:scale-95"><Plus size={16} /> Tool Toevoegen</button>
+                    )}
+                </div>
             </div>
 
             <div className="flex flex-col gap-3 pb-10">
@@ -272,6 +303,16 @@ export const SetupToolsTab: React.FC<SetupToolsTabProps> = ({
                         </div>
                     </div>
                 </div>
+            )}
+            {/* SETUP SHEET OVERLAY */}
+            {showSheet && article && setup && (
+                <SetupSheet
+                    article={article}
+                    setup={setup}
+                    machine={activeMachine}
+                    companyName={companyName}
+                    onClose={() => setShowSheet(false)}
+                />
             )}
         </div>
     );

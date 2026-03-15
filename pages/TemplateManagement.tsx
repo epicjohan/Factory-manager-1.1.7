@@ -10,7 +10,7 @@ import { KEYS, generateId } from '../services/db/core';
 import {
     ArrowLeft, LayoutTemplate, Plus, Trash2, Save, Edit,
     ChevronUp, ChevronDown, Check, X, FileText, Hash,
-    ToggleLeft, List, AlignLeft, Type, Wrench, Layers, Copy, Box, AlertTriangle, LayoutGrid
+    ToggleLeft, List, AlignLeft, Type, Wrench, Layers, Copy, Box, AlertTriangle, LayoutGrid, Sparkles
 } from '../icons';
 
 const FIELD_TYPES: { type: SetupFieldType; label: string; icon: any }[] = [
@@ -29,6 +29,16 @@ const COL_SPANS = [
     { val: 6, label: 'Half (50%)' },
     { val: 4, label: 'Derde (33%)' },
     { val: 3, label: 'Kwart (25%)' },
+];
+
+/** Standaard legacy tool-velden als preset voor nieuwe templates */
+const STANDARD_TOOL_FIELDS: SetupFieldDefinition[] = [
+    { key: 'snijlengte', label: 'Snijlengte', type: 'number', colSpan: 4, unit: 'mm' },
+    { key: 'uitsteeklengte', label: 'Uitsteeklengte', type: 'number', colSpan: 4, unit: 'mm' },
+    { key: 'vrijloop', label: 'Vrijloop', type: 'number', colSpan: 4, unit: 'mm' },
+    { key: 'houder', label: 'Houder', type: 'text', colSpan: 4 },
+    { key: 'matrixCode', label: 'Matrix Code', type: 'text', colSpan: 4 },
+    { key: 'internalCooling', label: 'Interne Koeling', type: 'boolean', colSpan: 4 },
 ];
 
 export const TemplateManagement: React.FC = () => {
@@ -196,6 +206,21 @@ export const TemplateManagement: React.FC = () => {
         }
     };
 
+    /**
+     * Voegt de standaard legacy tool-velden toe als preset.
+     * Slaat velden over die al bestaan (op basis van key).
+     */
+    const addStandardToolFields = () => {
+        const existing = editData.toolFields || [];
+        const existingKeys = new Set(existing.map(f => f.key));
+        const toAdd = STANDARD_TOOL_FIELDS.filter(f => !existingKeys.has(f.key));
+        if (toAdd.length === 0) {
+            alert('Alle standaard velden zijn al aanwezig in dit sjabloon.');
+            return;
+        }
+        setEditData({ ...editData, toolFields: [...existing, ...toAdd] });
+    };
+
     // --- OPTION BUILDER ---
     const addOption = () => {
         if (!optionInput.trim()) return;
@@ -316,9 +341,21 @@ export const TemplateManagement: React.FC = () => {
                                     <h3 className="font-black text-slate-400 uppercase tracking-[0.2em] text-sm">
                                         {isProcessTemplate ? 'Proces Configuratie' : (activeTab === 'FIXTURE' ? 'Opspanning Configuratie' : 'Gereedschap Configuratie')}
                                     </h3>
-                                    <button onClick={() => openFieldEditor()} className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-bold shadow-sm hover:border-indigo-500 hover:text-indigo-600 transition-all flex items-center gap-2">
-                                        <Plus size={14} /> Veld Toevoegen
-                                    </button>
+                                    <div className="flex items-center gap-2">
+                                        {/* Standaard velden knop — alleen op TOOLS tab */}
+                                        {activeTab === 'TOOLS' && !isProcessTemplate && (
+                                            <button
+                                                onClick={addStandardToolFields}
+                                                className="px-4 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 text-amber-700 dark:text-amber-400 rounded-2xl text-xs font-bold shadow-sm hover:bg-amber-100 transition-all flex items-center gap-2"
+                                                title="Voegt Snijlengte, Uitsteeklengte, Vrijloop, Houder, Matrix Code en Interne Koeling toe als standaard velden"
+                                            >
+                                                <Sparkles size={14} /> Standaard Velden Toevoegen
+                                            </button>
+                                        )}
+                                        <button onClick={() => openFieldEditor()} className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-bold shadow-sm hover:border-indigo-500 hover:text-indigo-600 transition-all flex items-center gap-2">
+                                            <Plus size={14} /> Veld Toevoegen
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <div className="space-y-3">

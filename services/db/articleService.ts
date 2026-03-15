@@ -78,9 +78,16 @@ export const articleService = {
         const idx = items.findIndex(x => x.id === a.id);
 
         if (idx !== -1) {
-            items[idx] = a;
+            // GUARD: PLM revisie is heilig — altijd de huidige waarde uit de DB behouden,
+            // nooit de binnenkomende waarde accepteren. Ophogen mag uitsluitend via
+            // articleService.createNewRevision().
+            const protectedArticle: Article = {
+                ...a,
+                revision: items[idx].revision
+            };
+            items[idx] = protectedArticle;
             await saveTable(KEYS.ARTICLES, items);
-            await outboxUtils.addToOutbox(KEYS.ARTICLES, 'UPDATE', a);
+            await outboxUtils.addToOutbox(KEYS.ARTICLES, 'UPDATE', protectedArticle);
         }
     },
 

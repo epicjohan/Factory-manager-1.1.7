@@ -108,7 +108,8 @@ export const ImportExcelModal: React.FC<ImportExcelModalProps> = ({ isOpen, onCl
                     name: name || 'Geen omschrijving',
                     description2: (row['Omschrijving 2'] || '').toString().trim(),
                     drawingNumber: (row.Tekening || '').toString().trim(),
-                    revision: (row.Revisie || '').toString().trim() || '-',
+                    drawingRevision: (row.Revisie || '').toString().trim() || undefined,
+                    revision: '-', // PLM revisie wordt nooit vanuit Excel import gezet
                     posNumber: (row.Pos || '').toString().trim(),
                     // Default values for new articles
                     status: ArticleStatus.DRAFT,
