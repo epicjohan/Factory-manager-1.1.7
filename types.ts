@@ -6,3 +6,4 @@ export * from './types/maintenance';
 export * from './types/pdm';
 export * from './types/energy';
 export * from './types/system';
+export * from './types/compliance';

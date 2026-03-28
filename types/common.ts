@@ -52,7 +52,8 @@ export enum AppModule {
   PLANNER = 'PLANNER',
   INVENTORY = 'INVENTORY',
   TOOLGUARD = 'TOOLGUARD',
-  ARTICLES = 'ARTICLES'
+  ARTICLES = 'ARTICLES',
+  COMPLIANCE = 'COMPLIANCE'
 }
 
 export enum AssetTab {

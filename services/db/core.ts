@@ -36,19 +36,24 @@ export const KEYS = {
     MKG_OPERATIONS: 'fm_table_mkg_operations',
     SETUP_TEMPLATES: 'fm_table_setup_templates',
     DOCUMENT_CATEGORIES: 'fm_table_document_categories',
-    DOCUMENTS: 'fm_table_documents'
+    DOCUMENTS: 'fm_table_documents',
+    QMS_FRAMEWORKS: 'fm_table_qms_frameworks',
+    QMS_FOLDERS: 'fm_table_qms_folders',
+    QMS_AUDITS: 'fm_table_qms_audits'
 };
 
 export const DB_NAME = 'FactoryManagerDB';
-export const CURRENT_DB_VERSION = 3;
+export const CURRENT_DB_VERSION = 4;
 
+// BUG B-05 FIX: crypto.getRandomValues() is cryptografisch veilig — onvoorspelbaar en niet repliceerbaar.
+// Math.random() is deterministisch en kan worden voorspeld bij kennis van de seed.
 export const generateId = (length: number = 15): string => {
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-    for (let i = 0; i < length; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
+    const randomBytes = new Uint8Array(length);
+    crypto.getRandomValues(randomBytes);
+    return Array.from(randomBytes)
+        .map(b => chars[b % chars.length])
+        .join('');
 };
 
 export const getNowISO = () => {
@@ -74,7 +79,8 @@ export const ensureParsedData = (data: any): any => {
         'allowedAssetIds', 'allowedModules', 'allowedTabs',
         'activeModules', 'notificationEmails', 'actions',
         'usedParts', 'shifts', 'andonConfig', 'mtConnectConfig',
-        'fields', 'toolFields', 'templateData', 'operations', 'bomItems', 'files', 'auditTrail'
+        'fields', 'toolFields', 'templateData', 'operations', 'bomItems', 'files', 'auditTrail',
+        'documents'
     ];
 
     Object.keys(result).forEach(key => {
@@ -82,6 +88,8 @@ export const ensureParsedData = (data: any): any => {
             try {
                 result[key] = JSON.parse(result[key]);
             } catch (e) {
+                // B-02 FIX: waarschuw bij ongeldige JSON zodat dataproblemen zichtbaar worden
+                console.warn(`[ensureParsedData] Kon veld '${key}' niet parsen als JSON:`, e);
             }
         }
     });
@@ -183,6 +191,7 @@ export const outboxUtils = {
                 let outbox = await loadTable<SyncEntry[]>(KEYS.OUTBOX, []);
 
                 if (action === 'UPDATE' && data.id) {
+                    // BUG B-01 FIX: UPDATE heeft dedup-logica — samenvoegen met bestaand item indien aanwezig.
                     const existingIdx = outbox.findIndex(item => item && item.table === table && (item.action === 'UPDATE' || item.action === 'INSERT') && item.data && item.data.id === data.id);
                     if (existingIdx !== -1) {
                         outbox[existingIdx] = {
@@ -194,6 +203,10 @@ export const outboxUtils = {
                     } else {
                         outbox.push({ id: generateId(), table, action, data, timestamp: Date.now() });
                     }
+                } else {
+                    // BUG B-01 FIX: INSERT en DELETE worden altijd als nieuw item toegevoegd.
+                    // Voorheen vielen deze buiten het if-blok en werden ze nooit naar de server gestuurd.
+                    outbox.push({ id: generateId(), table, action, data, timestamp: Date.now() });
                 }
 
                 if (outbox.length > 1000) outbox = outbox.slice(-1000);

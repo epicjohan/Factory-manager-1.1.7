@@ -185,6 +185,7 @@ export const SetupToolsTab: React.FC<SetupToolsTabProps> = ({
                 {visibleTools.map(tool => (
                     <div key={tool.id}>
                         <ToolBlock
+                            articleId={article?.id}
                             tool={tool}
                             disabled={isLocked || tool.status === 'REPLACED'}
                             onUpdate={(updates) => onUpdateTool(tool.id, updates)}

@@ -2,6 +2,8 @@
 import { getStore, setStore, db } from './storage';
 import { AppState, SyncEntry, SyncAction, UploadedDocument } from '../types';
 import { KEYS, loadTable, saveTable, outboxUtils, formatDateForPB, ensureParsedData } from './db/core';
+import { APP_INFO } from './appInfo';
+import { VersionManager } from './versionManager';
 
 let syncTimer: any = null;
 let isSyncBusy = false;
@@ -10,6 +12,43 @@ let eventSource: EventSource | null = null;
 let failCount = 0;
 let lastClientId: string | null = null;
 let cachedToken: string | null = null;
+// FIX #1: Pending sync flag — als een sync-aanvraag binnenkomt terwijl de loop bezig is,
+// wordt deze vlag gezet en wordt de sync direct gestart zodra de loop vrij is.
+let pendingSyncRequest = false;
+
+// BUG B-03 FIX: Multi-tab sync-lock via localStorage.
+// Elke tab die de sync loop uitvoert claimt de lock met een timestamp.
+// Andere tabs controleren of de lock recent is bijgewerkt (< 60s) en slaan de loop over.
+const SYNC_LOCK_KEY = 'fm_sync_lock';
+// S-3 FIX: 30s TTL i.p.v. 60s — andere tab wacht minder lang na crash van actieve tab
+const SYNC_LOCK_TTL_MS = 30000;
+
+const claimSyncLock = (): boolean => {
+    try {
+        const now = Date.now();
+        const existing = localStorage.getItem(SYNC_LOCK_KEY);
+        if (existing) {
+            const { ts } = JSON.parse(existing);
+            if (now - ts < SYNC_LOCK_TTL_MS) return false; // Andere tab is actief
+        }
+        localStorage.setItem(SYNC_LOCK_KEY, JSON.stringify({ ts: now }));
+        return true;
+    } catch { return true; } // Bij fout: doorgaan om data-verlies te voorkomen
+};
+
+const renewSyncLock = () => {
+    try { localStorage.setItem(SYNC_LOCK_KEY, JSON.stringify({ ts: Date.now() })); } catch { }
+};
+
+const releaseSyncLock = () => {
+    try { localStorage.removeItem(SYNC_LOCK_KEY); } catch { }
+};
+
+// S-3 FIX: Geef de sync lock automatisch vrij bij tab-sluiting of navigatie.
+// Zonder dit wacht een andere tab de volledige TTL bij een abrupte tab-close.
+if (typeof window !== 'undefined') {
+    window.addEventListener('pagehide', releaseSyncLock);
+}
 
 const TABLE_MAP: Record<string, string> = {
     [KEYS.USERS]: 'app_users',
@@ -38,12 +77,48 @@ const TABLE_MAP: Record<string, string> = {
     [KEYS.DOCUMENT_CATEGORIES]: 'document_categories',
     [KEYS.DOCUMENTS]: 'documents',
     [KEYS.ASSET_ENERGY_CONFIGS]: 'asset_energy_configs',
-    [KEYS.LOGS_ENERGY_QUARTERLY]: 'logs_energy_quarterly'
+    [KEYS.LOGS_ENERGY_QUARTERLY]: 'logs_energy_quarterly',
+    [KEYS.QMS_FRAMEWORKS]: 'qms_frameworks',
+    [KEYS.QMS_FOLDERS]: 'qms_folders',
+    [KEYS.QMS_AUDITS]: 'qms_audits'
 };
 
 const COLLECTION_TO_KEY = Object.fromEntries(
     Object.entries(TABLE_MAP).map(([key, coll]) => [coll, key])
 );
+
+// S-5 FIX: Centrale mapping van tableKey → AppState property naam.
+// Voorheen 3× gedupliceerd in removeLocalRecord, updateLocalRecordAfterSync en mergeRemoteRecords.
+// Nieuwe collectie toevoegen? Alleen hier aanpassen.
+const STATE_KEY_MAP: Partial<Record<string, keyof AppState>> = {
+    [KEYS.USERS]: 'users',
+    [KEYS.MACHINES]: 'machines',
+    [KEYS.TICKETS]: 'maintenanceTickets',
+    [KEYS.LOGS_MIXING]: 'mixingLogs',
+    [KEYS.LOGS_MIST]: 'mistLogs',
+    [KEYS.LOGS_CHECKLIST]: 'checklistLogs',
+    [KEYS.LOGS_EFFICIENCY]: 'efficiencyLogs',
+    [KEYS.EVENTS]: 'maintenanceEvents',
+    [KEYS.PARTS_MACHINE]: 'machineParts',
+    [KEYS.PARTS_GENERAL]: 'generalParts' as keyof AppState,
+    [KEYS.REQUESTS]: 'supportRequests',
+    [KEYS.SCHEDULES]: 'schedules',
+    [KEYS.SNAPSHOTS]: 'snapshots',
+    [KEYS.SYSTEM_STATUS]: 'systemStatus' as keyof AppState,
+    [KEYS.SYSTEM_AUDIT_LOGS]: 'systemAuditLogs' as keyof AppState,
+    [KEYS.SETTINGS_ENERGY]: 'energySettings' as keyof AppState,
+    [KEYS.LOGS_ENERGY_HISTORICAL]: 'energyHistorical',
+    [KEYS.MKG_OPERATIONS]: 'mkgOperations',
+    [KEYS.ARTICLES]: 'articles',
+    [KEYS.SETUP_TEMPLATES]: 'setupTemplates',
+    [KEYS.ROLES]: 'roles',
+    [KEYS.DOCUMENT_CATEGORIES]: 'documentCategories',
+    [KEYS.ASSET_ENERGY_CONFIGS]: 'assetEnergyConfigs',
+    [KEYS.SYSTEM_CONFIG]: 'systemSettings' as keyof AppState,
+    [KEYS.QMS_FRAMEWORKS]: 'qmsFrameworks',
+    [KEYS.QMS_FOLDERS]: 'qmsFolders',
+    [KEYS.QMS_AUDITS]: 'qmsAudits'
+};
 
 // created/updated meesturen veroorzaakt stille validatiefouten of onjuiste overwrite.
 // PocketBase beheert deze timestamps server-side voor ALLE collections.
@@ -88,7 +163,9 @@ const sanitizeDataForServer = (data: any, collection?: string): any => {
 };
 
 const getHeaders = (token?: string, contentType: string | null = 'application/json') => {
-    const h: Record<string, string> = {};
+    const h: Record<string, string> = {
+        'X-App-Version': APP_INFO.VERSION
+    };
     const effectiveToken = token || cachedToken;
     if (effectiveToken && effectiveToken.trim().length > 10) {
         let cleanToken = effectiveToken.trim();
@@ -213,12 +290,30 @@ export const SyncService = {
         }
 
         if (isSyncBusy) {
-            syncTimer = setTimeout(SyncService.runSyncLoop, 5000);
+            // FIX #1: Markeer als pending zodat de sync direct hervat na vrijkomen van de lock.
+            pendingSyncRequest = true;
             return;
         }
 
         isSyncBusy = true;
+        // B-03 FIX: Claim de sync lock. Andere tabs zien de lock en slaan hun loop over.
+        const hasLock = claimSyncLock();
+        if (!hasLock) {
+            isSyncBusy = false;
+            SyncService.scheduleNextRun(15000); // Wacht en probeer opnieuw
+            return;
+        }
         try {
+            // Security/Data-Integrity FIX: Block sync entirely if the client is outdated
+            const isOutdated = await VersionManager.isClientOutdated();
+            if (isOutdated) {
+                updateConnectionStatus('OFFLINE', 'Verouderde App Versie. Ververs de pagina om te updaten.');
+                SyncService.scheduleNextRun(60000); // Check slow
+                isSyncBusy = false;
+                releaseSyncLock();
+                return;
+            }
+
             if (!cachedToken) {
                 const authRes = await SyncService.authenticate(serverConfig.url, serverConfig.email, serverConfig.password);
                 if (authRes.success) {
@@ -227,6 +322,7 @@ export const SyncService = {
                     updateConnectionStatus('OFFLINE', authRes.message);
                     SyncService.scheduleNextRun(30000);
                     isSyncBusy = false;
+                    releaseSyncLock();
                     return;
                 }
             }
@@ -237,6 +333,7 @@ export const SyncService = {
                 isBootstrapped = true;
             }
 
+            renewSyncLock(); // Verleng de lock halverwege de sync
             const outboxProcessed = await SyncService.processOutbox(serverConfig.url);
             await SyncService.pullDeltas(serverConfig.url);
             await SyncService.fetchLiveStreams(serverConfig.url);
@@ -261,6 +358,13 @@ export const SyncService = {
             SyncService.scheduleNextRun(backoffDelay);
         } finally {
             isSyncBusy = false;
+            releaseSyncLock();
+            // FIX #1: Pending aanvraag afhandelen — start direct opnieuw als er een schrijfactie
+            // binnenkwam tijdens de sync (bijv. monteur die snel meerdere waarden aanpast).
+            if (pendingSyncRequest) {
+                pendingSyncRequest = false;
+                SyncService.scheduleNextRun(500);
+            }
         }
     },
 
@@ -276,7 +380,12 @@ export const SyncService = {
         if (store.isDemoMode || !effectiveUrl || !serverConfig.email || eventSource) return;
 
         try {
-            eventSource = new EventSource(`${effectiveUrl}/api/realtime`);
+            // FIX #2: Token meesturen als URL param — EventSource ondersteunt geen custom headers.
+            // PocketBase accepteert ?token= als alternatief voor de Authorization header.
+            const realtimeUrl = cachedToken
+                ? `${effectiveUrl}/api/realtime?token=${encodeURIComponent(cachedToken)}`
+                : `${effectiveUrl}/api/realtime`;
+            eventSource = new EventSource(realtimeUrl);
 
             eventSource.onerror = () => {
                 if (eventSource) { eventSource.close(); eventSource = null; }
@@ -312,28 +421,20 @@ export const SyncService = {
                             }
                         }
                     }
-                } catch (err) { }
+                } catch (err) {
+                    // B-02 FIX: log realtime bericht verwerkingsfouten
+                    console.warn('[SyncService] Fout bij verwerken realtime bericht:', err);
+                }
             };
-        } catch (e) { }
+        } catch (e) {
+            // B-02 FIX: log fouten bij initialiseren van de EventSource verbinding
+            console.warn('[SyncService] Fout bij initialiseren van realtime verbinding:', e);
+        }
     },
 
     removeLocalRecord: async (tableKey: string, id: string) => {
-        const propMap: Record<string, keyof AppState> = {
-            [KEYS.USERS]: 'users', [KEYS.MACHINES]: 'machines', [KEYS.TICKETS]: 'maintenanceTickets',
-            [KEYS.LOGS_MIXING]: 'mixingLogs', [KEYS.LOGS_MIST]: 'mistLogs', [KEYS.LOGS_CHECKLIST]: 'checklistLogs',
-            [KEYS.LOGS_EFFICIENCY]: 'efficiencyLogs', [KEYS.EVENTS]: 'maintenanceEvents',
-            [KEYS.PARTS_MACHINE]: 'machineParts', [KEYS.PARTS_GENERAL]: 'generalParts' as any,
-            [KEYS.REQUESTS]: 'supportRequests', [KEYS.SCHEDULES]: 'schedules',
-            [KEYS.LOGS_ENERGY_HISTORICAL]: 'energyHistorical',
-            [KEYS.MKG_OPERATIONS]: 'mkgOperations',
-            [KEYS.ARTICLES]: 'articles',
-            [KEYS.SETUP_TEMPLATES]: 'setupTemplates',
-            [KEYS.ROLES]: 'roles',
-            [KEYS.DOCUMENT_CATEGORIES]: 'documentCategories',
-            [KEYS.ASSET_ENERGY_CONFIGS]: 'assetEnergyConfigs'
-        };
-
-        const stateKey = propMap[tableKey];
+        // S-5 FIX: Gebruik centrale STATE_KEY_MAP i.p.v. lokale propMap
+        const stateKey = STATE_KEY_MAP[tableKey];
 
         if (stateKey) {
             const store = await getStore();
@@ -350,25 +451,8 @@ export const SyncService = {
     },
 
     updateLocalRecordAfterSync: async (tableKey: string, remoteData: any) => {
-        const propMap: Record<string, keyof AppState> = {
-            [KEYS.USERS]: 'users', [KEYS.MACHINES]: 'machines', [KEYS.TICKETS]: 'maintenanceTickets',
-            [KEYS.LOGS_MIXING]: 'mixingLogs', [KEYS.LOGS_MIST]: 'mistLogs', [KEYS.LOGS_CHECKLIST]: 'checklistLogs',
-            [KEYS.LOGS_EFFICIENCY]: 'efficiencyLogs', [KEYS.EVENTS]: 'maintenanceEvents',
-            [KEYS.PARTS_MACHINE]: 'machineParts', [KEYS.PARTS_GENERAL]: 'generalParts' as any,
-            [KEYS.REQUESTS]: 'supportRequests', [KEYS.SCHEDULES]: 'schedules',
-            [KEYS.SYSTEM_CONFIG]: 'systemSettings' as any, [KEYS.SNAPSHOTS]: 'snapshots',
-            [KEYS.SYSTEM_STATUS]: 'systemStatus' as any, [KEYS.SYSTEM_AUDIT_LOGS]: 'systemAuditLogs' as any,
-            [KEYS.SETTINGS_ENERGY]: 'energySettings' as any,
-            [KEYS.LOGS_ENERGY_HISTORICAL]: 'energyHistorical',
-            [KEYS.MKG_OPERATIONS]: 'mkgOperations',
-            [KEYS.ARTICLES]: 'articles',
-            [KEYS.SETUP_TEMPLATES]: 'setupTemplates',
-            [KEYS.ROLES]: 'roles',
-            [KEYS.DOCUMENT_CATEGORIES]: 'documentCategories',
-            [KEYS.ASSET_ENERGY_CONFIGS]: 'assetEnergyConfigs'
-        };
-
-        const stateKey = propMap[tableKey];
+        // S-5 FIX: Gebruik centrale STATE_KEY_MAP i.p.v. lokale propMap
+        const stateKey = STATE_KEY_MAP[tableKey];
         const store = await getStore();
         const parsedData = ensureParsedData(remoteData);
 
@@ -630,51 +714,84 @@ export const SyncService = {
         const localMachines = await db.getMachines(true);
         const isDeviceEmpty = localMachines.length === 0;
 
-        const lastSyncISO = meta.serverHighWaterMark || "2000-01-01T00:00:00.000Z";
-        const filterTime = (forceFull || isDeviceEmpty) ? "2000-01-01T00:00:00.000Z" : lastSyncISO;
-
+        const lastSyncISO = meta.serverHighWaterMark || '2000-01-01T00:00:00.000Z';
+        const filterTime = (forceFull || isDeviceEmpty) ? '2000-01-01T00:00:00.000Z' : lastSyncISO;
         const pbFilterValue = formatDateForPB(filterTime);
-        let newestSeenISO = lastSyncISO;
 
-        for (const [tableKey, collection] of Object.entries(TABLE_MAP)) {
-            // Sla energy_live over (aparte stream), en system_audit_logs worden apart gepulled
-            if (tableKey === KEYS.ENERGY_LIVE) continue;
+        // S-7 FIX: Alle tabel-fetches lopen parallel via Promise.allSettled().
+        // Eerder was dit sequentieel: 27 tabellen × ~100ms = ~2.7s per sync-cycle.
+        // De newestSeenISO wordt pas erna bijgewerkt op de meest recente van alle tabellen.
+        const tableEntries = Object.entries(TABLE_MAP).filter(([key]) => key !== KEYS.ENERGY_LIVE);
 
-            try {
-                const filterString = `updated >= '${pbFilterValue}'`;
+        // S-1 FIX: fetchAllPages haalt alle pagina's op voor één tabel.
+        // Zonder paginering werden records boven de 500-limiet permanent overgeslagen.
+        const fetchAllPages = async (tableKey: string, collection: string): Promise<{ tableKey: string; items: any[]; newestISO: string }> => {
+            const filterString = `updated >= '${pbFilterValue}'`;
+            const allItems: any[] = [];
+            let page = 1;
+            let totalPages = 1;
+            let newestISO = lastSyncISO;
+
+            do {
                 const params = new URLSearchParams({
                     filter: filterString,
                     perPage: '500',
-                    sort: '-updated'
+                    sort: '-updated',
+                    page: String(page)
                 });
-
-                const fullUrl = `${url}/api/collections/${collection}/records?${params.toString()}`;
-                const res = await fetchWithTimeout(fullUrl, { headers, timeout: 25000 });
+                const res = await fetchWithTimeout(
+                    `${url}/api/collections/${collection}/records?${params}`,
+                    { headers, timeout: 25000 }
+                );
 
                 if (!res.ok) {
                     if (res.status === 401) {
                         cachedToken = null;
-                        const meta = await loadTable<any>(KEYS.METADATA, {});
-                        await saveTable(KEYS.METADATA, { ...meta, lastAuthToken: null });
+                        const m = await loadTable<any>(KEYS.METADATA, {});
+                        await saveTable(KEYS.METADATA, { ...m, lastAuthToken: null });
                     }
-                    continue;
+                    break;
                 }
 
                 const data = await res.json();
-                if (data.items && data.items.length > 0) {
-                    const mostRecent = data.items[0].updated;
-                    if (mostRecent > newestSeenISO) newestSeenISO = mostRecent;
+                totalPages = data.totalPages || 1;
 
-                    if (tableKey === KEYS.SYSTEM_CONFIG || tableKey === KEYS.SETTINGS_ENERGY) {
-                        await SyncService.updateLocalRecordAfterSync(tableKey, data.items[0]);
-                    } else {
-                        await SyncService.mergeRemoteRecords(tableKey, data.items);
+                if (data.items?.length > 0) {
+                    allItems.push(...data.items);
+                    // Eerste pagina is gesorteerd op -updated — hoogste timestamp staat vooraan
+                    if (page === 1 && data.items[0].updated > newestISO) {
+                        newestISO = data.items[0].updated;
                     }
                 }
-            } catch (tableError) {
-                console.error(`Fout tijdens pullDeltas voor tabel ${tableKey}:`, tableError);
-                // We slaan deze tabel over en gaan door met de volgende om te voorkomen dat de hele sync vastloopt
+                page++;
+            } while (page <= totalPages);
+
+            return { tableKey, items: allItems, newestISO };
+        };
+
+        const results = await Promise.allSettled(
+            tableEntries.map(([tableKey, collection]) => fetchAllPages(tableKey, collection))
+        );
+
+        let newestSeenISO = lastSyncISO;
+
+        for (const result of results) {
+            if (result.status === 'rejected') {
+                console.error('[pullDeltas] Tabel ophalen mislukt:', result.reason);
                 continue;
+            }
+            const { tableKey, items, newestISO } = result.value;
+            if (newestISO > newestSeenISO) newestSeenISO = newestISO;
+            if (items.length === 0) continue;
+
+            try {
+                if (tableKey === KEYS.SYSTEM_CONFIG || tableKey === KEYS.SETTINGS_ENERGY) {
+                    await SyncService.updateLocalRecordAfterSync(tableKey, items[0]);
+                } else {
+                    await SyncService.mergeRemoteRecords(tableKey, items);
+                }
+            } catch (mergeError) {
+                console.error(`[pullDeltas] Merge mislukt voor ${tableKey}:`, mergeError);
             }
         }
 
@@ -687,24 +804,8 @@ export const SyncService = {
     },
 
     mergeRemoteRecords: async (tableKey: string, remoteItems: any[]) => {
-        const propMap: Record<string, keyof AppState> = {
-            [KEYS.USERS]: 'users', [KEYS.MACHINES]: 'machines', [KEYS.TICKETS]: 'maintenanceTickets',
-            [KEYS.LOGS_MIXING]: 'mixingLogs', [KEYS.LOGS_MIST]: 'mistLogs', [KEYS.LOGS_CHECKLIST]: 'checklistLogs',
-            [KEYS.LOGS_EFFICIENCY]: 'efficiencyLogs', [KEYS.EVENTS]: 'maintenanceEvents',
-            [KEYS.PARTS_MACHINE]: 'machineParts', [KEYS.PARTS_GENERAL]: 'generalParts' as any,
-            [KEYS.REQUESTS]: 'supportRequests', [KEYS.SCHEDULES]: 'schedules',
-            [KEYS.SNAPSHOTS]: 'snapshots', [KEYS.SYSTEM_STATUS]: 'systemStatus' as any,
-            [KEYS.SETTINGS_ENERGY]: 'energySettings' as any,
-            [KEYS.LOGS_ENERGY_HISTORICAL]: 'energyHistorical',
-            [KEYS.MKG_OPERATIONS]: 'mkgOperations',
-            [KEYS.ARTICLES]: 'articles',
-            [KEYS.SETUP_TEMPLATES]: 'setupTemplates',
-            [KEYS.ROLES]: 'roles',
-            [KEYS.DOCUMENT_CATEGORIES]: 'documentCategories',
-            [KEYS.ASSET_ENERGY_CONFIGS]: 'assetEnergyConfigs'
-        };
-
-        const stateKey = propMap[tableKey];
+        // S-5 FIX: Gebruik centrale STATE_KEY_MAP i.p.v. lokale propMap
+        const stateKey = STATE_KEY_MAP[tableKey];
 
         const store = await getStore();
         const outboxRaw = await db.getOutbox();
@@ -779,7 +880,10 @@ export const SyncService = {
                     await setStore({ ...store, systemStatus: data.items });
                 }
             }
-        } catch (e) { }
+        } catch (e) {
+            // S-2 FIX: log fouten zodat stille datalacunes in energy/liveStats zichtbaar worden
+            console.warn('[SyncService] fetchLiveStreams fout:', e);
+        }
     },
 
     uploadState: async (force: boolean = false): Promise<{ success: boolean; message: string }> => {

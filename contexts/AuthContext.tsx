@@ -8,6 +8,9 @@ import { KEYS } from '../services/db/core';
 interface AuthContextType {
     user: User | null;
     login: (userId: string) => Promise<void>;
+    // S-01 FIX: loginWithPin centraliseert de PIN-vergelijking in AuthContext.
+    // LoginScreen hoeft de Ghost PIN niet meer te kennen — alles verloopt via VITE_GHOST_PIN.
+    loginWithPin: (pin: string) => Promise<boolean>;
     logout: () => void;
     users: User[];
     roles: UserRoleDefinition[];
@@ -87,7 +90,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     // Deep compare om onnodige state updates te voorkomen
                     if (freshUser && JSON.stringify(freshUser) !== JSON.stringify(currentUser)) {
                         setUser(freshUser);
-                        localStorage.setItem('cnc_active_user_full', JSON.stringify(freshUser));
                     }
                 }
             }
@@ -120,7 +122,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (userId === GHOST_USER.id) {
             setUser(GHOST_USER);
             localStorage.setItem('cnc_active_user', GHOST_USER.id);
-            localStorage.setItem('cnc_active_user_full', JSON.stringify(GHOST_USER));
             return;
         }
         const currentUsers = await db.getUsers();
@@ -128,15 +129,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (found) {
             setUser(found);
             localStorage.setItem('cnc_active_user', found.id);
-            // BUG-09: Sla de volledige user op zodat services de naam kunnen ophalen
-            localStorage.setItem('cnc_active_user_full', JSON.stringify(found));
         }
+    };
+
+    // S-01 FIX: Alle PIN-vergelijking zit hier — LoginScreen hoeft de Ghost PIN niet te kennen.
+    // GHOST_PIN wordt uitgelezen uit VITE_GHOST_PIN in .env.local (staat niet in Git).
+    const loginWithPin = async (pin: string): Promise<boolean> => {
+        if (pin === GHOST_PIN) {
+            await login(GHOST_USER.id);
+            return true;
+        }
+        const currentUsers = await db.getUsers();
+        const found = currentUsers.find(u => u.pinCode === pin);
+        if (found) {
+            await login(found.id);
+            return true;
+        }
+        return false;
     };
 
     const logout = () => {
         setUser(null);
         localStorage.removeItem('cnc_active_user');
-        localStorage.removeItem('cnc_active_user_full');
     };
 
     const hasPermission = (permission: Permission): boolean => {
@@ -191,7 +205,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, users, roles, hasPermission, canAccessAsset, canAccessModule }}>
+        <AuthContext.Provider value={{ user, login, loginWithPin, logout, users, roles, hasPermission, canAccessAsset, canAccessModule }}>
             {children}
         </AuthContext.Provider>
     );

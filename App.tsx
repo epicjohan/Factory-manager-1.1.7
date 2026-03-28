@@ -4,14 +4,18 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { NotificationProvider } from './contexts/NotificationContext';
+import { ConfirmProvider } from './contexts/ConfirmContext';
 import { Layout } from './components/Layout';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { SyncService } from './services/sync';
 import { ConnectionOverlay } from './components/ConnectionOverlay';
+import { PwaUpdatePrompt } from './components/PwaUpdatePrompt'; // Added import
 import { db } from './services/storage';
 import { Dashboard } from './pages/Dashboard';
 import { AndonDashboard } from './pages/AndonDashboard';
 import { LogisticsAndon } from './pages/LogisticsAndon';
+import { ComplianceDashboard } from './pages/ComplianceDashboard';
+import { ComplianceDetail } from './pages/ComplianceDetail';
 import { CreateMachine } from './pages/CreateMachine';
 import { MachineDetail } from './pages/MachineDetail';
 import { MachineToolGuard } from './pages/MachineToolGuard';
@@ -54,9 +58,14 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     return <Layout>{children}</Layout>;
 };
 
+// BUG B-06 FIX: AdminRoute controleert nu ook dynamische rollen uit de database.
+// Voorheen werkte alleen de vaste UserRole.ADMIN string — custom admin-rollen kregen geen toegang.
 const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { user } = useAuth();
-    if (!user || user.role !== UserRole.ADMIN) return <Navigate to="/" />;
+    const { user, roles } = useAuth();
+    if (!user) return <Navigate to="/" />;
+    const isAdmin = user.role === UserRole.ADMIN ||
+        !!roles.find(r => r.id === user.role && r.isSystem && r.name === 'Administrator');
+    if (!isAdmin) return <Navigate to="/" />;
     return <>{children}</>;
 };
 
@@ -107,16 +116,36 @@ const BackgroundSimulator: React.FC = () => {
 
 const App: React.FC = () => {
     useEffect(() => {
+        // PWA: Request persistent storage so the browser doesn't evict IndexedDB on quota limits.
+        if (navigator.storage && navigator.storage.persist) {
+            navigator.storage.persist().then(isPersisted => {
+                console.log(`PWA Persistent storage granted: ${isPersisted}`);
+            }).catch(() => {});
+        }
+
         SyncService.start();
 
-        const forceSync = () => {
-            SyncService.runSyncLoop();
-        };
+        // FIX #1: forceSync via pending flag — roept runSyncLoop niet meer direct aan
+        // zodat het pending-mechanisme in de loop de aanvraag veilig opvangt.
+        const forceSync = () => SyncService.runSyncLoop();
         window.addEventListener('trigger-sync', forceSync);
+
+        // FIX #3: Visibility API — pauzeer sync als tab op achtergrond staat,
+        // hervat direct bij terugkeer zodat de gebruiker altijd actuele data ziet.
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                SyncService.scheduleNextRun(1000); // Direct sync bij terugkeer
+            } else {
+                SyncService.stop(); // Stop timer, houd EventSource open
+                SyncService.initRealtime(); // Zorg dat SSE blijft draaien op achtergrond
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
 
         return () => {
             SyncService.stop();
             window.removeEventListener('trigger-sync', forceSync);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
         };
     }, []);
     return (
@@ -124,51 +153,56 @@ const App: React.FC = () => {
             <NotificationProvider>
                 <AuthProvider>
                     <ThemeProvider>
-                        <BackgroundSimulator />
-                        <ConnectionOverlay />
-                        <HashRouter>
-                            <Routes>
-                                <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                                <Route path="/machines" element={<ProtectedRoute><Dashboard typeFilter={AssetType.CNC} title="CNC Machines" subtitle="Overzicht van het machinepark." /></ProtectedRoute>} />
-                                <Route path="/robots" element={<ProtectedRoute><Dashboard typeFilter={AssetType.ROBOT} title="Robotica" subtitle="Status van robots en cobots." /></ProtectedRoute>} />
-                                <Route path="/cmm" element={<ProtectedRoute><Dashboard typeFilter={AssetType.CMM} title="Meetkamer" subtitle="Beschikbaarheid meetgereedschap." /></ProtectedRoute>} />
-                                <Route path="/climate" element={<ProtectedRoute><Dashboard typeFilter={AssetType.CLIMATE} title="Klimaatbeheersing" subtitle="Status van filters en afzuiging." /></ProtectedRoute>} />
-                                <Route path="/machine/:id" element={<ProtectedRoute><MachineDetail /></ProtectedRoute>} />
+                        <ConfirmProvider>
+                            <BackgroundSimulator />
+                            <ConnectionOverlay />
+                            <PwaUpdatePrompt />
+                            <HashRouter>
+                                <Routes>
+                                    <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                                    <Route path="/machines" element={<ProtectedRoute><Dashboard typeFilter={AssetType.CNC} title="CNC Machines" subtitle="Overzicht van het machinepark." /></ProtectedRoute>} />
+                                    <Route path="/robots" element={<ProtectedRoute><Dashboard typeFilter={AssetType.ROBOT} title="Robotica" subtitle="Status van robots en cobots." /></ProtectedRoute>} />
+                                    <Route path="/cmm" element={<ProtectedRoute><Dashboard typeFilter={AssetType.CMM} title="Meetkamer" subtitle="Beschikbaarheid meetgereedschap." /></ProtectedRoute>} />
+                                    <Route path="/climate" element={<ProtectedRoute><Dashboard typeFilter={AssetType.CLIMATE} title="Klimaatbeheersing" subtitle="Status van filters en afzuiging." /></ProtectedRoute>} />
+                                    <Route path="/machine/:id" element={<ProtectedRoute><MachineDetail /></ProtectedRoute>} />
 
-                                {/* PRODUCTION DASHBOARD ROUTE */}
-                                <Route path="/production/machine/:id" element={<ProtectedRoute><ProductionDashboard /></ProtectedRoute>} />
+                                    {/* PRODUCTION DASHBOARD ROUTE */}
+                                    <Route path="/production/machine/:id" element={<ProtectedRoute><ProductionDashboard /></ProtectedRoute>} />
 
-                                <Route path="/machine/:id/toolguard" element={<ProtectedRoute><ModuleGuard module={AppModule.TOOLGUARD}><MachineToolGuard /></ModuleGuard></ProtectedRoute>} />
-                                <Route path="/efficiency" element={<ProtectedRoute><EfficiencyDashboard /></ProtectedRoute>} />
-                                <Route path="/energy" element={<ProtectedRoute><EnergyDashboard /></ProtectedRoute>} />
-                                <Route path="/andon" element={<ProtectedRoute><AndonDashboard /></ProtectedRoute>} />
-                                <Route path="/logistics-andon" element={<ProtectedRoute><LogisticsAndon /></ProtectedRoute>} />
-                                <Route path="/planner" element={<ProtectedRoute><MaintenancePlanner /></ProtectedRoute>} />
-                                <Route path="/support" element={<ProtectedRoute><SupportDashboard /></ProtectedRoute>} />
-                                <Route path="/questions" element={<ProtectedRoute><QuestionsDashboard /></ProtectedRoute>} />
-                                <Route path="/articles" element={<ProtectedRoute><ModuleGuard module={AppModule.ARTICLES}><ArticleManagement /></ModuleGuard></ProtectedRoute>} />
-                                <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminDashboard /></AdminRoute></ProtectedRoute>} />
-                                <Route path="/admin/create-machine" element={<ProtectedRoute><AdminRoute><CreateMachine /></AdminRoute></ProtectedRoute>} />
-                                <Route path="/admin/edit-machine/:id" element={<ProtectedRoute><AdminRoute><CreateMachine /></AdminRoute></ProtectedRoute>} />
-                                <Route path="/admin/templates" element={<ProtectedRoute><AdminRoute><ModuleGuard module={AppModule.ARTICLES}><TemplateManagement /></ModuleGuard></AdminRoute></ProtectedRoute>} />
-                                <Route path="/admin/users" element={<ProtectedRoute><AdminRoute><UserManagement /></AdminRoute></ProtectedRoute>} />
-                                <Route path="/admin/inventory" element={<ProtectedRoute><AdminRoute><InventoryManagement /></AdminRoute></ProtectedRoute>} />
-                                <Route path="/admin/cost-report" element={<ProtectedRoute><AdminRoute><CostReport /></AdminRoute></ProtectedRoute>} />
-                                <Route path="/admin/health" element={<ProtectedRoute><AdminRoute><SystemHealth /></AdminRoute></ProtectedRoute>} />
-                                <Route path="/admin/simulator" element={<ProtectedRoute><GhostAdminRoute><SystemSimulator /></GhostAdminRoute></ProtectedRoute>} />
-                                <Route path="/admin/commercial" element={<ProtectedRoute><GhostAdminRoute><CommercialModels /></GhostAdminRoute></ProtectedRoute>} />
-                                <Route path="/admin/help" element={<ProtectedRoute><AdminRoute><Help /></AdminRoute></ProtectedRoute>} />
-                                <Route path="/admin/super-help" element={<ProtectedRoute><GhostAdminRoute><SuperAdminHelp /></GhostAdminRoute></ProtectedRoute>} />
-                                <Route path="/admin/release-guide" element={<ProtectedRoute><GhostAdminRoute><ReleaseManual /></GhostAdminRoute></ProtectedRoute>} />
-                                <Route path="/admin/license-config" element={<ProtectedRoute><GhostAdminRoute><LicenseManagement /></GhostAdminRoute></ProtectedRoute>} />
-                                <Route path="/admin/dev-guide" element={<ProtectedRoute><GhostAdminRoute><DeveloperGuide /></GhostAdminRoute></ProtectedRoute>} />
-                                <Route path="/admin/update" element={<ProtectedRoute><GhostAdminRoute><SystemUpdate /></GhostAdminRoute></ProtectedRoute>} />
-                                <Route path="/admin/energy-config" element={<ProtectedRoute><AdminRoute><ModuleGuard module={AppModule.ENERGY}><EnergyManagement /></ModuleGuard></AdminRoute></ProtectedRoute>} />
-                                <Route path="/settings" element={<ProtectedRoute><AdminRoute><Settings /></AdminRoute></ProtectedRoute>} />
-                                <Route path="/showcase" element={<Showcase />} />
-                                <Route path="*" element={<Navigate to="/" replace />} />
-                            </Routes>
-                        </HashRouter>
+                                    <Route path="/machine/:id/toolguard" element={<ProtectedRoute><ModuleGuard module={AppModule.TOOLGUARD}><MachineToolGuard /></ModuleGuard></ProtectedRoute>} />
+                                    <Route path="/efficiency" element={<ProtectedRoute><EfficiencyDashboard /></ProtectedRoute>} />
+                                    <Route path="/energy" element={<ProtectedRoute><EnergyDashboard /></ProtectedRoute>} />
+                                    <Route path="/andon" element={<ProtectedRoute><AndonDashboard /></ProtectedRoute>} />
+                                    <Route path="/logistics-andon" element={<ProtectedRoute><LogisticsAndon /></ProtectedRoute>} />
+                                    <Route path="/planner" element={<ProtectedRoute><MaintenancePlanner /></ProtectedRoute>} />
+                                    <Route path="/support" element={<ProtectedRoute><SupportDashboard /></ProtectedRoute>} />
+                                    <Route path="/questions" element={<ProtectedRoute><QuestionsDashboard /></ProtectedRoute>} />
+                                    <Route path="/articles" element={<ProtectedRoute><ModuleGuard module={AppModule.ARTICLES}><ArticleManagement /></ModuleGuard></ProtectedRoute>} />
+                                    <Route path="/compliance" element={<ProtectedRoute><ModuleGuard module={AppModule.COMPLIANCE}><ComplianceDashboard /></ModuleGuard></ProtectedRoute>} />
+                                    <Route path="/compliance/:id" element={<ProtectedRoute><ModuleGuard module={AppModule.COMPLIANCE}><ComplianceDetail /></ModuleGuard></ProtectedRoute>} />
+                                    <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminDashboard /></AdminRoute></ProtectedRoute>} />
+                                    <Route path="/admin/create-machine" element={<ProtectedRoute><AdminRoute><CreateMachine /></AdminRoute></ProtectedRoute>} />
+                                    <Route path="/admin/edit-machine/:id" element={<ProtectedRoute><AdminRoute><CreateMachine /></AdminRoute></ProtectedRoute>} />
+                                    <Route path="/admin/templates" element={<ProtectedRoute><AdminRoute><ModuleGuard module={AppModule.ARTICLES}><TemplateManagement /></ModuleGuard></AdminRoute></ProtectedRoute>} />
+                                    <Route path="/admin/users" element={<ProtectedRoute><AdminRoute><UserManagement /></AdminRoute></ProtectedRoute>} />
+                                    <Route path="/admin/inventory" element={<ProtectedRoute><AdminRoute><InventoryManagement /></AdminRoute></ProtectedRoute>} />
+                                    <Route path="/admin/cost-report" element={<ProtectedRoute><AdminRoute><CostReport /></AdminRoute></ProtectedRoute>} />
+                                    <Route path="/admin/health" element={<ProtectedRoute><AdminRoute><SystemHealth /></AdminRoute></ProtectedRoute>} />
+                                    <Route path="/admin/simulator" element={<ProtectedRoute><GhostAdminRoute><SystemSimulator /></GhostAdminRoute></ProtectedRoute>} />
+                                    <Route path="/admin/commercial" element={<ProtectedRoute><GhostAdminRoute><CommercialModels /></GhostAdminRoute></ProtectedRoute>} />
+                                    <Route path="/admin/help" element={<ProtectedRoute><AdminRoute><Help /></AdminRoute></ProtectedRoute>} />
+                                    <Route path="/admin/super-help" element={<ProtectedRoute><GhostAdminRoute><SuperAdminHelp /></GhostAdminRoute></ProtectedRoute>} />
+                                    <Route path="/admin/release-guide" element={<ProtectedRoute><GhostAdminRoute><ReleaseManual /></GhostAdminRoute></ProtectedRoute>} />
+                                    <Route path="/admin/license-config" element={<ProtectedRoute><GhostAdminRoute><LicenseManagement /></GhostAdminRoute></ProtectedRoute>} />
+                                    <Route path="/admin/dev-guide" element={<ProtectedRoute><GhostAdminRoute><DeveloperGuide /></GhostAdminRoute></ProtectedRoute>} />
+                                    <Route path="/admin/update" element={<ProtectedRoute><GhostAdminRoute><SystemUpdate /></GhostAdminRoute></ProtectedRoute>} />
+                                    <Route path="/admin/energy-config" element={<ProtectedRoute><AdminRoute><ModuleGuard module={AppModule.ENERGY}><EnergyManagement /></ModuleGuard></AdminRoute></ProtectedRoute>} />
+                                    <Route path="/settings" element={<ProtectedRoute><AdminRoute><Settings /></AdminRoute></ProtectedRoute>} />
+                                    <Route path="/showcase" element={<Showcase />} />
+                                    <Route path="*" element={<Navigate to="/" replace />} />
+                                </Routes>
+                            </HashRouter>
+                        </ConfirmProvider>
                     </ThemeProvider>
                 </AuthProvider>
             </NotificationProvider>

@@ -5,9 +5,11 @@ import { db } from '../../services/storage';
 import { WorkSchedule, DailyShift } from '../../types';
 import { useTable } from '../../hooks/useTable';
 import { KEYS, generateId } from '../../services/db/core';
+import { useConfirm } from '../../contexts/ConfirmContext';
 
 export const SettingsSchedules: React.FC = () => {
     const { data: schedules } = useTable<WorkSchedule>(KEYS.SCHEDULES);
+    const confirm = useConfirm();
 
     const [showModal, setShowModal] = useState(false);
     const [editingSchedule, setEditingSchedule] = useState<WorkSchedule | null>(null);
@@ -50,9 +52,8 @@ export const SettingsSchedules: React.FC = () => {
     };
 
     const handleDelete = async (id: string) => {
-        if (window.confirm("Rooster verwijderen?")) {
-            await db.deleteSchedule(id);
-        }
+        const ok = await confirm({ title: 'Rooster verwijderen', message: 'Rooster verwijderen?' });
+        if (ok) await db.deleteSchedule(id);
     };
 
     return (

@@ -16,6 +16,25 @@ export const VersionManager = {
         return config.systemVersion !== APP_INFO.VERSION;
     },
 
+    isClientOutdated: async (): Promise<boolean> => {
+        const config = await loadTable<any>(KEYS.SYSTEM_CONFIG, null);
+        if (!config || !config.systemVersion) return false;
+        
+        try {
+            const serverVer = config.systemVersion.split('.').map(Number);
+            const clientVer = APP_INFO.VERSION.split('.').map(Number);
+            for (let i = 0; i < 3; i++) {
+                const s = serverVer[i] || 0;
+                const c = clientVer[i] || 0;
+                if (s > c) return true; 
+                if (s < c) return false;
+            }
+        } catch {
+            return false;
+        }
+        return false;
+    },
+
     confirmDatabaseUpdate: async () => {
         try {
             const serverConfig = await db.getServerSettings();

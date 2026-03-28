@@ -19,7 +19,8 @@ import {
     LayoutDashboard,
     Tv,
     Truck,
-    FileText
+    FileText,
+    ShieldCheck
 } from '../icons';
 import { AppModule } from '../types';
 
@@ -97,6 +98,7 @@ export const MODULE_GROUPS: ModuleGroupConfig[] = [
         icon: Briefcase,
         items: [
             { id: AppModule.ARTICLES, label: 'Artikelen (PDM)', path: '/articles', icon: FileText },
+            { id: AppModule.COMPLIANCE, label: 'Kwaliteit & Audits', path: '/compliance', icon: ShieldCheck },
             { id: AppModule.PLANNER, label: 'Onderhoudsplanner', path: '/planner', icon: Calendar },
             { id: AppModule.INVENTORY, label: 'Materieel & Voorraad', path: '/admin/inventory', icon: Package },
         ]

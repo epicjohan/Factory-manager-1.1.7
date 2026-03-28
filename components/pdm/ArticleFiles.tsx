@@ -2,12 +2,13 @@
 import React, { useState } from 'react';
 import { FileText, AlertTriangle } from '../../icons';
 import { ArticleFile, DMSDocument } from '../../types';
-import { generateId } from '../../services/db/core';
+import { generateId, KEYS } from '../../services/db/core';
 import { ImageProcessor } from '../../services/db/imageProcessor';
 import { documentService } from '../../services/db/documentService';
 import { SleekDocumentList } from './ui/SleekDocumentList';
 
 interface ArticleFilesProps {
+    articleId?: string;
     files: ArticleFile[];
     isLocked: boolean;
     onUpdate: (files: ArticleFile[], customLogMessage?: string) => void;
@@ -19,7 +20,7 @@ interface ArticleFilesProps {
  * Beheert alleen de BRON bestanden op Artikel niveau (PDF, STEP).
  * Geen lock-systeem nodig, aangezien dit vaste klantdata is.
  */
-export const ArticleFiles: React.FC<ArticleFilesProps> = ({ files, isLocked, onUpdate, onPreview, user }) => {
+export const ArticleFiles: React.FC<ArticleFilesProps> = ({ articleId, files, isLocked, onUpdate, onPreview, user }) => {
     const [fileToDelete, setFileToDelete] = useState<ArticleFile | null>(null);
 
     // Filter alleen de bronbestanden (zonder setupId)
@@ -134,6 +135,8 @@ export const ArticleFiles: React.FC<ArticleFilesProps> = ({ files, isLocked, onU
                 files={sourceFiles}
                 applicableTo="ARTICLE"
                 defaultCategoryCode="DRAWING"
+                parentRecordId={articleId}
+                tableKey={KEYS.ARTICLES}
                 isLocked={isLocked}
                 onUpload={handleFiles}
                 onDelete={handleDeleteClick}

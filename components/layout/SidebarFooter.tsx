@@ -16,11 +16,12 @@ interface SidebarFooterProps {
     isDemo: boolean;
     outboxCount: number;
     onShowOutbox: () => void;
+    onShowProfile?: () => void;
 }
 
 export const SidebarFooter: React.FC<SidebarFooterProps> = ({
     isCollapsed, user, theme, toggleTheme, logout,
-    onShowNotifications, unreadNotifications, connectionStatus, isDemo, outboxCount, onShowOutbox
+    onShowNotifications, unreadNotifications, connectionStatus, isDemo, outboxCount, onShowOutbox, onShowProfile
 }) => {
 
     const getStatusClasses = () => {
@@ -54,13 +55,16 @@ export const SidebarFooter: React.FC<SidebarFooterProps> = ({
 
             {!isCollapsed && (
                 <div className="mt-4 flex flex-col gap-2">
-                    <div className="flex items-center gap-3 px-3 py-3 text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/50 rounded-[2rem] overflow-hidden">
+                    <button 
+                        onClick={onShowProfile}
+                        className="flex items-center gap-3 px-3 py-3 text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/50 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-[2rem] overflow-hidden transition-colors w-full text-left"
+                    >
                         <UserCircle size={32} className="shrink-0" />
                         <div className="flex flex-col min-w-0">
                             <span className="text-sm font-medium truncate" title={user?.name}>{user?.name}</span>
                             <span className="text-[10px] text-slate-500 dark:text-slate-400 truncate uppercase tracking-widest">{user?.role}</span>
                         </div>
-                    </div>
+                    </button>
                     <div className="flex gap-1.5">
                         <div className={`flex-1 flex items-center justify-between px-3 py-2 rounded-2xl text-[10px] font-mono border transition-all duration-700 ${getStatusClasses()}`}>
                             <span className="flex items-center gap-1.5 truncate">

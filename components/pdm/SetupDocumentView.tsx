@@ -11,6 +11,7 @@ import { ImageProcessor } from '../../services/db/imageProcessor';
 import { generateId } from '../../services/db/core';
 import { documentService } from '../../services/db/documentService';
 import { DMSDocument } from '../../types';
+import { useConfirm } from '../../contexts/ConfirmContext';
 
 interface SetupDocumentViewProps {
     article: Article;
@@ -66,6 +67,7 @@ export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
     article, setup, activeOpId, machines, mkgOperations, templates, isArticleObsolete, user,
     onUpdateSetup, onDuplicateSetup, onDeleteSetup, onSetDefault, onPreviewFile, onUpdateFiles, onRevision
 }) => {
+    const confirm = useConfirm();
 
     // --- Shared Logic from SetupEditor ---
     const activeMachine = machines.find(m => m.id === setup.machineId);
@@ -275,6 +277,7 @@ export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
                         badge={setup.fixture?.images?.length ? <span className="text-[9px] bg-slate-100 dark:bg-slate-700 px-1.5 rounded-full text-slate-500">{setup.fixture.images.length}</span> : null}
                     >
                         <SetupFixtureTab
+                            articleId={article.id}
                             fields={effectiveFields}
                             templateName={liveTemplate?.name || 'Vastgelegd'}
                             updateStatus={'NONE'}
@@ -346,8 +349,9 @@ export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
                                     }
                                 }, `Nieuwe opspanfoto toegevoegd aan Setup '${setup.name}'.`);
                             }}
-                            onDeleteImage={(id) => {
-                                if (window.confirm('Verwijderen?')) {
+                            onDeleteImage={async (id) => {
+                                const ok = await confirm({ title: 'Foto verwijderen', message: 'Verwijderen?' });
+                                if (ok) {
                                     handleUpdateSetupWrapper({
                                         fixture: {
                                             type: setup.fixture?.type || '',
@@ -414,6 +418,7 @@ export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
                 {!isProcessSetup && (
                     <CollapsibleSection title="NC Programma & CAM" icon={FileCode} defaultOpen={false}>
                         <SetupProgTab
+                            articleId={article.id}
                             setup={setup}
                             allFiles={article.files || []}
                             isLocked={isSetupLocked}

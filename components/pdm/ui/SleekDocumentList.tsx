@@ -32,6 +32,8 @@ interface SleekDocumentListProps {
     subtitle: string;
     files: ArticleFile[];
     applicableTo: 'ARTICLE' | 'SETUP' | 'MACHINE' | 'BOTH' | 'ALL';
+    parentRecordId?: string; // Optionele ID van Artikel, Setup, Machine etc.
+    tableKey?: string;       // Welke tabel? KEYS.ARTICLES, KEYS.MACHINES etc.
     excludedCategories?: string[];
     defaultCategoryCode?: string;
     isLocked: boolean;
@@ -49,6 +51,8 @@ export const SleekDocumentList: React.FC<SleekDocumentListProps> = ({
     subtitle,
     files,
     applicableTo,
+    parentRecordId,
+    tableKey,
     excludedCategories = [],
     defaultCategoryCode = 'OTHER',
     isLocked,
@@ -68,7 +72,7 @@ export const SleekDocumentList: React.FC<SleekDocumentListProps> = ({
     const [categories, setCategories] = useState<DocumentCategory[]>([
         { id: '1', name: 'Document', code: 'OTHER', isSystem: true, applicableTo: 'BOTH', icon: 'FileText', color: 'text-slate-500' }
     ]);
-    const { urlMap, loadingMap } = useDocumentMap(files);
+    const { urlMap, loadingMap } = useDocumentMap(files, parentRecordId, tableKey);
 
     useEffect(() => {
         db.getSystemSettings().then(settings => {

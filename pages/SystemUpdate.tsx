@@ -18,9 +18,11 @@ import {
 import { VersionManager } from '../services/versionManager';
 import { APP_INFO } from '../services/appInfo';
 import { getStore } from '../services/storage';
+import { useConfirm } from '../contexts/ConfirmContext';
 
 export const SystemUpdate: React.FC = () => {
     const navigate = useNavigate();
+    const confirm = useConfirm();
     const [dbVersion, setDbVersion] = useState<string | null>(null);
     const [isLatest, setIsLatest] = useState(false);
     const [showGuide, setShowGuide] = useState(false);
@@ -35,10 +37,14 @@ export const SystemUpdate: React.FC = () => {
         load();
     }, []);
 
-    const handleConfirmUpdate = () => {
-        if(window.confirm(`Bevestig activatie van v${APP_INFO.VERSION}. De database wordt gemigreerd naar de nieuwe software-structuur.`)) {
-            VersionManager.confirmDatabaseUpdate();
-        }
+    const handleConfirmUpdate = async () => {
+        const ok = await confirm({
+            title: `Activeer v${APP_INFO.VERSION}`,
+            message: `De database wordt gemigreerd naar de nieuwe software-structuur. Zeker weten?`,
+            confirmLabel: 'Activeren',
+            danger: false,
+        });
+        if (ok) VersionManager.confirmDatabaseUpdate();
     };
 
     return (
@@ -152,26 +158,33 @@ export const SystemUpdate: React.FC = () => {
 
                 {showGuide && (
                     <div className="p-10 pt-0 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/30 animate-in slide-in-from-top-4">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mt-10">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mt-10">
                             <div className="space-y-4">
-                                <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-black text-lg">1</div>
+                                <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-black text-lg shadow-lg shadow-blue-500/30">1</div>
                                 <h4 className="font-black text-slate-800 dark:text-white uppercase text-sm">Build op Developer PC</h4>
                                 <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                                    Voer <code>npm run build</code> uit. Dit genereert de <code>dist/</code> map met bestanden.
+                                    Voer <code>npm run build</code> uit. Dit genereert de <code>dist/</code> map met bestanden. Voeg je eigen iconen (<code>pwa-192.png</code>, etc.) toe in <code>public/</code>.
                                 </p>
                             </div>
                             <div className="space-y-4">
-                                <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-black text-lg">2</div>
+                                <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-black text-lg shadow-lg shadow-blue-500/30">2</div>
                                 <h4 className="font-black text-slate-800 dark:text-white uppercase text-sm">Bestanden Overzetten</h4>
                                 <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                                    Kopieer de inhoud van <code>dist/</code> naar de <code>pb_public/</code> map op de server.
+                                    Kopieer de inhoud van de lokale <code>dist/</code> map naar de <code>pb_public/</code> map op je productie-server.
                                 </p>
                             </div>
                             <div className="space-y-4">
-                                <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-black text-lg">3</div>
-                                <h4 className="font-black text-slate-800 dark:text-white uppercase text-sm">Handshake</h4>
+                                <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center font-black text-lg shadow-lg shadow-emerald-500/30">3</div>
+                                <h4 className="font-black text-slate-800 dark:text-white uppercase text-sm">Database Schema</h4>
+                                <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed border-l-2 border-emerald-500 pl-3">
+                                    <strong>Nieuwe tabellen gemaakt?</strong> Exporteer lokaal je PocketBase schema via <em>Settings → Export Collections</em>. Ga op de server naar <em>Settings → Import</em> en laad het bestand in.
+                                </p>
+                            </div>
+                            <div className="space-y-4">
+                                <div className="w-10 h-10 rounded-full bg-orange-500 text-white flex items-center justify-center font-black text-lg shadow-lg shadow-orange-500/30">4</div>
+                                <h4 className="font-black text-slate-800 dark:text-white uppercase text-sm">Handshake Activatie</h4>
                                 <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                                    Herlaad de pagina en activeer de update via de knop hierboven.
+                                    Herlaad in de browser deze pagina als beheerder en activeer de update via de oranje knop hierboven.
                                 </p>
                             </div>
                         </div>

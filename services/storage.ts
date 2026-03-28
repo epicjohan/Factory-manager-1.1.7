@@ -9,6 +9,7 @@ import { settingsService } from './db/settingsService';
 import { energyService } from './db/energyService';
 import { articleService } from './db/articleService';
 import { templateService } from './db/templateService';
+import { qmsService } from './db/qmsService';
 
 migrateToIndexedDB();
 
@@ -69,8 +70,8 @@ export const getStore = async (): Promise<AppState> => {
         lastModified: meta.lastModified,
         serverUrl: meta.serverUrl,
         adminEmail: meta.adminEmail,
-        adminPassword: meta.adminPassword,
-        serverApiKey: (meta as any).serverApiKey || '',
+        // SECURITY S-03: adminPassword en serverApiKey worden NIET in AppState geladen.
+        // Gebruik settingsService.getServerSettings() voor directe toegang.,
         simulationState: await machineService.getSimulationState(),
         outbox: await outboxUtils.getOutbox()
     };
@@ -115,8 +116,8 @@ export const setStore = async (state: AppState) => {
         systemVersion: state.systemVersion,
         serverUrl: state.serverUrl,
         adminEmail: state.adminEmail,
-        adminPassword: state.adminPassword,          // BUG-01: nooit overwrite met serverApiKey
-        serverApiKey: state.serverApiKey || '',       // BUG-01: aparte sleutel, nooit alias voor password
+        // SECURITY S-03: adminPassword en serverApiKey worden niet via AppState opgeslagen.
+        // setServerSettings() is de enige geautoriseerde schrijfroute voor credentials.
         notificationEmails: state.notificationEmails,
         notificationTriggers: state.notificationTriggers
     });
@@ -134,6 +135,7 @@ export const db = {
     ...energyService,
     ...articleService,
     ...templateService,
+    ...qmsService,
 
     getMkgOperations: () => loadTable<PredefinedOperation[]>(KEYS.MKG_OPERATIONS, []),
     addMkgOperation: async (op: PredefinedOperation) => {

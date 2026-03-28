@@ -19,6 +19,7 @@ interface SidebarProps {
     onShowTeams: () => void;
     onShowNotif: () => void;
     onShowOutbox: () => void;
+    onShowProfile: () => void;
     unreadNotifications: number;
     pendingSupport: number;
     pendingQuestions: number;
@@ -29,7 +30,7 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({
     isCollapsed, setIsCollapsed, brandName, brandLogo, moduleGroups, canAccessModule,
-    user, logout, theme, toggleTheme, onShowTeams, onShowNotif, onShowOutbox,
+    user, logout, theme, toggleTheme, onShowTeams, onShowNotif, onShowOutbox, onShowProfile,
     unreadNotifications, pendingSupport, pendingQuestions, connectionStatus, isDemo, outboxCount
 }) => {
     const location = useLocation();
@@ -138,6 +139,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 isDemo={isDemo}
                 outboxCount={outboxCount}
                 onShowOutbox={onShowOutbox}
+                onShowProfile={onShowProfile}
             />
         </aside>
     );

@@ -8,6 +8,7 @@ import { db } from '../../services/storage';
 import { KEYS, generateId } from '../../services/db/core';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTable } from '../../hooks/useTable';
+import { useConfirm } from '../../contexts/ConfirmContext';
 import {
     Plus,
     Trash2,
@@ -27,6 +28,7 @@ interface PartsSectionProps {
 
 export const PartsSection: React.FC<PartsSectionProps> = ({ machine }) => {
     const { hasPermission } = useAuth();
+    const confirm = useConfirm();
 
     const { data: allMachineParts } = useTable<MachinePart>(KEYS.PARTS_MACHINE);
 
@@ -95,9 +97,8 @@ export const PartsSection: React.FC<PartsSectionProps> = ({ machine }) => {
     };
 
     const handleDeletePart = async (partId: string) => {
-        if (window.confirm('Weet u zeker dat u dit onderdeel wilt verwijderen uit het register van deze machine?')) {
-            await db.deleteMachinePart(partId);
-        }
+        const ok = await confirm({ title: 'Onderdeel verwijderen', message: 'Weet u zeker dat u dit onderdeel wilt verwijderen uit het register van deze machine?' });
+        if (ok) await db.deleteMachinePart(partId);
     };
 
     const canManage = !machine.isArchived && hasPermission(Permission.MANAGE_INVENTORY);

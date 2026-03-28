@@ -8,6 +8,7 @@ import { db } from '../../services/storage';
 import { DocumentCategory } from '../../types';
 import { generateId } from '../../services/db/core';
 import { useNotifications } from '../../contexts/NotificationContext';
+import { useConfirm } from '../../contexts/ConfirmContext';
 
 const AVAILABLE_ICONS = [
     { id: 'FileText', icon: FileText, label: 'Tekst / Document' },
@@ -38,6 +39,7 @@ const AVAILABLE_COLORS = [
 
 export const SettingsDocs: React.FC = () => {
     const { addNotification } = useNotifications();
+    const confirm = useConfirm();
     const [categories, setCategories] = useState<DocumentCategory[]>([]);
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saved' | 'saving'>('idle');
 
@@ -154,12 +156,13 @@ export const SettingsDocs: React.FC = () => {
         resetForm();
     };
 
-    const handleRemove = (catId: string, isSystem: boolean) => {
+    const handleRemove = async (catId: string, isSystem: boolean) => {
         if (isSystem) {
             addNotification('WARNING', 'Let op', 'Systeemcategorieën kunnen niet worden verwijderd.');
             return;
         }
-        if (window.confirm(`Geselecteerde categorie verwijderen?`)) {
+        const ok = await confirm({ title: 'Categorie verwijderen', message: 'Geselecteerde categorie verwijderen?' });
+        if (ok) {
             setCategories(categories.filter(c => c.id !== catId));
         }
     };

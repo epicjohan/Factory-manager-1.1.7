@@ -9,6 +9,7 @@ import { Trash2, UserPlus, Shield, Wrench, User as UserIcon, ArrowLeft, CheckSqu
 import { useNavigate } from 'react-router-dom';
 import { useTable } from '../hooks/useTable';
 import { useNotifications } from '../contexts/NotificationContext';
+import { useConfirm } from '../contexts/ConfirmContext';
 
 // Permission Groups for UI
 const PERMISSION_GROUPS = [
@@ -33,6 +34,7 @@ const PERMISSION_GROUPS = [
 export const UserManagement: React.FC = () => {
     const navigate = useNavigate();
     const { addNotification } = useNotifications();
+    const confirm = useConfirm();
 
     // REACTIVE DATA
     const { data: users } = useTable<User>(KEYS.USERS);
@@ -146,10 +148,9 @@ export const UserManagement: React.FC = () => {
         setEditingUser(null);
     };
 
-    const handleDeleteUser = (id: string) => {
-        if (window.confirm("Gebruiker verwijderen?")) {
-            db.deleteUser(id);
-        }
+    const handleDeleteUser = async (id: string) => {
+        const ok = await confirm({ title: 'Gebruiker verwijderen', message: 'Weet je zeker dat je deze gebruiker wilt verwijderen?' });
+        if (ok) db.deleteUser(id);
     };
 
     // --- ROLE HANDLERS ---
@@ -192,7 +193,8 @@ export const UserManagement: React.FC = () => {
     };
 
     const handleDeleteRole = async (id: string) => {
-        if (window.confirm("Rol verwijderen? Gebruikers met deze rol vallen terug op beperkte rechten.")) {
+        const ok = await confirm({ title: 'Rol verwijderen', message: 'Rol verwijderen? Gebruikers met deze rol vallen terug op beperkte rechten.' });
+        if (ok) {
             try {
                 await db.deleteRole(id);
             } catch (e: any) {

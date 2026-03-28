@@ -7,9 +7,11 @@ import { useAuth } from '../contexts/AuthContext';
 import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, X, Check, Trash2, Clock, CheckCircle } from '../icons';
 import { useTable } from '../hooks/useTable';
 import { KEYS } from '../services/db/core';
+import { useConfirm } from '../contexts/ConfirmContext';
 
 export const MaintenancePlanner: React.FC = () => {
    const { canAccessAsset } = useAuth();
+   const confirm = useConfirm();
 
    // REACTIVE HOOKS
    const { data: allEvents } = useTable<MaintenanceEvent>(KEYS.EVENTS);
@@ -88,8 +90,10 @@ export const MaintenancePlanner: React.FC = () => {
       setShowModal(false);
    };
 
-   const handleDelete = () => {
-      if (editingEvent && window.confirm('Taak verwijderen?')) {
+   const handleDelete = async () => {
+      if (!editingEvent) return;
+      const ok = await confirm({ title: 'Taak verwijderen', message: 'Wil je deze onderhoudstaak verwijderen?' });
+      if (ok) {
          db.deleteMaintenanceEvent(editingEvent.id);
          setShowModal(false);
       }

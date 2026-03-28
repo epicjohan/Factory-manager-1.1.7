@@ -3,6 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { Layers, Plus, Search, Trash2, Box, ArrowRight } from '../../icons';
 import { Article, ArticleBOMItem } from '../../types';
 import { generateId } from '../../services/db/core';
+import { useConfirm } from '../../contexts/ConfirmContext';
 
 interface ArticleBOMProps {
     items: ArticleBOMItem[];
@@ -13,6 +14,7 @@ interface ArticleBOMProps {
 }
 
 export const ArticleBOM: React.FC<ArticleBOMProps> = ({ items, allArticles, currentArticleId, isLocked, onUpdate }) => {
+    const confirm = useConfirm();
     const [isAdding, setIsAdding] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [qty, setQty] = useState(1);
@@ -41,9 +43,10 @@ export const ArticleBOM: React.FC<ArticleBOMProps> = ({ items, allArticles, curr
         setIsAdding(false);
     };
 
-    const handleRemove = (id: string) => {
+    const handleRemove = async (id: string) => {
         if (isLocked) return;
-        if (window.confirm('Item verwijderen uit stuklijst?')) {
+        const ok = await confirm({ title: 'Item verwijderen', message: 'Item verwijderen uit stuklijst?' });
+        if (ok) {
             const item = items.find(i => i.id === id);
             onUpdate(items.filter(i => i.id !== id), `Onderdeel verwijderd uit stuklijst: ${item?.childArticleName}.`);
         }

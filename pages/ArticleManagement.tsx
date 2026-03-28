@@ -10,6 +10,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { useTable } from '../hooks/useTable';
 import { useNotifications } from '../contexts/NotificationContext';
+import { useConfirm } from '../contexts/ConfirmContext';
 import { FilePreviewModal } from '../components/ui/FilePreviewModal';
 import { ArrowLeft, BookOpen, Plus, LayoutPanelLeft, ShieldAlert } from '../icons';
 import { articleService } from '../services/db/articleService';
@@ -37,6 +38,7 @@ import { logArticleChange } from '../services/db/articleService';
 export const ArticleManagement: React.FC = () => {
     const { user, hasPermission } = useAuth();
     const { addNotification } = useNotifications();
+    const confirm = useConfirm();
 
     // Hooks
     const { data: articles, refresh: refreshArticles } = useTable<Article>(KEYS.ARTICLES);
@@ -77,7 +79,6 @@ export const ArticleManagement: React.FC = () => {
     });
 
     const [articleRevisionModal, setArticleRevisionModal] = useState(false);
-    const [archiveModal, setArchiveModal] = useState(false);
     const [notesModal, setNotesModal] = useState<{ isOpen: boolean; opId: string | null }>({
         isOpen: false, opId: null
     });
@@ -97,8 +98,8 @@ export const ArticleManagement: React.FC = () => {
     const isOwner = editingArticle?.createdBy === user?.name;
     const hasEditRights = canEditAll || (canEditOwn && isOwner) || (!editingArticle && canCreate);
     const isLockedStatus = editingArticle?.status === ArticleStatus.LOCKED;
-    const isObsolete = editingArticle?.status === ArticleStatus.OBSOLETE;
-    const isLocked = !(!isLockedStatus && !isObsolete && hasEditRights);
+    const isObsolete = false; // OBSOLETE status was removed
+    const isLocked = !(!isLockedStatus && hasEditRights);
     const canAddOperation = !isLocked || canAddProcessStep;
 
     // --- EFFECT: Auto-select drawing when article loads ---
@@ -313,8 +314,9 @@ export const ArticleManagement: React.FC = () => {
         }), "Standaard setup gewijzigd.");
     };
 
-    const handleDeleteSetup = (opId: string, setupId: string) => {
-        if (window.confirm("Setup verwijderen?")) {
+    const handleDeleteSetup = async (opId: string, setupId: string) => {
+        const ok = await confirm({ title: 'Setup verwijderen', message: 'Weet je zeker dat je deze setup wilt verwijderen?' });
+        if (ok) {
             const setupName = editingArticle?.operations.find(o => o.id === opId)?.setups.find(s => s.id === setupId)?.name || 'Setup';
             updateCurrentArticle(art => ({
                 ...art, operations: art.operations.map(o => {
@@ -517,19 +519,7 @@ export const ArticleManagement: React.FC = () => {
         setSelectedId(newSetupId);
     };
 
-    // --- ARCHIVE (OBSOLETE) LOGIC ---
-
-    const handleArchiveArticle = async (reason: string) => {
-        if (!editingArticle) return;
-        try {
-            const upd = await articleService.updateArticleStatus(editingArticle.id, ArticleStatus.OBSOLETE, reason);
-            if (upd) setEditingArticle(upd);
-        } catch (e) {
-            addNotification('ERROR', 'Fout', 'Fout bij archiveren: ' + (e as Error).message);
-        } finally {
-            setArchiveModal(false);
-        }
-    };
+    // --- ARCHIVE (OBSOLETE) LOGIC REMOVED ---
 
     const handleAddNote = async (opId: string, note: OperationNote) => {
         if (!editingArticle) return;
@@ -568,7 +558,6 @@ export const ArticleManagement: React.FC = () => {
                         user={user}
                         onChangeStatus={async (s) => { const upd = await articleService.updateArticleStatus(editingArticle.id, s); if (upd) setEditingArticle(upd); }}
                         onRevise={() => setArticleRevisionModal(true)}
-                        onObsolete={() => setArchiveModal(true)}
                     />
                     <div className={`grid grid-cols-1 gap-8 ${showContextPanel ? '' : 'xl:grid-cols-2'}`}>
                         <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-3xl border border-slate-200 dark:border-slate-700">
@@ -582,6 +571,7 @@ export const ArticleManagement: React.FC = () => {
                         </div>
                         <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-3xl border border-slate-200 dark:border-slate-700">
                             <ArticleFiles
+                                articleId={editingArticle.id}
                                 files={editingArticle.files || []}
                                 isLocked={isLocked}
                                 onUpdate={handleUpdateFiles}
@@ -679,7 +669,7 @@ export const ArticleManagement: React.FC = () => {
                     machines={machines}
                     templates={templates}
                     onSave={async (op) => { if (mkgOperations.find(o => o.id === op.id)) await db.updateMkgOperation(op); else await db.addMkgOperation(op); refreshCatalog(); }}
-                    onDelete={async (id) => { if (window.confirm("Wissen?")) { await db.deleteMkgOperation(id); refreshCatalog(); } }}
+                    onDelete={async (id) => { const ok = await confirm({ title: 'Operatie wissen', message: 'Wil je deze operatie verwijderen uit de catalogus?' }); if (ok) { await db.deleteMkgOperation(id); refreshCatalog(); } }}
                 />
             </div>
         );
@@ -782,15 +772,7 @@ export const ArticleManagement: React.FC = () => {
                 subtitle={`Artikel wordt gekopieerd naar revisie ${editingArticle?.revision ? String.fromCharCode(editingArticle.revision.charCodeAt(editingArticle.revision.length - 1) + 1) : '?'}. Het huidige artikel wordt gearchiveerd.`}
             />
 
-            {/* ARCHIVE (OBSOLETE) MODAL */}
-            <RevisionWizardModal
-                isOpen={archiveModal}
-                onClose={() => setArchiveModal(false)}
-                onConfirm={handleArchiveArticle}
-                currentVersion={0}
-                title="Artikel Archiveren"
-                subtitle={`Artikel ${editingArticle?.articleCode} Rev.${editingArticle?.revision} wordt permanent gearchiveerd (Obsolete).`}
-            />
+
             {/* OPERATION NOTES MODAL */}
             {notesModal.isOpen && notesModal.opId && editingArticle && (() => {
                 const op = editingArticle.operations.find(o => o.id === notesModal.opId);

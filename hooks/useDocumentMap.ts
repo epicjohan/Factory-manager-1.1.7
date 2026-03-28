@@ -3,10 +3,20 @@ import { ArticleFile } from '../types';
 import { documentService } from '../services/db/documentService';
 import { SyncService } from '../services/sync';
 import { KEYS } from '../services/db/core';
+import { db } from '../services/storage';
 
-export const useDocumentMap = (files: ArticleFile[], serverUrl?: string) => {
+export const useDocumentMap = (files: ArticleFile[], parentRecordId?: string, collectionKey?: string) => {
     const [urlMap, setUrlMap] = useState<Record<string, string>>({});
     const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>({});
+    const [serverUrl, setServerUrl] = useState<string | undefined>();
+
+    useEffect(() => {
+        let isMounted = true;
+        db.getServerSettings().then((s: any) => {
+            if (isMounted) setServerUrl(s.url);
+        }).catch(() => {});
+        return () => { isMounted = false; };
+    }, []);
 
     // Create a stable dependency string so we don't infinitely fetch on every render
     const fileDepString = useMemo(() =>
@@ -43,9 +53,9 @@ export const useDocumentMap = (files: ArticleFile[], serverUrl?: string) => {
                 if (file.documentId) {
                     idsToFetch.push(file.documentId);
                     newLoadingMap[file.id] = true;
-                } else if (serverUrl && file.name) {
+                } else if (serverUrl && file.name && parentRecordId && collectionKey) {
                     // Fallback Legacy PB Setup/Article if no local base64/docId
-                    newUrlMap[file.id] = SyncService.resolveFileUrl(file.id, file.name, KEYS.ARTICLES, serverUrl);
+                    newUrlMap[file.id] = SyncService.resolveFileUrl(parentRecordId, file.name, collectionKey, serverUrl);
                     newLoadingMap[file.id] = false;
                 } else {
                     // Unresolvable
@@ -92,7 +102,7 @@ export const useDocumentMap = (files: ArticleFile[], serverUrl?: string) => {
         resolveUrls();
 
         return () => { isMounted = false; };
-    }, [fileDepString, serverUrl]);
+    }, [fileDepString, serverUrl, parentRecordId, collectionKey]);
 
     return { urlMap, loadingMap };
 };

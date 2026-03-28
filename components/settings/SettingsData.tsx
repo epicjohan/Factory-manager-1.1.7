@@ -5,9 +5,11 @@ import { db } from '../../services/storage';
 import { useTable } from '../../hooks/useTable';
 import { KEYS } from '../../services/db/core';
 import { DataSnapshot } from '../../types';
+import { useConfirm } from '../../contexts/ConfirmContext';
 
 export const SettingsData: React.FC = () => {
     const { data: snapshots, refresh } = useTable<DataSnapshot>(KEYS.SNAPSHOTS);
+    const confirm = useConfirm();
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
     const [isAppInstalled, setIsAppInstalled] = useState(false);
 
@@ -48,26 +50,27 @@ export const SettingsData: React.FC = () => {
     };
 
     const handleRestore = async (id: string, name: string) => {
-        if (window.confirm(`Herstellen naar ${name}? Dit overschrijft de huidige data.`)) {
+        const ok = await confirm({ title: 'Herstellen', message: `Herstellen naar ${name}? Dit overschrijft de huidige data.`, confirmLabel: 'Herstellen', danger: true });
+        if (ok) {
             await db.restoreSnapshot(id);
             window.location.reload();
         }
     };
 
     const handleDelete = async (id: string) => {
-        if (window.confirm("Snapshot verwijderen?")) {
+        const ok = await confirm({ title: 'Snapshot verwijderen', message: 'Snapshot verwijderen?' });
+        if (ok) {
             await db.deleteSnapshot(id);
             refresh();
         }
     };
 
-    const confirmReset = (mode: 'EMPTY' | 'DEMO') => {
+    const confirmReset = async (mode: 'EMPTY' | 'DEMO') => {
         const msg = mode === 'DEMO'
             ? "Dit wist alle huidige gegevens en laadt de demonstratie-fabriek. Doorgaan?"
             : "Dit wist ALLE gegevens uit de database. Het systeem wordt teruggezet naar de basisinstellingen. Weet u dit heel zeker?";
-        if (window.confirm(msg)) {
-            db.resetData(mode);
-        }
+        const ok = await confirm({ title: 'Systeem reset', message: msg, danger: true, confirmLabel: mode === 'DEMO' ? 'Demo Laden' : 'Alles Wissen' });
+        if (ok) db.resetData(mode);
     };
 
     return (

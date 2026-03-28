@@ -10,6 +10,7 @@ import {
     Monitor, ExternalLink
 } from '../../icons';
 import { useNavigate } from 'react-router-dom';
+import { useConfirm } from '../../contexts/ConfirmContext';
 
 interface JobSectionProps {
     machine: Machine;
@@ -18,6 +19,7 @@ interface JobSectionProps {
 export const JobSection: React.FC<JobSectionProps> = ({ machine }) => {
     const { user } = useAuth();
     const navigate = useNavigate();
+    const confirm = useConfirm();
     const { data: articles } = useTable<Article>(KEYS.ARTICLES);
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -62,9 +64,8 @@ export const JobSection: React.FC<JobSectionProps> = ({ machine }) => {
     };
 
     const handleStopJob = async () => {
-        if (window.confirm("Weet je zeker dat je deze setup wilt beëindigen?")) {
-            await machineService.clearJob(machine.id);
-        }
+        const ok = await confirm({ title: 'Setup beëindigen', message: 'Weet je zeker dat je deze setup wilt beëindigen?' });
+        if (ok) await machineService.clearJob(machine.id);
     };
 
     if (!machine.activeJob) {

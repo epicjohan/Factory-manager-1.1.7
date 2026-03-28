@@ -1,10 +1,11 @@
 
 import { AssetType, UploadedDocument } from './common';
 
+// BUG B-04 FIX: OBSOLETE verwijderd — alleen DRAFT en LOCKED zijn geldig per het Article Status Redesign.
+// OBSOLETE was niet geïmplementeerd in de UI of business logic en veroorzaakte inconsistente type-checks.
 export enum ArticleStatus {
   DRAFT = 'DRAFT',
   LOCKED = 'LOCKED',
-  OBSOLETE = 'OBSOLETE'
 }
 
 export enum FileRole {

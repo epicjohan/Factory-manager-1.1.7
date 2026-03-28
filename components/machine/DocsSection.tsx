@@ -190,6 +190,8 @@ export const DocsSection: React.FC<DocsSectionProps> = ({ machine }) => {
         subtitle="Handleidingen, Certificaten, Schema's"
         files={mappedFiles}
         applicableTo="MACHINE"
+        parentRecordId={machine.id}
+        tableKey={KEYS.MACHINES}
         defaultCategoryCode="OTHER"
         isLocked={machine.isArchived || !canManage}
         onUpload={handleDocumentUpload}

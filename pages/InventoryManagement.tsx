@@ -20,10 +20,12 @@ import {
 import { MachineCard } from '../components/MachineCard';
 import { useAuth } from '../contexts/AuthContext';
 import { useTable } from '../hooks/useTable';
+import { useConfirm } from '../contexts/ConfirmContext';
 
 export const InventoryManagement: React.FC = () => {
     const navigate = useNavigate();
     const { canAccessAsset } = useAuth();
+    const confirm = useConfirm();
 
     const { data: allParts } = useTable<GeneralPart>(KEYS.PARTS_GENERAL);
     const { data: allMachines } = useTable<Machine>(KEYS.MACHINES);
@@ -83,9 +85,8 @@ export const InventoryManagement: React.FC = () => {
     };
 
     const handleDelete = async (id: string) => {
-        if (window.confirm('Weet u zeker dat u dit onderdeel wilt verwijderen?')) {
-            await db.deleteGeneralPart(id);
-        }
+        const ok = await confirm({ title: 'Onderdeel verwijderen', message: 'Weet u zeker dat u dit onderdeel wilt verwijderen?' });
+        if (ok) await db.deleteGeneralPart(id);
     };
 
     const filteredParts = useMemo(() => {

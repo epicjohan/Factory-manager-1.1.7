@@ -5,6 +5,7 @@ import { db } from '../services/storage';
 import { generateId, KEYS } from '../services/db/core';
 import { Machine, AssetType, MaintenanceInterval, ScheduleType, WorkSchedule, MachineProtocol, UserRole, FanucControlType, SetupTemplate, AppModule } from '../types';
 import { useAuth } from '../contexts/AuthContext';
+import { useConfirm } from '../contexts/ConfirmContext';
 import { useTable } from '../hooks/useTable';
 import { ImageProcessor } from '../services/db/imageProcessor';
 import {
@@ -18,6 +19,7 @@ import {
 export const CreateMachine: React.FC = () => {
     const navigate = useNavigate();
     const { user, canAccessModule } = useAuth();
+    const confirm = useConfirm();
     const { id } = useParams<{ id: string }>();
     const isEditing = !!id;
 
@@ -127,7 +129,11 @@ export const CreateMachine: React.FC = () => {
 
     const handleDelete = async () => {
         if (!id) return;
-        if (window.confirm(`Weet u zeker dat u "${formData.name}" permanent wilt VERWIJDEREN?`)) {
+        const ok = await confirm({
+            title: 'Asset verwijderen',
+            message: `Weet u zeker dat u "${formData.name}" permanent wilt VERWIJDEREN? Dit kan niet ongedaan worden gemaakt.`,
+        });
+        if (ok) {
             await db.deleteMachine(id);
             navigate('/admin');
         }

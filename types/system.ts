@@ -5,6 +5,7 @@ import { Machine } from './machine';
 import { WorkSchedule, MaintenanceTicket, MaintenanceEvent, SupportRequest, MixingLog, MistLog, ChecklistLog, EfficiencyLog, MachinePart, GeneralPart } from './maintenance';
 import { EnergyLiveData, EnergyHistoricalLog, EnergySettings, AssetEnergyConfig, EnergyQuarterlyLog } from './energy';
 import { Article, PredefinedOperation, SetupTemplate, DocumentCategory } from './pdm';
+import { QmsFramework, QmsFolder, QmsAudit } from './compliance';
 
 export interface SystemStatus {
   id: string;
@@ -110,11 +111,15 @@ export interface AppState {
   systemAuditLogs?: SystemAuditLog[];
   energyQuarterlyLogs?: EnergyQuarterlyLog[];
   articles?: Article[];
+  qmsFrameworks?: QmsFramework[];
+  qmsFolders?: QmsFolder[];
+  qmsAudits?: QmsAudit[];
   lastModified?: number;
   serverUrl?: string;
   adminEmail?: string;
-  adminPassword?: string;
-  serverApiKey?: string;
+  // SECURITY S-03: adminPassword en serverApiKey zijn verwijderd uit AppState.
+  // Credentials worden uitsluitend intern beheerd door settingsService.
+  // Gebruik settingsService.getServerSettings() voor directe toegang buiten de state.
   teamsWebhookUrl?: string;
   simulationState?: SimulationState;
   outbox?: SyncEntry[];

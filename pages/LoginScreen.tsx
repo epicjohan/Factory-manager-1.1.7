@@ -4,7 +4,7 @@ import { db } from '../services/storage';
 import { Lock, Delete, ArrowRight, CheckCircle2, ShieldAlert, Loader2 } from '../icons';
 
 export const LoginScreen: React.FC = () => {
-  const { login, users } = useAuth();
+  const { loginWithPin } = useAuth();
   const [pin, setPin] = useState('');
   const [error, setError] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -22,28 +22,16 @@ export const LoginScreen: React.FC = () => {
     loadConfig();
   }, []);
 
-  const performLogin = useCallback((finalPin: string) => {
+  const performLogin = useCallback(async (finalPin: string) => {
     if (isLoggingIn || lockoutTime > 0) return;
-    
     setIsLoggingIn(true);
-    
-    // Ghost Admin bypass (6 digits)
-    if (finalPin === '000894') {
-        setIsSuccess(true);
-        setTimeout(() => {
-            login('super-admin-ghost');
-            setIsLoggingIn(false);
-        }, 500);
-        return;
-    }
 
-    const foundUser = users.find(u => u.pinCode === finalPin);
-    if (foundUser) {
+    // S-01 + S-07 FIX: Ghost PIN wordt vergeleken in AuthContext via VITE_GHOST_PIN.
+    // De lockout-teller is nu van toepassing op ALLE logins, inclusief Ghost Admin.
+    const success = await loginWithPin(finalPin);
+    if (success) {
         setIsSuccess(true);
-        setTimeout(() => {
-            login(foundUser.id);
-            setIsLoggingIn(false);
-        }, 500);
+        setTimeout(() => setIsLoggingIn(false), 500);
     } else {
         setError(true);
         setPin('');
@@ -55,7 +43,7 @@ export const LoginScreen: React.FC = () => {
         setTimeout(() => setError(false), 600);
         setIsLoggingIn(false);
     }
-  }, [users, login, isLoggingIn, lockoutTime]);
+  }, [loginWithPin, isLoggingIn, lockoutTime]);
 
   useEffect(() => {
     if (lockoutTime > 0) {

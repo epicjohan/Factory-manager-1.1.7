@@ -3,11 +3,13 @@ import { Trash2, Edit2, Eye, RotateCcw, AlertTriangle, ShieldCheck, Wrench } fro
 import { ArticleTool, SetupFieldDefinition, ArticleFile, DMSDocument } from '../../../types';
 import { SearchableSelect } from '../../ui/SearchableSelect';
 import { SleekDocumentList } from '../ui/SleekDocumentList';
-import { generateId } from '../../../services/db/core';
+import { generateId, KEYS } from '../../../services/db/core';
 import { documentService } from '../../../services/db/documentService';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useConfirm } from '../../../contexts/ConfirmContext';
 
 interface ToolBlockProps {
+    articleId?: string;
     tool: ArticleTool;
     onUpdate: (updates: Partial<ArticleTool>) => void;
     onDelete: () => void;
@@ -17,9 +19,10 @@ interface ToolBlockProps {
     isLegacyMode?: boolean;
 }
 
-export const ToolBlock: React.FC<ToolBlockProps> = ({ tool, onUpdate, onDelete, onReplace, disabled, toolFields = [], isLegacyMode = false }) => {
+export const ToolBlock: React.FC<ToolBlockProps> = ({ articleId, tool, onUpdate, onDelete, onReplace, disabled, toolFields = [], isLegacyMode = false }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const { user } = useAuth();
+    const confirm = useConfirm();
 
     const handleDynamicChange = (key: string, value: any) => {
         if (disabled) return;
@@ -94,9 +97,10 @@ export const ToolBlock: React.FC<ToolBlockProps> = ({ tool, onUpdate, onDelete, 
         });
     };
 
-    const handleDeleteFile = (fileId: string) => {
+    const handleDeleteFile = async (fileId: string) => {
         if (disabled || isReplaced) return;
-        if (window.confirm('Bestand verwijderen?')) {
+        const ok = await confirm({ title: 'Bestand verwijderen', message: 'Bestand verwijderen?' });
+        if (ok) {
             onUpdate({
                 files: (tool.files || []).filter(f => f.id !== fileId)
             });
@@ -337,6 +341,8 @@ export const ToolBlock: React.FC<ToolBlockProps> = ({ tool, onUpdate, onDelete, 
                             subtitle="Slijptekeningen, instelbladen, etc."
                             files={tool.files || []}
                             applicableTo="SETUP"
+                            parentRecordId={articleId}
+                            tableKey={KEYS.ARTICLES}
                             excludedCategories={['CAM', 'NC']}
                             defaultCategoryCode="OTHER"
                             isLocked={disabled || isReplaced}

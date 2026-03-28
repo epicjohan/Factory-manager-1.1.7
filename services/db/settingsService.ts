@@ -19,6 +19,60 @@ const INITIAL_SETTINGS = {
     }
 };
 
+// S-02 FIX: Web Crypto API AES-GCM Encryptie voor het PocketBase admin wachtwoord
+const DEVICE_KEY_NAME = 'fm_device_key';
+
+const getDeviceKey = async (): Promise<CryptoKey> => {
+    let keyStr = localStorage.getItem(DEVICE_KEY_NAME);
+    if (!keyStr) {
+        const key = await crypto.subtle.generateKey(
+            { name: 'AES-GCM', length: 256 },
+            true,
+            ['encrypt', 'decrypt']
+        );
+        const exported = await crypto.subtle.exportKey('raw', key);
+        keyStr = btoa(String.fromCharCode(...new Uint8Array(exported)));
+        localStorage.setItem(DEVICE_KEY_NAME, keyStr);
+        return key;
+    }
+    const raw = Uint8Array.from(atob(keyStr), c => c.charCodeAt(0));
+    return crypto.subtle.importKey('raw', raw, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+};
+
+const encryptPassword = async (password: string): Promise<string> => {
+    if (!password) return '';
+    const key = await getDeviceKey();
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const encoded = new TextEncoder().encode(password);
+    const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encoded);
+    
+    const combined = new Uint8Array(iv.length + encrypted.byteLength);
+    combined.set(iv, 0);
+    combined.set(new Uint8Array(encrypted), iv.length);
+    return 'ENC:' + btoa(String.fromCharCode(...combined));
+};
+
+const decryptPassword = async (encryptedData: string): Promise<string> => {
+    if (!encryptedData) return '';
+    if (!encryptedData.startsWith('ENC:')) {
+        // Fallback voor legacy plaintext wachtwoorden (migratie-pad)
+        // Optioneel: Deze zouden we op termijn kunnen re-encrypten bij ophalen.
+        return encryptedData;
+    }
+    try {
+        const b64 = encryptedData.substring(4);
+        const raw = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+        const iv = raw.slice(0, 12);
+        const data = raw.slice(12);
+        const key = await getDeviceKey();
+        const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, data);
+        return new TextDecoder().decode(decrypted);
+    } catch (e) {
+        console.error("Password decryption failed", e);
+        return '';
+    }
+};
+
 export const settingsService = {
     init: async () => {
         await migrateToIndexedDB();
@@ -99,21 +153,28 @@ export const settingsService = {
             url = `${window.location.protocol}//${window.location.hostname}:${port}`;
         }
 
+        // S-02 FIX: Ontsleutel het opgeslagen wachtwoord. 
+        // Bestaande plaintext wachtwoorden (zonder ENC: prefix) worden door de fallback geretourneerd.
+        const decryptedPassword = await decryptPassword(meta.adminPassword || '');
+
         return {
             url: url,
             email: meta.adminEmail || '',
-            password: meta.adminPassword || ''
+            password: decryptedPassword
         };
     },
     setServerSettings: async (url: string, email: string, password: string) => {
         const meta = await loadTable<any>(KEYS.METADATA, {});
         const urlChanged = meta.serverUrl !== url;
 
+        // S-02 FIX: Versleutel het wachtwoord vóór opslag in IndexedDB
+        const encryptedPassword = await encryptPassword(password);
+
         const newMeta: any = {
             ...meta,
             serverUrl: url,
             adminEmail: email,
-            adminPassword: password,
+            adminPassword: encryptedPassword,
             lastModified: Date.now()
         };
 

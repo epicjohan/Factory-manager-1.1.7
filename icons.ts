@@ -145,6 +145,7 @@ import {
     SpeakerSlash as _VolumeOff,
     Table as _Table,
     FileCsv as _FileCsv,
+    Note as _StickyNote,
 } from '@phosphor-icons/react';
 
 // Re-export under the original lucide-react names
@@ -178,6 +179,7 @@ export const ChevronRight = _CaretRight;
 export const ChevronUp = _CaretUp;
 export const ClipboardList = _ClipboardList;
 export const Clock = _Clock;
+export const StickyNote = _StickyNote;
 export const Cloud = _Cloud;
 export const CloudCog = _Cloud; // fallback
 export const CloudDownload = _CloudDownload;

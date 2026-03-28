@@ -5,67 +5,84 @@ type Theme = 'light' | 'dark';
 interface ThemeContextType {
   theme: Theme;
   toggleTheme: () => void;
+  setThemeExplicit: (theme: Theme) => void;
+  setDarkFlavorExplicit: (flavor: 'OLED'|'CLASSIC'|'MIDNIGHT'|undefined) => void;
+  setLightFlavorExplicit: (flavor: 'SOFT'|'COOL'|'STANDARD'|undefined) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>('dark');
+  const [theme, setTheme] = useState<Theme>(() => {
+    const saved = localStorage.getItem('theme_preference');
+    return (saved === 'light' || saved === 'dark') ? saved : 'dark';
+  });
+
+  const [darkFlavor, setDarkFlavor] = useState<'OLED'|'CLASSIC'|'MIDNIGHT'|undefined>(undefined);
+  const [lightFlavor, setLightFlavor] = useState<'SOFT'|'COOL'|'STANDARD'|undefined>(undefined);
+  const [systemSettings, setSystemSettings] = useState<any>(null);
 
   useEffect(() => {
-    const root = window.document.documentElement;
-    root.classList.remove('light', 'dark', 'theme-classic', 'theme-midnight', 'theme-light-soft', 'theme-light-cool');
-    root.classList.add(theme);
+    localStorage.setItem('theme_preference', theme);
+  }, [theme]);
 
-    // Initial load of settings to check for custom dark mode style
-    const checkStyle = async () => {
+  // Initial load of settings and listeners
+  useEffect(() => {
+    const initSettings = async () => {
       try {
         const { db } = await import('../services/storage');
         const settings = await db.getSystemSettings();
-        if (settings?.darkModeStyle === 'CLASSIC') {
-          root.classList.add('theme-classic');
-        } else if (settings?.darkModeStyle === 'MIDNIGHT') {
-          root.classList.add('theme-midnight');
-        }
-
-        if (settings?.lightModeStyle === 'SOFT') {
-          root.classList.add('theme-light-soft');
-        } else if (settings?.lightModeStyle === 'COOL') {
-          root.classList.add('theme-light-cool');
-        }
+        setSystemSettings(settings);
       } catch (e) {
         console.error('Failed to load theme settings', e);
       }
     };
-    checkStyle();
+    initSettings();
 
-    // Listen for setting changes
     const handleSettingsChange = (e: any) => {
-      const newSettings = e.detail?.settings;
-      root.classList.remove('theme-classic', 'theme-midnight', 'theme-light-soft', 'theme-light-cool');
-      if (newSettings?.darkModeStyle === 'CLASSIC') {
-        root.classList.add('theme-classic');
-      } else if (newSettings?.darkModeStyle === 'MIDNIGHT') {
-        root.classList.add('theme-midnight');
-      }
-
-      if (newSettings?.lightModeStyle === 'SOFT') {
-        root.classList.add('theme-light-soft');
-      } else if (newSettings?.lightModeStyle === 'COOL') {
-        root.classList.add('theme-light-cool');
+      if (e.detail?.settings) {
+        setSystemSettings(e.detail.settings);
       }
     };
 
     window.addEventListener('settings-changed', handleSettingsChange);
     return () => window.removeEventListener('settings-changed', handleSettingsChange);
-  }, [theme]);
+  }, []);
+
+  // Apply CSS Classes
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove('light', 'dark', 'theme-classic', 'theme-midnight', 'theme-light-soft', 'theme-light-cool');
+    root.classList.add(theme);
+
+    const activeDark = darkFlavor || systemSettings?.darkModeStyle || 'OLED';
+    if (activeDark === 'CLASSIC') {
+      root.classList.add('theme-classic');
+    } else if (activeDark === 'MIDNIGHT') {
+      root.classList.add('theme-midnight');
+    }
+
+    const activeLight = lightFlavor || systemSettings?.lightModeStyle || 'STANDARD';
+    if (activeLight === 'SOFT') {
+      root.classList.add('theme-light-soft');
+    } else if (activeLight === 'COOL') {
+      root.classList.add('theme-light-cool');
+    }
+  }, [theme, darkFlavor, lightFlavor, systemSettings]);
 
   const toggleTheme = () => {
     setTheme(prev => prev === 'light' ? 'dark' : 'light');
   };
 
+  const setThemeExplicit = (newTheme: Theme) => {
+    setTheme(newTheme);
+  };
+
+  const setDarkFlavorExplicit = (flavor: 'OLED'|'CLASSIC'|'MIDNIGHT'|undefined) => setDarkFlavor(flavor);
+  const setLightFlavorExplicit = (flavor: 'SOFT'|'COOL'|'STANDARD'|undefined) => setLightFlavor(flavor);
+
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, setThemeExplicit, setDarkFlavorExplicit, setLightFlavorExplicit }}>
       {children}
     </ThemeContext.Provider>
   );

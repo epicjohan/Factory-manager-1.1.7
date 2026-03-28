@@ -7,6 +7,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../contexts/NotificationContext';
 import { useTable } from '../hooks/useTable';
 import { KEYS, generateId } from '../services/db/core';
+import { useConfirm } from '../contexts/ConfirmContext';
 import {
     ArrowLeft, LayoutTemplate, Plus, Trash2, Save, Edit,
     ChevronUp, ChevronDown, Check, X, FileText, Hash,
@@ -45,6 +46,7 @@ export const TemplateManagement: React.FC = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const { addNotification } = useNotifications();
+    const confirm = useConfirm();
 
     const { data: templates, refresh } = useTable<SetupTemplate>(KEYS.SETUP_TEMPLATES);
 
@@ -119,7 +121,8 @@ export const TemplateManagement: React.FC = () => {
     };
 
     const handleDeleteTemplate = async (id: string) => {
-        if (window.confirm("Weet u zeker dat u dit sjabloon wilt verwijderen?")) {
+        const ok = await confirm({ title: 'Sjabloon verwijderen', message: 'Weet u zeker dat u dit sjabloon wilt verwijderen?' });
+        if (ok) {
             await db.deleteTemplate(id);
             refresh();
             setSelectedTemplate(null);
@@ -181,8 +184,9 @@ export const TemplateManagement: React.FC = () => {
         setShowFieldModal(false);
     };
 
-    const deleteField = (index: number) => {
-        if (!window.confirm("Veld verwijderen?")) return;
+    const deleteField = async (index: number) => {
+        const ok = await confirm({ title: 'Veld verwijderen', message: 'Wil je dit veld uit het sjabloon verwijderen?' });
+        if (!ok) return;
         let fieldsCopy = [...getActiveFields()];
         fieldsCopy.splice(index, 1);
         if (activeTab === 'FIXTURE') {

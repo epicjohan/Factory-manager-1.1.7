@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Settings, Save, Lock, LockOpen, ArrowRight, CornerUpRight, AlertTriangle, Archive } from '../../icons';
 import { Article, ArticleStatus, User } from '../../types';
+import { useConfirm } from '../../contexts/ConfirmContext';
 
 interface ArticleHeaderProps {
     article: Article | null;
@@ -17,6 +18,7 @@ interface ArticleHeaderProps {
 }
 
 export const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, isLocked, canEdit, canRelease, canManageLock = false, onSave, onChangeStatus, onRevise, onObsolete }) => {
+    const confirm = useConfirm();
     const [formCode, setFormCode] = useState('');
     const [formDrawing, setFormDrawing] = useState('');
     const [formDrawingRev, setFormDrawingRev] = useState('');
@@ -68,11 +70,10 @@ export const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, isLocked,
         onChangeStatus(ArticleStatus.LOCKED);
     };
 
-    const handleUnlock = () => {
+    const handleUnlock = async () => {
         if (!onChangeStatus) return;
-        if (window.confirm('Artikel ontgrendelen? Bron-documentatie wordt dan opnieuw bewerkbaar.')) {
-            onChangeStatus(ArticleStatus.DRAFT);
-        }
+        const ok = await confirm({ title: 'Artikel ontgrendelen', message: 'Artikel ontgrendelen? Bron-documentatie wordt dan opnieuw bewerkbaar.' });
+        if (ok) onChangeStatus(ArticleStatus.DRAFT);
     };
 
     // Status indicator

@@ -11,6 +11,7 @@ import { useNotifications } from '../contexts/NotificationContext';
 import { NotificationCenter } from './NotificationCenter';
 import { ToastContainer } from './ToastContainer';
 import { OutboxManager } from './OutboxManager';
+import { UserProfileModal } from './layout/UserProfileModal';
 import { MODULE_GROUPS } from '../config/moduleGroups';
 import { UserRole, SupportStatus, SupportType, AssetType, AppModule } from '../types';
 
@@ -21,7 +22,7 @@ import { UpdateBanner } from './layout/UpdateBanner';
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, logout, canAccessModule } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, setThemeExplicit, setDarkFlavorExplicit, setLightFlavorExplicit } = useTheme();
   const { notifications } = useNotifications();
   
   // UI State
@@ -33,6 +34,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const [showTeamsModal, setShowTeamsModal] = useState(false);
   const [showNotifCenter, setShowNotifCenter] = useState(false);
   const [showOutbox, setShowOutbox] = useState(false);
+  const [showUserProfile, setShowUserProfile] = useState(false);
 
   // System State
   const [hasUpdate, setHasUpdate] = useState(false);
@@ -114,6 +116,32 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       };
   }, [user]);
 
+  // S-02 FIX: Pas het thema en styling-smaak toe wanneer de ingelogde gebruiker een eigen voorkeur heeft in zijn profiel
+  useEffect(() => {
+     if (user) {
+         if (user.theme && user.theme !== theme) {
+             setThemeExplicit(user.theme);
+         }
+         // Doorsturen actieve smaken. Undefined zorgt ervoor dat ThemeContext netjes terugvalt op SystemSettings
+         setDarkFlavorExplicit(user.preferredDarkStyle);
+         setLightFlavorExplicit(user.preferredLightStyle);
+     }
+  }, [user?.id, user?.theme, user?.preferredDarkStyle, user?.preferredLightStyle]);
+
+  // S-02 FIX: Wrapper voor de thema-knop, zodat de wijziging lokaal & centraal in PocketBase (voor de user) opgeslagen wordt
+  const handleThemeToggle = async () => {
+      const newTheme = theme === 'light' ? 'dark' : 'light';
+      toggleTheme(); // Directe visuele update
+      
+      if (user && user.id !== 'super-admin-ghost') {
+          try {
+              await db.updateUser({ ...user, theme: newTheme });
+          } catch (e) {
+              console.error("Kon thema voorkeur niet opslaan naar de server", e);
+          }
+      }
+  };
+
   // Connectivity Warning Logic
   useEffect(() => {
     if (connectionStatus === 'OFFLINE') {
@@ -172,10 +200,11 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           user={user}
           logout={logout}
           theme={theme}
-          toggleTheme={toggleTheme}
+          toggleTheme={handleThemeToggle}
           onShowTeams={() => setShowTeamsModal(true)}
           onShowNotif={() => setShowNotifCenter(true)}
           onShowOutbox={() => setShowOutbox(true)}
+          onShowProfile={() => setShowUserProfile(true)}
           unreadNotifications={unreadNotifications}
           pendingSupport={pendingSupport}
           pendingQuestions={pendingQuestions}
@@ -197,6 +226,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       <TeamsSupportModal isOpen={showTeamsModal} onClose={() => setShowTeamsModal(false)} />
       <NotificationCenter isOpen={showNotifCenter} onClose={() => setShowNotifCenter(false)} />
       <OutboxManager isOpen={showOutbox} onClose={() => setShowOutbox(false)} />
+      <UserProfileModal isOpen={showUserProfile} onClose={() => setShowUserProfile(false)} user={user} />
       <ToastContainer />
     </div>
   );

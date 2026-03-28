@@ -7,6 +7,7 @@ import { useTable } from '../../hooks/useTable';
 import {
     ClipboardList, CheckSquare, History, Settings, Plus, Trash2, XCircle, Square, CheckCircle, Calendar, Filter, CloudCog, Clock
 } from '../../icons';
+import { useConfirm } from '../../contexts/ConfirmContext';
 
 interface ChecklistSectionProps {
     machine: Machine;
@@ -14,6 +15,7 @@ interface ChecklistSectionProps {
 
 export const ChecklistSection: React.FC<ChecklistSectionProps> = ({ machine }) => {
     const { user, hasPermission } = useAuth();
+    const confirm = useConfirm();
 
     const [view, setView] = useState<'EXECUTE' | 'HISTORY'>('EXECUTE');
     const [showConfig, setShowConfig] = useState(false);
@@ -105,8 +107,9 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({ machine }) =
         setNewDesc(''); setNewCustomText(''); setShowConfig(false);
     };
 
-    const handleDeleteItem = (itemId: string) => {
-        if (!window.confirm("Checklist item verwijderen?")) return;
+    const handleDeleteItem = async (itemId: string) => {
+        const ok = await confirm({ title: 'Item verwijderen', message: 'Checklist item verwijderen?' });
+        if (!ok) return;
         const updatedMachine = { ...machine, checklist: (machine.checklist || []).filter(i => i.id !== itemId) };
         db.updateMachine(updatedMachine);
     };

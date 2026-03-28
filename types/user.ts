@@ -23,4 +23,7 @@ export interface User {
   allowedModules?: AppModule[];
   allowedTabs?: AssetTab[];
   defaultPath?: string;
+  theme?: 'light' | 'dark';
+  preferredDarkStyle?: 'OLED' | 'CLASSIC' | 'MIDNIGHT';
+  preferredLightStyle?: 'SOFT' | 'COOL' | 'STANDARD';
 }

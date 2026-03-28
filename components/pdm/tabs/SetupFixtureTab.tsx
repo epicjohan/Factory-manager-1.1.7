@@ -3,8 +3,10 @@ import { AlertTriangle, Info, RefreshCcw, Link, Camera, Plus, X, Upload, FileTex
 import { SetupFieldDefinition, ArticleFile, DocumentCategory, DMSDocument } from '../../../types';
 import { SearchableSelect } from '../../ui/SearchableSelect';
 import { SleekDocumentList } from '../ui/SleekDocumentList';
+import { KEYS } from '../../../services/db/core';
 
 interface SetupFixtureTabProps {
+    articleId?: string;
     fields: SetupFieldDefinition[];
     templateName: string;
     updateStatus: 'NONE' | 'UPDATE_AVAILABLE' | 'LEGACY_INIT';
@@ -18,11 +20,12 @@ interface SetupFixtureTabProps {
     onDeleteImage: (id: string) => void;
     onPreviewImage: (file: ArticleFile) => void;
     onLinkImage?: (doc: DMSDocument, role: string) => void;
+    onSyncTemplate?: () => void;
 }
 
 export const SetupFixtureTab: React.FC<SetupFixtureTabProps> = ({
-    fields, templateName, updateStatus, templateData, images, isLocked, isProcessSetup, hasMachine,
-    onUpdateTemplateData, onUploadImage, onDeleteImage, onPreviewImage, onLinkImage
+    articleId, fields, templateName, updateStatus, templateData, images, isLocked, isProcessSetup, hasMachine,
+    onUpdateTemplateData, onUploadImage, onDeleteImage, onPreviewImage, onLinkImage, onSyncTemplate
 }) => {
 
     const renderFields = () => {
@@ -147,6 +150,8 @@ export const SetupFixtureTab: React.FC<SetupFixtureTabProps> = ({
                     subtitle="Opspanschetsen, meetrapporten, etc."
                     files={images || []}
                     applicableTo="SETUP"
+                    parentRecordId={articleId}
+                    tableKey={KEYS.ARTICLES}
                     excludedCategories={['CAM', 'NC']}
                     defaultCategoryCode="FIXTURE"
                     isLocked={isLocked}

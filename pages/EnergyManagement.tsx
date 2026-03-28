@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTable } from '../hooks/useTable';
 import { KEYS, generateId } from '../services/db/core';
 import { EnergyLiveData, Machine, AssetEnergyConfig, EnergySensorType } from '../types';
+import { useConfirm } from '../contexts/ConfirmContext';
 import { 
   ArrowLeft, 
   Euro, 
@@ -34,6 +35,7 @@ import {
 export const EnergyManagement: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const confirm = useConfirm();
   
   // States Global
   const [kwhPrice, setKwhPrice] = useState(0.35);
@@ -157,7 +159,9 @@ export const EnergyManagement: React.FC = () => {
   };
 
   const handleDeleteConfig = async () => {
-      if (editingConfig.id && window.confirm("Weet je zeker dat je deze meter wilt ontkoppelen?")) {
+      if (!editingConfig.id) return;
+      const ok = await confirm({ title: 'Meter ontkoppelen', message: 'Weet je zeker dat je deze meter wilt ontkoppelen?' });
+      if (ok) {
           await db.deleteConfig(editingConfig.id);
           refreshConfigs();
           setIsModalOpen(false);

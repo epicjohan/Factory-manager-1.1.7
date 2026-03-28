@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { db } from '../services/storage';
 import { SyncEntry } from '../types';
 import { Cloud, X, Clock, Database, ArrowRight, RefreshCw, CheckCircle, Trash2, AlertTriangle, ShieldAlert } from '../icons';
+import { useConfirm } from '../contexts/ConfirmContext';
 
 interface OutboxManagerProps {
     isOpen: boolean;
@@ -11,6 +12,7 @@ interface OutboxManagerProps {
 
 export const OutboxManager: React.FC<OutboxManagerProps> = ({ isOpen, onClose }) => {
     const [entries, setEntries] = useState<SyncEntry[]>([]);
+    const confirm = useConfirm();
 
     useEffect(() => {
         const loadOutbox = async () => {
@@ -38,13 +40,19 @@ export const OutboxManager: React.FC<OutboxManagerProps> = ({ isOpen, onClose })
     };
 
     const handleRemoveItem = async (id: string) => {
-        if (window.confirm("Dit item verwijderen uit de wachtrij? De wijziging wordt NIET naar de server gestuurd. Gebruik dit alleen bij hardnekkige fouten.")) {
-            await db.removeFromOutbox([id]);
-        }
+        const ok = await confirm({
+            title: 'Item uit wachtrij verwijderen',
+            message: 'De wijziging wordt NIET naar de server gestuurd. Gebruik dit alleen bij hardnekkige fouten.',
+        });
+        if (ok) await db.removeFromOutbox([id]);
     };
 
     const handleClearOutbox = async () => {
-        if (window.confirm("LET OP: Wilt u de VOLLEDIGE wachtrij wissen? Lokale wijzigingen worden NIET naar de server gestuurd.")) {
+        const ok = await confirm({
+            title: 'Volledige wachtrij wissen',
+            message: 'LET OP: Alle lokale wijzigingen worden NIET naar de server gestuurd. Zeker weten?',
+        });
+        if (ok) {
             const ids = entries.map(e => e.id);
             await db.removeFromOutbox(ids);
         }

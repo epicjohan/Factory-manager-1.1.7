@@ -10,12 +10,15 @@ import { ImageProcessor } from '../../../services/db/imageProcessor';
 import { db } from '../../../services/storage';
 import { documentService } from '../../../services/db/documentService';
 import { SleekDocumentList } from '../ui/SleekDocumentList';
+import { KEYS } from '../../../services/db/core';
 import { DocumentLibraryModal } from '../modals/DocumentLibraryModal';
 import { DocumentRenameModal } from '../modals/DocumentRenameModal';
 import { DocumentVersionSequenceModal } from '../modals/DocumentVersionSequenceModal';
 import { useNotifications } from '../../../contexts/NotificationContext';
+import { useConfirm } from '../../../contexts/ConfirmContext';
 
 interface SetupProgTabProps {
+    articleId?: string;
     setup: SetupVariant;
     allFiles: ArticleFile[];
     isLocked: boolean;
@@ -26,9 +29,10 @@ interface SetupProgTabProps {
 }
 
 export const SetupProgTab: React.FC<SetupProgTabProps> = ({
-    setup, allFiles, isLocked, user, onUpdateFiles, onPreview, onUpdateSetup
+    articleId, setup, allFiles, isLocked, user, onUpdateFiles, onPreview, onUpdateSetup
 }) => {
     const { addNotification } = useNotifications();
+    const confirm = useConfirm();
     const camInputRef = useRef<HTMLInputElement>(null);
     const ncInputRef = useRef<HTMLInputElement>(null);
 
@@ -140,9 +144,10 @@ export const SetupProgTab: React.FC<SetupProgTabProps> = ({
         onUpdateFiles(newFilesList, `${fileList.length} Setup document(en) toegevoegd aan Setup '${setup.name}'.`);
     };
 
-    const handleDeleteDoc = (fileId: string) => {
+    const handleDeleteDoc = async (fileId: string) => {
         if (isLocked) return;
-        if (window.confirm('Bestand definitief verwijderen?')) {
+        const ok = await confirm({ title: 'Bestand verwijderen', message: 'Bestand definitief verwijderen?' });
+        if (ok) {
             onUpdateFiles(allFiles.filter(f => f.id !== fileId), `Setup document verwijderd uit Setup '${setup.name}'.`);
         }
     };
@@ -555,6 +560,8 @@ export const SetupProgTab: React.FC<SetupProgTabProps> = ({
                     subtitle="Opspanschetsen, meetrapporten, etc."
                     files={docFiles}
                     applicableTo="SETUP"
+                    parentRecordId={articleId}
+                    tableKey={KEYS.ARTICLES}
                     excludedCategories={['CAM', 'NC']}
                     defaultCategoryCode="OTHER"
                     isLocked={isLocked || isArchived}
