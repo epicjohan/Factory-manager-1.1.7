@@ -3,7 +3,7 @@ import { StickyNote, Plus, Trash2, User } from '../../icons';
 import { QmsFolder, FolderNote } from '../../types';
 import { db } from '../../services/storage';
 import { useAuth } from '../../contexts/AuthContext';
-import { ConfirmModal } from './ConfirmModal';
+import { useConfirm } from '../../contexts/ConfirmContext';
 
 interface FolderNotesProps {
     folder: QmsFolder;
@@ -13,9 +13,9 @@ const generateId = () => `note_${Date.now()}_${Math.random().toString(36).slice(
 
 export const FolderNotes: React.FC<FolderNotesProps> = ({ folder }) => {
     const { user } = useAuth();
+    const confirm = useConfirm();
     const [text, setText] = useState('');
     const [saving, setSaving] = useState(false);
-    const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
     const notes: FolderNote[] = folder.notes || [];
 
@@ -43,18 +43,20 @@ export const FolderNotes: React.FC<FolderNotesProps> = ({ folder }) => {
     };
 
     const handleDelete = async (id: string) => {
-        setPendingDeleteId(id);
-    };
-
-    const confirmDelete = async () => {
-        if (!pendingDeleteId) return;
-        const updated: QmsFolder = {
-            ...folder,
-            notes: notes.filter(n => n.id !== pendingDeleteId),
-            updated: new Date().toISOString().replace('T', ' ').split('.')[0],
-        };
-        await db.updateQmsFolder(updated);
-        setPendingDeleteId(null);
+        const ok = await confirm({
+            title: 'Notitie verwijderen',
+            message: 'Weet je zeker dat je deze notitie wilt verwijderen?',
+            confirmLabel: 'Verwijderen',
+            danger: true
+        });
+        if (ok) {
+            const updated: QmsFolder = {
+                ...folder,
+                notes: notes.filter(n => n.id !== id),
+                updated: new Date().toISOString().replace('T', ' ').split('.')[0],
+            };
+            await db.updateQmsFolder(updated);
+        }
     };
 
     return (
@@ -105,15 +107,6 @@ export const FolderNotes: React.FC<FolderNotesProps> = ({ folder }) => {
                         </div>
                     ))}
                 </div>
-            )}
-
-            {pendingDeleteId && (
-                <ConfirmModal
-                    title="Notitie verwijderen"
-                    message="Weet je zeker dat je deze notitie definitief wilt verwijderen?"
-                    onConfirm={confirmDelete}
-                    onCancel={() => setPendingDeleteId(null)}
-                />
             )}
         </div>
     );

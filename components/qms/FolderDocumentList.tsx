@@ -6,7 +6,7 @@ import { useTable } from '../../hooks/useTable';
 import { KEYS } from '../../services/db/core';
 import { documentService } from '../../services/db/documentService';
 import { DocumentLibraryModal } from '../pdm/modals/DocumentLibraryModal';
-import { ConfirmModal } from './ConfirmModal';
+import { useConfirm } from '../../contexts/ConfirmContext';
 
 interface FolderDocumentListProps {
     folder: QmsFolder;
@@ -21,9 +21,9 @@ const getDocIcon = (type: string = '') => {
 
 export const FolderDocumentList: React.FC<FolderDocumentListProps> = ({ folder }) => {
     const { data: allDocs } = useTable<DMSDocument>(KEYS.DOCUMENTS);
+    const confirm = useConfirm();
     const [isUploading, setIsUploading] = useState(false);
     const [showLibrary, setShowLibrary] = useState(false);
-    const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Filter documents attached to this folder
@@ -93,14 +93,16 @@ export const FolderDocumentList: React.FC<FolderDocumentListProps> = ({ folder }
         await updateFolder([...(folder.documents || []), doc.id]);
     };
 
-    const handleRemoveDoc = async (docId: string) => {
-        setPendingDeleteId(docId);
-    };
-
-    const confirmRemoveDoc = async () => {
-        if (!pendingDeleteId) return;
-        await updateFolder((folder.documents || []).filter(id => id !== pendingDeleteId));
-        setPendingDeleteId(null);
+    const handleDelete = async (docId: string) => {
+        const ok = await confirm({
+            title: 'Document ontkoppelen',
+            message: 'Weet je zeker dat je dit document wilt ontkoppelen van deze map? Het document blijft bestaan in de bibliotheek.',
+            confirmLabel: 'Ontkoppelen'
+        });
+        if (ok) {
+            const newIds = (folder.documents || []).filter(id => id !== docId);
+            await updateFolder(newIds);
+        }
     };
 
     const handlePreview = (doc: DMSDocument) => {
@@ -208,7 +210,7 @@ export const FolderDocumentList: React.FC<FolderDocumentListProps> = ({ folder }
                                     <Eye size={14} />
                                 </button>
                                 <button
-                                    onClick={() => handleRemoveDoc(doc.id)}
+                                    onClick={() => handleDelete(doc.id)}
                                     className="p-1.5 text-slate-400 hover:text-red-600 bg-slate-50 hover:bg-red-50 dark:bg-slate-900 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                                     title="Ontkoppelen"
                                 >
@@ -225,17 +227,6 @@ export const FolderDocumentList: React.FC<FolderDocumentListProps> = ({ folder }
                 <DocumentLibraryModal
                     onClose={() => setShowLibrary(false)}
                     onSelect={handleLinkFromLibrary}
-                />
-            )}
-
-            {/* Confirm Delete Modal */}
-            {pendingDeleteId && (
-                <ConfirmModal
-                    title="Document ontkoppelen"
-                    message="Dit document wordt losgekoppeld van de map. Het document zelf blijft bewaard in het centrale DMS."
-                    confirmLabel="Ontkoppelen"
-                    onConfirm={confirmRemoveDoc}
-                    onCancel={() => setPendingDeleteId(null)}
                 />
             )}
         </div>

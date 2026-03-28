@@ -3,7 +3,7 @@ import { CheckSquare, Plus, Trash2, User, MessageSquare } from '../../icons';
 import { QmsFolder, FolderTodo } from '../../types';
 import { db } from '../../services/storage';
 import { useAuth } from '../../contexts/AuthContext';
-import { ConfirmModal } from './ConfirmModal';
+import { useConfirm } from '../../contexts/ConfirmContext';
 
 interface FolderTodosProps {
     folder: QmsFolder;
@@ -23,12 +23,12 @@ const ResultBadge: React.FC<{ done: boolean }> = ({ done }) => (
 
 export const FolderTodos: React.FC<FolderTodosProps> = ({ folder }) => {
     const { user } = useAuth();
+    const confirm = useConfirm();
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [showForm, setShowForm] = useState(false);
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
-    const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
     const todos: FolderTodo[] = folder.todos || [];
 
@@ -83,13 +83,15 @@ export const FolderTodos: React.FC<FolderTodosProps> = ({ folder }) => {
     };
 
     const handleDelete = async (id: string) => {
-        setPendingDeleteId(id);
-    };
-
-    const confirmDelete = async () => {
-        if (!pendingDeleteId) return;
-        await saveFolder(todos.filter(t => t.id !== pendingDeleteId));
-        setPendingDeleteId(null);
+        const ok = await confirm({
+            title: 'Actiepunt verwijderen',
+            message: 'Weet je zeker dat je dit verbeterpunt wilt verwijderen?',
+            confirmLabel: 'Verwijderen',
+            danger: true
+        });
+        if (ok) {
+            await saveFolder(todos.filter(t => t.id !== id));
+        }
     };
 
     const open = todos.filter(t => !t.done);
@@ -248,15 +250,6 @@ export const FolderTodos: React.FC<FolderTodosProps> = ({ folder }) => {
                         </div>
                     ))}
                 </div>
-            )}
-
-            {pendingDeleteId && (
-                <ConfirmModal
-                    title="Actiepunt verwijderen"
-                    message="Weet je zeker dat je dit actiepunt definitief wilt verwijderen? Dit kan niet ongedaan worden gemaakt."
-                    onConfirm={confirmDelete}
-                    onCancel={() => setPendingDeleteId(null)}
-                />
             )}
         </div>
     );
