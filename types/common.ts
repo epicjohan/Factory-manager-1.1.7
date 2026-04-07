@@ -100,6 +100,7 @@ export interface SyncEntry {
   data: any;
   timestamp: number;
   error?: string;
+  retryCount?: number;
 }
 
 export interface UploadedDocument {

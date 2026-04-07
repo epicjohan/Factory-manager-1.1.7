@@ -127,7 +127,12 @@ export const ROLE_DEFAULT_TABS = {
     [UserRole.OPERATOR]: [AssetTab.OVERVIEW, AssetTab.LIVE, AssetTab.EFFICIENCY, AssetTab.CHECKLIST, AssetTab.CALL, AssetTab.COOLANT, AssetTab.MAINTENANCE]
 };
 
+// B-02 FIX: Gecachte IndexedDB connectie — voorkomt een indexedDB.open() bij elke operatie.
+// De connectie wordt hergebruikt voor de levensduur van de pagina.
+let cachedDB: IDBDatabase | null = null;
+
 const getDB = (): Promise<IDBDatabase> => {
+    if (cachedDB) return Promise.resolve(cachedDB);
     return new Promise((resolve, reject) => {
         const request = indexedDB.open(DB_NAME, CURRENT_DB_VERSION);
         request.onupgradeneeded = (e) => {
@@ -138,7 +143,13 @@ const getDB = (): Promise<IDBDatabase> => {
                 }
             });
         };
-        request.onsuccess = () => resolve(request.result);
+        request.onsuccess = () => {
+            cachedDB = request.result;
+            // Bij onverwacht sluiten (browser cleanup) de cache invalideren
+            cachedDB.onclose = () => { cachedDB = null; };
+            cachedDB.onversionchange = () => { cachedDB?.close(); cachedDB = null; };
+            resolve(cachedDB);
+        };
         request.onerror = () => reject(request.error);
     });
 };
@@ -150,12 +161,10 @@ export const saveTable = async (key: string, data: any) => {
         const store = tx.objectStore(key);
         store.put(data, 'data');
 
-        if (key !== KEYS.METADATA && key !== KEYS.OUTBOX && key !== KEYS.ENERGY_LIVE) {
-            const meta = await loadTable(KEYS.METADATA, {});
-            const newMeta = { ...meta, lastModified: Date.now() };
-            const metaTx = db.transaction(KEYS.METADATA, 'readwrite');
-            metaTx.objectStore(KEYS.METADATA).put(newMeta, 'data');
-        }
+        // B-03 FIX: Dubbele metadata-write verwijderd.
+        // Voorheen opende elke saveTable() een TWEEDE transactie om lastModified in METADATA
+        // bij te werken — zelfs als er tientallen saves parallel liepen. Dit is nu verwijderd.
+        // lastModified wordt alleen nog bijgewerkt via expliciete saveMetadata() calls.
 
         window.dispatchEvent(new CustomEvent(`db:${key}:updated`, { detail: data }));
         window.dispatchEvent(new CustomEvent('db-updated', { detail: { table: key } }));
@@ -262,7 +271,15 @@ export const outboxUtils = {
         const current = await loadTable<SystemAuditLog[]>(KEYS.SYSTEM_AUDIT_LOGS, []);
         current.unshift(entry);
         await saveTable(KEYS.SYSTEM_AUDIT_LOGS, current.slice(0, 500));
-        await outboxUtils.addToOutbox(KEYS.SYSTEM_AUDIT_LOGS, 'INSERT', entry);
+
+        // B-06 FIX: Voorkom feedback loop — interne SYSTEM audit entries (zoals SYNC_DISCARD
+        // en INTEGRITY_CLEANUP) worden NIET naar de outbox gestuurd. Als zo'n sync mislukt,
+        // zou logAudit opnieuw aangeroepen worden → nieuwe outbox entry → nieuwe sync-faal → cascade.
+        // Alleen gebruiker-geïnitieerde audits worden gesynchroniseerd naar de server.
+        const systemActions = ['SYNC_DISCARD', 'INTEGRITY_CLEANUP'];
+        if (!systemActions.includes(action)) {
+            await outboxUtils.addToOutbox(KEYS.SYSTEM_AUDIT_LOGS, 'INSERT', entry);
+        }
     }
 };
 

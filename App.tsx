@@ -125,9 +125,9 @@ const App: React.FC = () => {
 
         SyncService.start();
 
-        // FIX #1: forceSync via pending flag — roept runSyncLoop niet meer direct aan
-        // zodat het pending-mechanisme in de loop de aanvraag veilig opvangt.
-        const forceSync = () => SyncService.runSyncLoop();
+        // FIX B-04: forceSync via scheduleNextRun — respecteert het pending-mechanisme
+        // en voorkomt race conditions als de sync loop al bezig is.
+        const forceSync = () => SyncService.scheduleNextRun(500);
         window.addEventListener('trigger-sync', forceSync);
 
         // FIX #3: Visibility API — pauzeer sync als tab op achtergrond staat,

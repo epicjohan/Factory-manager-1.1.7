@@ -1,5 +1,7 @@
 
-import { getStore, setStore, db } from './storage';
+// LAZY-LOADING: getStore/setStore worden niet meer gebruikt in de sync engine.
+// Alle data wordt nu direct via loadTable/saveTable geladen/opgeslagen.
+import { db } from './storage';
 import { AppState, SyncEntry, SyncAction, UploadedDocument } from '../types';
 import { KEYS, loadTable, saveTable, outboxUtils, formatDateForPB, ensureParsedData } from './db/core';
 import { APP_INFO } from './appInfo';
@@ -15,6 +17,12 @@ let cachedToken: string | null = null;
 // FIX #1: Pending sync flag — als een sync-aanvraag binnenkomt terwijl de loop bezig is,
 // wordt deze vlag gezet en wordt de sync direct gestart zodra de loop vrij is.
 let pendingSyncRequest = false;
+
+// SYNC-IMPROVEMENT: Maximale retry-teller voor outbox entries.
+// Na dit aantal mislukte pogingen wordt het item uit de outbox verwijderd en gelogd.
+const MAX_OUTBOX_RETRIES = 10;
+// SYNC-IMPROVEMENT: Outbox entries ouder dan 7 dagen worden als stale beschouwd.
+const STALE_OUTBOX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 // BUG B-03 FIX: Multi-tab sync-lock via localStorage.
 // Elke tab die de sync loop uitvoert claimt de lock met een timestamp.
@@ -113,7 +121,9 @@ const STATE_KEY_MAP: Partial<Record<string, keyof AppState>> = {
     [KEYS.SETUP_TEMPLATES]: 'setupTemplates',
     [KEYS.ROLES]: 'roles',
     [KEYS.DOCUMENT_CATEGORIES]: 'documentCategories',
+    [KEYS.DOCUMENTS]: 'documents' as keyof AppState,
     [KEYS.ASSET_ENERGY_CONFIGS]: 'assetEnergyConfigs',
+    [KEYS.LOGS_ENERGY_QUARTERLY]: 'energyQuarterlyLogs',
     [KEYS.SYSTEM_CONFIG]: 'systemSettings' as keyof AppState,
     [KEYS.QMS_FRAMEWORKS]: 'qmsFrameworks',
     [KEYS.QMS_FOLDERS]: 'qmsFolders',
@@ -255,8 +265,11 @@ export const SyncService = {
             cachedToken = meta.lastAuthToken;
         }
 
-        const store = await getStore();
-        if (!store.isDemoMode) {
+        // SYNC-IMPROVEMENT: Integriteitscontrole bij opstarten
+        await SyncService.integrityCheck();
+
+        // LAZY-LOADING: Gebruik bestaande meta i.p.v. getStore() voor isDemoMode check
+        if (!meta.isDemoMode) {
             const machines = await db.getMachines(true);
             if (machines.length === 0) {
                 await SyncService.downloadState().catch(console.error);
@@ -274,8 +287,9 @@ export const SyncService = {
     },
 
     runSyncLoop: async () => {
-        const store = await getStore();
-        if (store.isDemoMode) {
+        // LAZY-LOADING: Lees alleen metadata voor isDemoMode check i.p.v. alle 28 tabellen
+        const meta = await loadTable<any>(KEYS.METADATA, {});
+        if (meta.isDemoMode) {
             updateConnectionStatus('DEMO');
             SyncService.scheduleNextRun(30000);
             return;
@@ -374,10 +388,11 @@ export const SyncService = {
     },
 
     initRealtime: async () => {
-        const store = await getStore();
+        // LAZY-LOADING: Lees alleen metadata voor isDemoMode check
+        const meta = await loadTable<any>(KEYS.METADATA, {});
         const serverConfig = await db.getServerSettings();
         const effectiveUrl = serverConfig.url;
-        if (store.isDemoMode || !effectiveUrl || !serverConfig.email || eventSource) return;
+        if (meta.isDemoMode || !effectiveUrl || !serverConfig.email || eventSource) return;
 
         try {
             // FIX #2: Token meesturen als URL param — EventSource ondersteunt geen custom headers.
@@ -414,6 +429,10 @@ export const SyncService = {
                         const outbox = Array.isArray(outboxRaw) ? outboxRaw : [];
                         const isLocked = outbox.some(entry => entry && entry.table === tableKey && entry.data && entry.data.id === msg.record.id);
                         if (!isLocked) {
+                            // B-01 FIX: Alle acties (create/update/delete) gaan via updateLocalRecordAfterSync.
+                            // Bij soft deletes stuurt PocketBase een 'update' event met deletedAt veld,
+                            // dat wordt automatisch afgevangen door de deletedAt check in updateLocalRecordAfterSync.
+                            // Hard deletes (msg.action === 'delete') worden als fallback ook via removeLocalRecord afgehandeld.
                             if (msg.action === 'delete') {
                                 await SyncService.removeLocalRecord(tableKey, msg.record.id);
                             } else {
@@ -433,40 +452,32 @@ export const SyncService = {
     },
 
     removeLocalRecord: async (tableKey: string, id: string) => {
-        // S-5 FIX: Gebruik centrale STATE_KEY_MAP i.p.v. lokale propMap
-        const stateKey = STATE_KEY_MAP[tableKey];
-
-        if (stateKey) {
-            const store = await getStore();
-            const items = (store as any)[stateKey] || [];
-            const filtered = items.filter((i: any) => i.id !== id);
-            await setStore({ ...store, [stateKey]: filtered });
-        }
-
+        // LAZY-LOADING: Direct loadTable/saveTable — geen getStore/setStore meer nodig.
         const currentTableData = await loadTable<any[]>(tableKey, []);
         const filteredTable = currentTableData.filter(i => i.id !== id);
         await saveTable(tableKey, filteredTable);
-        window.dispatchEvent(new CustomEvent(`db:${tableKey}:updated`, { detail: filteredTable }));
-        window.dispatchEvent(new CustomEvent('db-updated', { detail: { table: tableKey } }));
+        // saveTable dispatcht al db:key:updated en db-updated events
     },
 
     updateLocalRecordAfterSync: async (tableKey: string, remoteData: any) => {
-        // S-5 FIX: Gebruik centrale STATE_KEY_MAP i.p.v. lokale propMap
-        const stateKey = STATE_KEY_MAP[tableKey];
-        const store = await getStore();
+        // LAZY-LOADING: Direct loadTable/saveTable — geen getStore/setStore meer.
         const parsedData = ensureParsedData(remoteData);
+
+        // SYNC-IMPROVEMENT: Soft Delete detectie — als het record op de server
+        // als verwijderd is gemarkeerd, verwijder het dan lokaal.
+        if (parsedData.deletedAt) {
+            await SyncService.removeLocalRecord(tableKey, parsedData.id);
+            return;
+        }
 
         // Mapping fix voor ARTICLES: 
         // PocketBase 'documents' (File) -> App 'files' (JSON met metadata) 
-        // We moeten de metadata (filesMeta) gebruiken, niet de file URLs alleen.
         if (tableKey === KEYS.ARTICLES && parsedData.filesMeta) {
-            // Restore legacy 'files' property from 'filesMeta'
-            // We ignore the actual 'documents' array from PB because filesMeta contains all we need
-            // (the URLs are reconstructed dynamically in resolveFileUrl)
             parsedData.files = parsedData.filesMeta;
             delete parsedData.filesMeta;
         }
 
+        // SYSTEM_CONFIG is een singleton, geen array
         if (tableKey === KEYS.SYSTEM_CONFIG) {
             if (parsedData.id) {
                 await outboxUtils.clearPendingUpdates(KEYS.SYSTEM_CONFIG, parsedData.id);
@@ -478,22 +489,22 @@ export const SyncService = {
             return;
         }
 
+        // SETTINGS_ENERGY is een singleton, geen array
         if (tableKey === KEYS.SETTINGS_ENERGY) {
-            const currentSettings = store.energySettings || await loadTable<any>(KEYS.SETTINGS_ENERGY, {});
+            const currentSettings = await loadTable<any>(KEYS.SETTINGS_ENERGY, {});
             const remoteTS = new Date(parsedData.updated || 0).getTime();
             const localTS = currentSettings.updatedAt || 0;
 
             if (remoteTS >= localTS) {
                 const merged = { ...currentSettings, ...parsedData, lastRemoteUpdate: Date.now() };
                 await saveTable(KEYS.SETTINGS_ENERGY, merged);
-                await setStore({ ...store, energySettings: merged });
-                window.dispatchEvent(new CustomEvent(`db:${tableKey}:updated`, { detail: merged }));
-                window.dispatchEvent(new CustomEvent('db-updated', { detail: { table: tableKey } }));
+                // saveTable dispatcht al events
             }
             return;
         }
 
-        const items = stateKey ? ((store as any)[stateKey] || []) : await loadTable<any[]>(tableKey, []);
+        // Standaard pad: array-gebaseerde tabellen
+        const items = await loadTable<any[]>(tableKey, []);
         let hasChanges = false;
         let updatedItems: any[];
 
@@ -516,12 +527,8 @@ export const SyncService = {
         }
 
         if (hasChanges) {
-            if (stateKey) {
-                await setStore({ ...store, [stateKey]: updatedItems });
-            }
             await saveTable(tableKey, updatedItems);
-            window.dispatchEvent(new CustomEvent(`db:${tableKey}:updated`, { detail: updatedItems }));
-            window.dispatchEvent(new CustomEvent('db-updated', { detail: { table: tableKey } }));
+            // saveTable dispatcht al db:key:updated en db-updated events
         }
     },
 
@@ -537,12 +544,40 @@ export const SyncService = {
             const collection = TABLE_MAP[entry.table];
             if (!collection) continue;
 
+            // SYNC-IMPROVEMENT: Retry limiet — na MAX_OUTBOX_RETRIES pogingen wordt het
+            // item uit de outbox verwijderd en gelogd als irrecoverable.
+            if (entry.retryCount && entry.retryCount >= MAX_OUTBOX_RETRIES) {
+                console.error(`[SyncService] Max retries (${MAX_OUTBOX_RETRIES}) bereikt voor outbox entry ${entry.id} (${entry.table}/${entry.action}), wordt verwijderd.`);
+                await outboxUtils.logAudit('SYNC_DISCARD', 'SYSTEM',
+                    `Record ${entry.data?.id || 'unknown'} na ${MAX_OUTBOX_RETRIES} pogingen uit sync-wachtrij verwijderd (${entry.table}/${entry.action}). Laatste fout: ${entry.error || 'onbekend'}`);
+                await db.removeFromOutbox([entry.id]);
+                hasProcessedAny = true;
+                continue;
+            }
+
             const insertEndpoint = `${url}/api/collections/${collection}/records`;
             const updateEndpoint = `${url}/api/collections/${collection}/records/${entry.data.id}`;
-            const endpoint = entry.action === 'INSERT' ? insertEndpoint : updateEndpoint;
+
+            // SYNC-IMPROVEMENT: Soft Delete — DELETE acties worden omgezet naar een PATCH
+            // met een deletedAt timestamp. Hierdoor blijven verwijderde records traceerbaar
+            // en worden ze via pullDeltas door alle clients opgepikt.
+            let effectiveAction = entry.action;
+            let endpoint: string;
+            if (entry.action === 'DELETE' && entry.data.id) {
+                effectiveAction = 'UPDATE';
+                endpoint = updateEndpoint;
+            } else {
+                endpoint = entry.action === 'INSERT' ? insertEndpoint : updateEndpoint;
+            }
 
             // BUG-06: Geef de collection naam mee zodat sanitizeDataForServer autodate velden kan strippen
-            const cleanData = sanitizeDataForServer(entry.data, collection);
+            let cleanData: any;
+            if (entry.action === 'DELETE' && entry.data.id) {
+                // Soft delete: stuur alleen de deletedAt timestamp
+                cleanData = { deletedAt: new Date().toISOString().replace('T', ' ').split('.')[0] };
+            } else {
+                cleanData = sanitizeDataForServer(entry.data, collection);
+            }
             delete cleanData.isPending;
             delete cleanData.lastRemoteUpdate;
             delete cleanData.updatedAt;
@@ -648,10 +683,12 @@ export const SyncService = {
             const currentHeaders = getHeaders(undefined, hasBinaryContent ? null : 'application/json');
 
             try {
+                // SYNC-IMPROVEMENT: Gebruik effectiveAction voor de HTTP methode.
+                // Bij soft delete is de effectiveAction 'UPDATE' (PATCH) i.p.v. 'DELETE'.
                 let res = await fetchWithTimeout(endpoint, {
-                    method: entry.action === 'INSERT' ? 'POST' : entry.action === 'UPDATE' ? 'PATCH' : 'DELETE',
+                    method: effectiveAction === 'INSERT' ? 'POST' : 'PATCH',
                     headers: currentHeaders,
-                    body: entry.action === 'DELETE' ? undefined : body,
+                    body: body,
                     timeout: 45000
                 });
 
@@ -701,7 +738,11 @@ export const SyncService = {
                     throw new Error(errorMsg);
                 }
             } catch (e: any) {
-                await outboxUtils.updateOutboxEntry(entry.id, { error: e.message || "Netwerkfout" });
+                // SYNC-IMPROVEMENT: Verhoog retryCount bij elke mislukte poging
+                await outboxUtils.updateOutboxEntry(entry.id, {
+                    error: e.message || "Netwerkfout",
+                    retryCount: (entry.retryCount || 0) + 1
+                });
             }
         }
         return hasProcessedAny;
@@ -804,18 +845,23 @@ export const SyncService = {
     },
 
     mergeRemoteRecords: async (tableKey: string, remoteItems: any[]) => {
-        // S-5 FIX: Gebruik centrale STATE_KEY_MAP i.p.v. lokale propMap
-        const stateKey = STATE_KEY_MAP[tableKey];
-
-        const store = await getStore();
+        // LAZY-LOADING: Direct loadTable/saveTable — geen getStore/setStore meer.
         const outboxRaw = await db.getOutbox();
         const outbox = Array.isArray(outboxRaw) ? outboxRaw : [];
-        const localItems = stateKey ? ((store as any)[stateKey] || []) : await loadTable<any[]>(tableKey, []);
+        const localItems = await loadTable<any[]>(tableKey, []);
         const updatedLocal = [...localItems];
         let hasChanges = false;
+        // SYNC-IMPROVEMENT: Track IDs die via soft delete verwijderd moeten worden
+        const softDeletedIds: string[] = [];
 
         remoteItems.forEach(item => {
             const remote = ensureParsedData(item);
+
+            // SYNC-IMPROVEMENT: Soft Delete detectie bij batch merge
+            if (remote.deletedAt) {
+                softDeletedIds.push(remote.id);
+                return;
+            }
 
             // SPECIFIEKE LOGICA VOOR ARTICLES: filesMeta -> files
             if (tableKey === KEYS.ARTICLES && remote.filesMeta) {
@@ -842,13 +888,20 @@ export const SyncService = {
             }
         });
 
-        if (hasChanges) {
-            if (stateKey) {
-                await setStore({ ...store, [stateKey]: updatedLocal });
+        // SYNC-IMPROVEMENT: Verwijder lokaal alle soft-deleted records
+        if (softDeletedIds.length > 0) {
+            const beforeLength = updatedLocal.length;
+            const filtered = updatedLocal.filter(item => !softDeletedIds.includes(item.id));
+            if (filtered.length !== beforeLength) {
+                hasChanges = true;
+                updatedLocal.length = 0;
+                updatedLocal.push(...filtered);
             }
+        }
+
+        if (hasChanges) {
             await saveTable(tableKey, updatedLocal);
-            window.dispatchEvent(new CustomEvent(`db:${tableKey}:updated`, { detail: updatedLocal }));
-            window.dispatchEvent(new CustomEvent('db-updated', { detail: { table: tableKey } }));
+            // saveTable dispatcht al db:key:updated en db-updated events
         }
     },
 
@@ -876,8 +929,8 @@ export const SyncService = {
             if (statusRes.ok) {
                 const data = await statusRes.json();
                 if (data.items) {
-                    const store = await getStore();
-                    await setStore({ ...store, systemStatus: data.items });
+                    // LAZY-LOADING: Direct saveTable i.p.v. getStore/setStore
+                    await saveTable(KEYS.SYSTEM_STATUS, data.items);
                 }
             }
         } catch (e) {
@@ -907,6 +960,40 @@ export const SyncService = {
             return { success: true, message: "Cloud data binnengehaald." };
         } catch (e: any) {
             return { success: false, message: `Download mislukt: ${e.message}` };
+        }
+    },
+
+    // SYNC-IMPROVEMENT: Integriteitscontrole bij het opstarten van de app.
+    // Ruimt verlopen outbox entries op en controleert of IndexedDB tabellen consistent zijn.
+    integrityCheck: async () => {
+        try {
+            const outbox = await db.getOutbox();
+            if (!Array.isArray(outbox)) return;
+
+            const now = Date.now();
+            const staleEntries = outbox.filter(e => e && (now - e.timestamp) > STALE_OUTBOX_AGE_MS);
+
+            if (staleEntries.length > 0) {
+                console.warn(`[SyncService] IntegrityCheck: ${staleEntries.length} verlopen outbox entries (>7 dagen) worden opgeruimd.`);
+                await db.removeFromOutbox(staleEntries.map(e => e.id));
+                await outboxUtils.logAudit('INTEGRITY_CLEANUP', 'SYSTEM',
+                    `${staleEntries.length} verlopen outbox entries ouder dan 7 dagen opgeruimd bij opstarten.`);
+            }
+
+            // Controleer of kritieke tabellen bestaan en niet corrupt zijn
+            const criticalTables = [
+                KEYS.USERS, KEYS.MACHINES, KEYS.ARTICLES, KEYS.DOCUMENTS,
+                KEYS.QMS_FRAMEWORKS, KEYS.QMS_FOLDERS, KEYS.QMS_AUDITS
+            ];
+            for (const key of criticalTables) {
+                const data = await loadTable<any>(key, null);
+                if (data !== null && !Array.isArray(data)) {
+                    console.warn(`[SyncService] IntegrityCheck: Tabel ${key} bevat geen array, wordt gereset naar [].`);
+                    await saveTable(key, []);
+                }
+            }
+        } catch (e) {
+            console.error('[SyncService] IntegrityCheck fout:', e);
         }
     }
 };

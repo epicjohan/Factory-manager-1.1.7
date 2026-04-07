@@ -10,6 +10,7 @@ import { energyService } from './db/energyService';
 import { articleService } from './db/articleService';
 import { templateService } from './db/templateService';
 import { qmsService } from './db/qmsService';
+import { documentService } from './db/documentService';
 
 migrateToIndexedDB();
 
@@ -67,6 +68,8 @@ export const getStore = async (): Promise<AppState> => {
         energyQuarterlyLogs: await loadTable<EnergyQuarterlyLog[]>(KEYS.LOGS_ENERGY_QUARTERLY, []),
         energyHistorical: await loadTable<EnergyHistoricalLog[]>(KEYS.LOGS_ENERGY_HISTORICAL, []),
         articles: await articleService.getArticles(),
+        // B-05 FIX: Documents worden nu meegenomen in AppState (incl. snapshots)
+        documents: await documentService.getDocuments(),
         lastModified: meta.lastModified,
         serverUrl: meta.serverUrl,
         adminEmail: meta.adminEmail,
@@ -104,6 +107,8 @@ export const setStore = async (state: AppState) => {
         saveTable(KEYS.LOGS_ENERGY_QUARTERLY, state.energyQuarterlyLogs),
         saveTable(KEYS.ARTICLES, state.articles),
         saveTable(KEYS.DOCUMENT_CATEGORIES, state.documentCategories),
+        // B-05 FIX: Documents meeschrijven in setStore
+        state.documents ? saveTable(KEYS.DOCUMENTS, state.documents) : Promise.resolve(),
         state.energyHistorical ? saveTable(KEYS.LOGS_ENERGY_HISTORICAL, state.energyHistorical) : Promise.resolve(),
         saveTable(KEYS.SIMULATION, state.simulationState),
         state.outbox ? saveTable(KEYS.OUTBOX, state.outbox) : Promise.resolve()
@@ -203,7 +208,14 @@ export const db = {
         if (snap) {
             try {
                 const restored = JSON.parse(snap.data);
+                // A-03 FIX: Bewaar de huidige outbox bij snapshot restore.
+                // Zonder dit gaan pending sync-wijzigingen die NA de snapshot zijn
+                // gemaakt verloren bij het herstellen.
+                const currentOutbox = await outboxUtils.getOutbox();
                 await setStore(restored);
+                if (currentOutbox && currentOutbox.length > 0) {
+                    await saveTable(KEYS.OUTBOX, currentOutbox);
+                }
             } catch (e) {
                 throw new Error("Snapshot herstel mislukt: " + (e instanceof Error ? e.message : String(e)));
             }

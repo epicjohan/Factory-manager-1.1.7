@@ -26,11 +26,14 @@ export const documentService = {
         const now = getNowISO();
         const items = await loadTable<DMSDocument[]>(KEYS.DOCUMENTS, []);
 
-        // Bepaal volgend documentnummer (DOC-YYYY-XXXX)
+        // Bepaal volgend documentnummer (DOC-YYYY-XXXX-RRRR)
+        // A-02 FIX: Random suffix (4 tekens) voorkomt duplicate nummers bij meerdere
+        // gelijktijdige clients die lokaal hetzelfde volgnummer berekenen.
         const currentYear = new Date().getFullYear().toString();
         const currentDocsThisYear = items.filter(d => d.documentNumber?.includes(currentYear)).length;
         const nextNum = (currentDocsThisYear + 1).toString().padStart(4, '0');
-        const documentNumber = `DOC-${currentYear}-${nextNum}`;
+        const suffix = generateId(4);
+        const documentNumber = `DOC-${currentYear}-${nextNum}-${suffix}`;
 
         const doc: DMSDocument = {
             id: generateId(),
