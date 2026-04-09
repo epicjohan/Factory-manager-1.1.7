@@ -20,7 +20,7 @@ export const useDocumentMap = (files: ArticleFile[], parentRecordId?: string, co
 
     // Create a stable dependency string so we don't infinitely fetch on every render
     const fileDepString = useMemo(() =>
-        JSON.stringify(files.map(f => `${f.id}:${f.documentId || ''}:${f.url ? f.url.substring(0, 20) : ''}`)),
+        JSON.stringify(files.map(f => `${f.id}:${f.documentId || ''}`)),
         [files]);
 
     useEffect(() => {
@@ -42,14 +42,9 @@ export const useDocumentMap = (files: ArticleFile[], parentRecordId?: string, co
             const idsToFetch: string[] = [];
 
             for (const file of files) {
-                // Priority 0: Has ready-to-use legacy Base64 url or external URL
-                if (file.url && (file.url.startsWith('data:') || file.url.startsWith('http'))) {
-                    newUrlMap[file.id] = file.url;
-                    newLoadingMap[file.id] = false;
-                    continue;
-                }
+                // F-01: Legacy file.url fallback verwijderd (D-01: url veld bestaat niet meer op ArticleFile)
+                // Alle bestanden worden nu uitsluitend via documentId geresolved.
 
-                // Priority 1: Has documentId -> Needs DB fetch
                 if (file.documentId) {
                     idsToFetch.push(file.documentId);
                     newLoadingMap[file.id] = true;

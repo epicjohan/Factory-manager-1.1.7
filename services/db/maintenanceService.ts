@@ -1,14 +1,6 @@
 
 import { MaintenanceTicket, MixingLog, MistLog, ChecklistLog, EfficiencyLog, SupportRequest, MaintenanceEvent, Machine } from '../../types';
-import { KEYS, loadTable, saveTable, outboxUtils, getNowISO } from './core';
-
-const getCurrentUserName = () => {
-    const userJson = localStorage.getItem('cnc_active_user_full');
-    if (userJson) {
-        try { return JSON.parse(userJson).name; } catch(e) { return 'Unknown User'; }
-    }
-    return 'Unknown User';
-};
+import { KEYS, loadTable, saveTable, outboxUtils, getNowISO, getCurrentUserName } from './core';
 
 const getMachineName = async (id: string) => {
     const machines = await loadTable<Machine[]>(KEYS.MACHINES, []);

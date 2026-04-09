@@ -6,6 +6,7 @@ import { generateId, KEYS } from '../../services/db/core';
 import { ImageProcessor } from '../../services/db/imageProcessor';
 import { documentService } from '../../services/db/documentService';
 import { SleekDocumentList } from './ui/SleekDocumentList';
+import { downloadFile } from '../../utils/fileUtils';
 
 interface ArticleFilesProps {
     articleId?: string;
@@ -54,7 +55,6 @@ export const ArticleFiles: React.FC<ArticleFilesProps> = ({ articleId, files, is
                             documentId: doc.id,
                             name: file.name,
                             type: file.type,
-                            url: '', // We bewaren de raw Base64 NIET in het Article object!
                             uploadedBy: user?.name || 'Onbekend',
                             uploadDate: new Date().toISOString(),
                             fileRole: role,
@@ -86,7 +86,6 @@ export const ArticleFiles: React.FC<ArticleFilesProps> = ({ articleId, files, is
             documentId: doc.id,
             name: doc.name,
             type: doc.type,
-            url: '', // Local reference only
             uploadedBy: user?.name || 'Onbekend',
             uploadDate: new Date().toISOString(),
             fileRole: role,
@@ -109,14 +108,7 @@ export const ArticleFiles: React.FC<ArticleFilesProps> = ({ articleId, files, is
         setFileToDelete(null);
     };
 
-    const handleDownload = (file: ArticleFile) => {
-        const link = document.createElement('a');
-        link.href = file.url || '';
-        link.download = file.name || 'download';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
+    const handleDownload = (file: ArticleFile) => downloadFile(file);
 
     const handleSetThumbnail = (fileId: string) => {
         // Toggle: if clicking the current thumbnail, deselect it; otherwise set new one
@@ -141,7 +133,7 @@ export const ArticleFiles: React.FC<ArticleFilesProps> = ({ articleId, files, is
                 onUpload={handleFiles}
                 onDelete={handleDeleteClick}
                 onPreview={onPreview}
-                onDownload={handleDownload}
+                onDownload={downloadFile}
                 onLinkDocument={handleSelectLibraryDoc}
                 onSetThumbnail={handleSetThumbnail}
             />

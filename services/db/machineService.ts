@@ -1,6 +1,6 @@
 
 import { Machine, ToolStatistic, FocasLiveStats, SimulationState, ActiveJob } from '../../types';
-import { KEYS, loadTable, saveTable, outboxUtils, getNowISO } from './core';
+import { KEYS, loadTable, saveTable, outboxUtils, getNowISO, getCurrentUserName } from './core';
 
 const deleteRelatedRecords = async (tableKey: string, machineId: string) => {
     try {
@@ -18,14 +18,6 @@ const deleteRelatedRecords = async (tableKey: string, machineId: string) => {
     } catch (e) {
         console.error(`Error in cascade delete for table ${tableKey}:`, e);
     }
-};
-
-const getCurrentUserName = () => {
-    const userJson = localStorage.getItem('cnc_active_user_full');
-    if (userJson) {
-        try { return JSON.parse(userJson).name; } catch(e) { return 'Unknown User'; }
-    }
-    return 'Unknown User';
 };
 
 export const machineService = {

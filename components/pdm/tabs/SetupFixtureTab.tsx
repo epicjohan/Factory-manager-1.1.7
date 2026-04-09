@@ -4,6 +4,7 @@ import { SetupFieldDefinition, ArticleFile, DocumentCategory, DMSDocument } from
 import { SearchableSelect } from '../../ui/SearchableSelect';
 import { SleekDocumentList } from '../ui/SleekDocumentList';
 import { KEYS } from '../../../services/db/core';
+import { downloadFile } from '../../../utils/fileUtils';
 
 interface SetupFixtureTabProps {
     articleId?: string;
@@ -131,15 +132,6 @@ export const SetupFixtureTab: React.FC<SetupFixtureTabProps> = ({
         );
     };
 
-    const handleDownload = (file: ArticleFile) => {
-        const link = document.createElement('a');
-        link.href = file.url || '';
-        link.download = file.name || 'download';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
-
     return (
         <div className="space-y-8 animate-in fade-in text-left">
             {renderFields()}
@@ -158,7 +150,7 @@ export const SetupFixtureTab: React.FC<SetupFixtureTabProps> = ({
                     onUpload={onUploadImage}
                     onDelete={onDeleteImage}
                     onPreview={onPreviewImage}
-                    onDownload={handleDownload}
+                    onDownload={downloadFile}
                     onLinkDocument={onLinkImage}
                 />
             </div>

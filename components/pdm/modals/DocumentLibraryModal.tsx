@@ -20,8 +20,8 @@ export const DocumentLibraryModal: React.FC<DocumentLibraryModalProps> = ({ onCl
         let isMounted = true;
         const fetchDocs = async () => {
             try {
-                const docs = await documentService.getDocuments();
-                // Sort by newest first
+                // D-04: Gebruik searchDocuments i.p.v. getDocuments + lokale filter
+                const docs = await documentService.searchDocuments(search);
                 if (isMounted) {
                     setDocuments(docs.sort((a, b) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime()));
                     setLoading(false);
@@ -33,18 +33,12 @@ export const DocumentLibraryModal: React.FC<DocumentLibraryModalProps> = ({ onCl
         };
         fetchDocs();
         return () => { isMounted = false; };
-    }, []);
+    }, [search]);
 
     const filteredDocs = useMemo(() => {
-        const lowerSearch = search.toLowerCase();
-
+        // D-04: Text search is nu al afgehandeld door searchDocuments in de service
+        // Hier alleen nog het type-filter toepassen
         return documents.filter(d => {
-            // Text Search
-            const matchesSearch = d.name.toLowerCase().includes(lowerSearch) ||
-                (d.documentNumber && d.documentNumber.toLowerCase().includes(lowerSearch));
-            if (!matchesSearch) return false;
-
-            // Type Filter
             if (typeFilter === 'ALL') return true;
 
             const t = (d.type || '').toLowerCase();
@@ -62,7 +56,7 @@ export const DocumentLibraryModal: React.FC<DocumentLibraryModalProps> = ({ onCl
                 default: return true;
             }
         });
-    }, [documents, search, typeFilter]);
+    }, [documents, typeFilter]);
 
     const getIcon = (type: string) => {
         if (type.startsWith('image/')) return <Image size={24} className="text-blue-500" />;

@@ -1,11 +1,14 @@
 
 import { AssetType, UploadedDocument } from './common';
 
-// BUG B-04 FIX: OBSOLETE verwijderd — alleen DRAFT en LOCKED zijn geldig per het Article Status Redesign.
-// OBSOLETE was niet geïmplementeerd in de UI of business logic en veroorzaakte inconsistente type-checks.
+// Article Lifecycle: DRAFT → LOCKED → OBSOLETE
+// DRAFT:    Actief in bewerking, bron-documentatie bewerkbaar
+// LOCKED:   Vergrendeld, bron-documentatie alleen-lezen, setups blijven bewerkbaar
+// OBSOLETE: Gearchiveerd na revisie — volledig alleen-lezen
 export enum ArticleStatus {
   DRAFT = 'DRAFT',
   LOCKED = 'LOCKED',
+  OBSOLETE = 'OBSOLETE',
 }
 
 export enum FileRole {
@@ -36,10 +39,8 @@ export interface ArticleStep {
 
 export interface ArticleFile {
   id: string; // Internal relation ID
-  documentId?: string; // Links to DMSDocument
+  documentId: string; // Links to DMSDocument (D-01: nu verplicht, geen legacy data)
   previousVersions?: string[]; // Array of past documentIds for history tracing
-  // Legacy fields (will be gradually replaced or used as fallback if documentId is missing)
-  url?: string;
   name?: string;
   type?: string;
 

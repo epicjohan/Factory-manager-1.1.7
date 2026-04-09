@@ -1,14 +1,6 @@
 
 import { MachinePart, GeneralPart, NotificationTrigger } from '../../types';
-import { KEYS, loadTable, saveTable, outboxUtils, getNowISO } from './core';
-
-const getCurrentUserName = () => {
-    const userJson = localStorage.getItem('cnc_active_user_full');
-    if (userJson) {
-        try { return JSON.parse(userJson).name; } catch(e) { return 'Unknown User'; }
-    }
-    return 'Unknown User';
-};
+import { KEYS, loadTable, saveTable, outboxUtils, getNowISO, getCurrentUserName } from './core';
 
 export const inventoryService = {
     getMachineParts: async (id: string) => (await loadTable<MachinePart[]>(KEYS.PARTS_MACHINE, [])).filter(p => p.machineId === id),

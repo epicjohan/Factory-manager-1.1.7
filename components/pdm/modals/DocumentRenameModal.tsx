@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { X, FileCode, File as FileIcon, Image as ImageIcon, CheckCircle2 } from '../../../icons';
+import { documentService } from '../../../services/db/documentService';
+import { useNotifications } from '../../../contexts/NotificationContext';
 
 interface DocumentRenameModalProps {
     files: File[];
     role: string;
     onClose: () => void;
     onConfirm: (renamedFiles: File[]) => void;
+    /** F-06: Optioneel — als gezet, wordt ook het DMS-document hernoemt via documentService */
+    existingDocumentId?: string;
 }
 
-export const DocumentRenameModal: React.FC<DocumentRenameModalProps> = ({ files, role, onClose, onConfirm }) => {
+export const DocumentRenameModal: React.FC<DocumentRenameModalProps> = ({ files, role, onClose, onConfirm, existingDocumentId }) => {
+    const { addNotification } = useNotifications();
     // We store the list of files to be renamed.
     // the value in the input represents the name WITHOUT the extension to prevent errors.
     const [fileState, setFileState] = useState<{ originalFile: File, newBaseName: string, extension: string }[]>([]);
@@ -34,13 +39,24 @@ export const DocumentRenameModal: React.FC<DocumentRenameModalProps> = ({ files,
         setFileState(updated);
     };
 
-    const handleConfirm = () => {
+    const handleConfirm = async () => {
         // Reconstruct the new File objects
         const renamedFiles = fileState.map(item => {
             const finalName = item.newBaseName.trim() + item.extension;
             // Native File constructor allows creating a new file with identical data but new name.
             return new File([item.originalFile], finalName, { type: item.originalFile.type, lastModified: item.originalFile.lastModified });
         });
+
+        // F-06: Als er een bestaand DMS-document is, ook daar de naam bijwerken
+        if (existingDocumentId && renamedFiles.length === 1) {
+            try {
+                await documentService.updateDocument(existingDocumentId, { name: renamedFiles[0].name });
+                addNotification('SUCCESS', 'Hernoemt', `Document hernoemt naar "${renamedFiles[0].name}".`);
+            } catch (e) {
+                addNotification('ERROR', 'Fout', 'Kon document niet hernoemen in DMS.');
+            }
+        }
+
         onConfirm(renamedFiles);
     };
 

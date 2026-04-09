@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Trash2, Edit2, Eye, RotateCcw, AlertTriangle, ShieldCheck, Wrench } from '../../../icons';
 import { ArticleTool, SetupFieldDefinition, ArticleFile, DMSDocument } from '../../../types';
-import { SearchableSelect } from '../../ui/SearchableSelect';
 import { SleekDocumentList } from '../ui/SleekDocumentList';
+import { ToolFieldsRenderer } from './ToolFieldsRenderer';
 import { generateId, KEYS } from '../../../services/db/core';
 import { documentService } from '../../../services/db/documentService';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useConfirm } from '../../../contexts/ConfirmContext';
+import { downloadFile, previewFile } from '../../../utils/fileUtils';
 
 interface ToolBlockProps {
     articleId?: string;
@@ -56,7 +57,6 @@ export const ToolBlock: React.FC<ToolBlockProps> = ({ articleId, tool, onUpdate,
                             documentId: doc.id,
                             name: file.name,
                             type: file.type,
-                            url: '', // Removed Base64 from tool data
                             uploadedBy: user?.name || 'Onbekend',
                             uploadDate: new Date().toISOString(),
                             fileRole: role,
@@ -85,7 +85,6 @@ export const ToolBlock: React.FC<ToolBlockProps> = ({ articleId, tool, onUpdate,
             documentId: doc.id,
             name: doc.name,
             type: doc.type,
-            url: '', // Removed Base64 from tool data
             uploadedBy: user?.name || 'Onbekend',
             uploadDate: new Date().toISOString(),
             fileRole: role,
@@ -107,27 +106,10 @@ export const ToolBlock: React.FC<ToolBlockProps> = ({ articleId, tool, onUpdate,
         }
     };
 
-    const handlePreviewFile = (file: ArticleFile) => {
-        if (file.type === 'application/pdf' || file.type?.startsWith('image/')) {
-            const newWindow = window.open();
-            if (newWindow) {
-                newWindow.document.write(
-                    `<iframe width='100%' height='100%' src='${file.url || ''}' style='border:none; margin:0; padding:0;'></iframe>`
-                );
-            }
-        }
-    };
+    const handlePreviewFile = (file: ArticleFile) => previewFile(file);
 
-    const handleDownloadFile = (file: ArticleFile) => {
-        const link = document.createElement('a');
-        link.href = file.url || '';
-        link.download = file.name || 'download';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
+    const handleDownloadFile = (file: ArticleFile) => downloadFile(file);
 
-    const hasDynamicFields = !isLegacyMode;
     const isReplaced = tool.status === 'REPLACED';
 
     return (
@@ -211,112 +193,16 @@ export const ToolBlock: React.FC<ToolBlockProps> = ({ articleId, tool, onUpdate,
                         </div>
                     </div>
 
-                    {/* Dynamic or Legacy Fields */}
-                    {hasDynamicFields ? (
-                        <div className="grid grid-cols-12 gap-6 pt-2">
-                            {toolFields.map(field => {
-                                const val = tool.toolData?.[field.key] ?? field.defaultValue ?? '';
-                                const isFilled = val !== '' && val !== null && val !== undefined;
-                                const isHighlightActive = field.highlightFilled && isFilled;
-
-                                const spanClass = `col-span-12 md:col-span-${field.colSpan || 6}`;
-
-                                const inputBaseClass = "w-full p-3 rounded-[2rem] border outline-none transition-all disabled:opacity-60 disabled:border-transparent";
-                                const highlightClass = isHighlightActive
-                                    ? "bg-amber-50 dark:bg-amber-900/30 border-amber-500 text-amber-900 dark:text-amber-100 font-black"
-                                    : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-800 dark:text-white font-bold focus:border-blue-500";
-
-                                if (field.type === 'header') {
-                                    return <div key={field.key} className="col-span-12 font-black text-[10px] text-slate-400 uppercase tracking-widest border-b border-slate-200 dark:border-slate-700 pb-1 mt-2">{field.label}</div>;
-                                }
-
-                                if (field.type === 'boolean') {
-                                    return (
-                                        <div key={field.key} className={spanClass + " space-y-1"}>
-                                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">{field.label}</label>
-                                            <button
-                                                disabled={disabled || isReplaced}
-                                                onClick={() => handleDynamicChange(field.key, !val)}
-                                                className={`w-full p-3 rounded-[2rem] border-2 font-black text-[10px] uppercase transition-all ${val ? 'bg-blue-50 border-blue-500 text-blue-600 shadow-inner' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-400'} disabled:opacity-60`}
-                                            >
-                                                {val ? 'JA' : 'NEE'}
-                                            </button>
-                                        </div>
-                                    );
-                                }
-
-                                if (field.type === 'select') {
-                                    return (
-                                        <div key={field.key} className={spanClass + " space-y-1"}>
-                                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">{field.label}</label>
-                                            <SearchableSelect
-                                                value={val}
-                                                options={field.options || []}
-                                                onSelect={(v) => handleDynamicChange(field.key, v)}
-                                                disabled={disabled || isReplaced}
-                                                placeholder="Selecteer..."
-                                                className="w-full"
-                                            />
-                                        </div>
-                                    );
-                                }
-
-                                return (
-                                    <div key={field.key} className={field.type === 'textarea' ? 'col-span-12 space-y-1' : spanClass + ' space-y-1'}>
-                                        <div className="flex justify-between">
-                                            <label className={`text-[9px] font-black uppercase tracking-widest ml-1 ${isHighlightActive ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400'}`}>
-                                                {field.label}
-                                            </label>
-                                            {isHighlightActive && <AlertTriangle size={12} className="text-amber-500 animate-pulse" />}
-                                        </div>
-                                        <div className="relative">
-                                            {field.type === 'textarea' ? (
-                                                <textarea disabled={disabled || isReplaced} rows={2} className={`${inputBaseClass} ${highlightClass}`} value={val} onChange={e => handleDynamicChange(field.key, e.target.value)} />
-                                            ) : (
-                                                <input
-                                                    disabled={disabled || isReplaced}
-                                                    type={field.type === 'number' ? 'number' : 'text'}
-                                                    className={`${inputBaseClass} ${highlightClass}`}
-                                                    value={val}
-                                                    onChange={e => handleDynamicChange(field.key, field.type === 'number' ? parseFloat(e.target.value) : e.target.value)}
-                                                />
-                                            )}
-                                            {field.unit && field.type !== 'textarea' && <span className={`absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold ${isHighlightActive ? 'text-amber-700/60 dark:text-amber-200/60' : 'text-slate-400'}`}>{field.unit}</span>}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
-                            <div className="space-y-1">
-                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Snijlengte</label>
-                                <input disabled={disabled || isReplaced} type="text" className="w-full p-3 rounded-[2rem] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-sm font-bold outline-none focus:border-blue-500 disabled:opacity-60 disabled:border-transparent dark:text-white" value={tool.cuttingLength || ''} onChange={e => handleLegacyChange('cuttingLength', e.target.value)} />
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Vrijloop</label>
-                                <input disabled={disabled || isReplaced} type="text" className="w-full p-3 rounded-[2rem] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-sm font-bold outline-none focus:border-blue-500 disabled:opacity-60 disabled:border-transparent dark:text-white" value={tool.clearance || ''} onChange={e => handleLegacyChange('clearance', e.target.value)} />
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Interne Koeling</label>
-                                <button disabled={disabled || isReplaced} type="button" onClick={() => handleLegacyChange('internalCooling', !tool.internalCooling)} className={`w-full p-3 rounded-[2rem] border-2 font-black text-[10px] uppercase transition-all ${tool.internalCooling ? 'bg-blue-50 border-blue-500 text-blue-600 shadow-inner' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-400'} disabled:opacity-60`}>
-                                    {tool.internalCooling ? 'Ja (AAN)' : 'Nee (UIT)'}
-                                </button>
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Matrix Code</label>
-                                <input disabled={disabled || isReplaced} type="text" className="w-full p-3 rounded-[2rem] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-sm font-mono font-bold text-blue-600 outline-none focus:border-blue-500 disabled:opacity-60 disabled:border-transparent disabled:text-slate-500" value={tool.matrixCode || ''} onChange={e => handleLegacyChange('matrixCode', e.target.value)} />
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Uitsteek Lengte</label>
-                                <input disabled={disabled || isReplaced} type="text" className="w-full p-3 rounded-[2rem] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-sm font-bold outline-none focus:border-blue-500 disabled:opacity-60 disabled:border-transparent dark:text-white" value={tool.overhangLength || ''} onChange={e => handleLegacyChange('overhangLength', e.target.value)} />
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Houder</label>
-                                <input disabled={disabled || isReplaced} type="text" className="w-full p-3 rounded-[2rem] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-sm font-bold outline-none focus:border-blue-500 disabled:opacity-60 disabled:border-transparent dark:text-white" value={tool.holder || ''} onChange={e => handleLegacyChange('holder', e.target.value)} />
-                            </div>
-                        </div>
-                    )}
+                    {/* Dynamic or Legacy Fields — D-09: Geëxtraheerd naar ToolFieldsRenderer */}
+                    <ToolFieldsRenderer
+                        tool={tool}
+                        toolFields={toolFields}
+                        isLegacyMode={isLegacyMode}
+                        disabled={!!disabled}
+                        isReplaced={isReplaced}
+                        onDynamicChange={handleDynamicChange}
+                        onLegacyChange={handleLegacyChange}
+                    />
 
                     {/* Special Locked Actions Area */}
                     {disabled && !isReplaced && onReplace && (

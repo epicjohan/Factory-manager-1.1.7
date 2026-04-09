@@ -60,6 +60,17 @@ export const getNowISO = () => {
     return new Date().toISOString().replace('T', ' ').split('.')[0];
 };
 
+// D-03 FIX: Gecentraliseerde user-name resolver.
+// Was voorheen 7× gedupliceerd in articleService, documentService, inventoryService,
+// maintenanceService, energyService, machineService en meer.
+export const getCurrentUserName = (): string => {
+    const userJson = localStorage.getItem('cnc_active_user_full');
+    if (userJson) {
+        try { return JSON.parse(userJson).name; } catch { return 'Unknown User'; }
+    }
+    return 'Unknown User';
+};
+
 export const formatDateForPB = (date: string | Date): string => {
     try {
         const d = typeof date === 'string' ? new Date(date) : date;

@@ -1,14 +1,6 @@
 
 import { Article, ArticleStatus, SetupStatus, SetupVerificationStatus, ArticleFile } from '../../types';
-import { KEYS, loadTable, saveTable, outboxUtils, getNowISO, generateId } from './core';
-
-const getCurrentUserName = () => {
-    const userJson = localStorage.getItem('cnc_active_user_full');
-    if (userJson) {
-        try { return JSON.parse(userJson).name; } catch (e) { return 'Unknown User'; }
-    }
-    return 'Unknown User';
-};
+import { KEYS, loadTable, saveTable, outboxUtils, getNowISO, generateId, getCurrentUserName } from './core';
 
 const getNextRevision = (currentRev: string): string => {
     if (!currentRev) return 'A';
@@ -42,6 +34,8 @@ export const logArticleChange = (article: Article, actionStr: string): Article =
 
     // Cap at 100 entries to prevent infinite JSON bloat
     if (updatedArticle.auditTrail.length > 100) {
+        const dropped = updatedArticle.auditTrail.length - 100;
+        console.warn(`[Audit Trail] Artikel ${article.articleCode}: ${dropped} oudste audit-entries verwijderd (limiet: 100).`);
         updatedArticle.auditTrail = updatedArticle.auditTrail.slice(0, 100);
     }
 
@@ -62,6 +56,12 @@ export const articleService = {
         a.updated = now;
 
         const items = await loadTable<Article[]>(KEYS.ARTICLES, []);
+
+        // P-04 FIX: Uniciteit check op articleCode
+        if (items.some(x => x.articleCode === a.articleCode)) {
+            throw new Error(`Artikelcode "${a.articleCode}" bestaat al.`);
+        }
+
         items.push(a);
 
         await saveTable(KEYS.ARTICLES, items);
@@ -217,6 +217,14 @@ export const articleService = {
         const items = await loadTable<Article[]>(KEYS.ARTICLES, []);
         const toDelete = items.find(x => x.id === id);
         if (toDelete) {
+            // P-05 FIX: Cascade — verwijder gekoppelde DMS documents
+            const { documentService } = await import('./documentService');
+            for (const file of (toDelete.files || [])) {
+                if (file.documentId) {
+                    try { await documentService.deleteDocument(file.documentId); } catch { /* best effort */ }
+                }
+            }
+
             const filtered = items.filter(x => x.id !== id);
             await saveTable(KEYS.ARTICLES, filtered);
             await outboxUtils.addToOutbox(KEYS.ARTICLES, 'DELETE', { id });

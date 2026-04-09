@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { CheckSquare, Plus, Trash2, User, MessageSquare } from '../../icons';
 import { QmsFolder, FolderTodo } from '../../types';
 import { db } from '../../services/storage';
+import { generateId } from '../../services/db/core';
 import { useAuth } from '../../contexts/AuthContext';
 import { useConfirm } from '../../contexts/ConfirmContext';
 
@@ -9,7 +10,7 @@ interface FolderTodosProps {
     folder: QmsFolder;
 }
 
-const generateId = () => `todo_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+
 
 const ResultBadge: React.FC<{ done: boolean }> = ({ done }) => (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${

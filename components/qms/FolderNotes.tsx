@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { StickyNote, Plus, Trash2, User } from '../../icons';
 import { QmsFolder, FolderNote } from '../../types';
 import { db } from '../../services/storage';
+import { generateId } from '../../services/db/core';
 import { useAuth } from '../../contexts/AuthContext';
 import { useConfirm } from '../../contexts/ConfirmContext';
 
@@ -9,7 +10,7 @@ interface FolderNotesProps {
     folder: QmsFolder;
 }
 
-const generateId = () => `note_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+
 
 export const FolderNotes: React.FC<FolderNotesProps> = ({ folder }) => {
     const { user } = useAuth();

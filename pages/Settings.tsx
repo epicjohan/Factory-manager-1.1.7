@@ -18,8 +18,9 @@ import { SettingsDocs } from '../components/settings/SettingsDocs';
 import { SettingsSchedules } from '../components/settings/SettingsSchedules';
 import { SettingsIntegrations } from '../components/settings/SettingsIntegrations';
 import { SettingsData } from '../components/settings/SettingsData';
+import { SettingsDMS } from '../components/settings/SettingsDMS';
 
-type SettingsTab = 'GENERAL' | 'BRANDING' | 'SCHEDULES' | 'DOCS' | 'INTEGRATIONS' | 'DATA';
+type SettingsTab = 'GENERAL' | 'BRANDING' | 'SCHEDULES' | 'DOCS' | 'DMS' | 'INTEGRATIONS' | 'DATA';
 
 export const Settings: React.FC = () => {
   const navigate = useNavigate();
@@ -30,6 +31,7 @@ export const Settings: React.FC = () => {
     { id: 'BRANDING', label: 'Organisatie', icon: Building2 },
     { id: 'SCHEDULES', label: 'Roosters', icon: CalendarClock },
     { id: 'DOCS', label: 'Documenten', icon: FileText },
+    { id: 'DMS', label: 'DMS Opslag', icon: Database },
     { id: 'INTEGRATIONS', label: 'Connectiviteit', icon: Globe },
     { id: 'DATA', label: 'Systeembeheer', icon: Database },
   ];
@@ -58,6 +60,7 @@ export const Settings: React.FC = () => {
         {activeTab === 'BRANDING' && <SettingsBranding />}
         {activeTab === 'DOCS' && <SettingsDocs />}
         {activeTab === 'SCHEDULES' && <SettingsSchedules />}
+        {activeTab === 'DMS' && <SettingsDMS />}
         {activeTab === 'INTEGRATIONS' && <SettingsIntegrations />}
         {activeTab === 'DATA' && <SettingsData />}
       </div>

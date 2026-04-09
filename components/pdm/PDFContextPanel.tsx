@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { ArticleFile, FileRole } from '../../types';
 import { FileText, Maximize, X } from '../../icons';
 import { usePdfBlobUrl } from '../../hooks/usePdfBlobUrl';
-import { documentService } from '../../services/db/documentService';
+import { resolveFileUrl } from '../../utils/fileUtils';
 
 interface PDFContextPanelProps {
     file: ArticleFile | null;
@@ -21,27 +21,16 @@ export const PDFContextPanel: React.FC<PDFContextPanelProps> = ({ file, onClose,
             return;
         }
 
-        if (file.documentId && !file.url) {
-            setIsLoadingUrl(true);
-            documentService.getDocumentById(file.documentId)
-                .then(doc => {
-                    if (doc && doc.url) {
-                        setFileUrl(doc.url);
-                    } else {
-                        setFileUrl(file.url || null);
-                    }
-                })
-                .catch(err => {
-                    console.error("Failed to load document data:", err);
-                    setFileUrl(file.url || null);
-                })
-                .finally(() => {
-                    setIsLoadingUrl(false);
-                });
-        } else {
-            setFileUrl(file.url || null);
-            setIsLoadingUrl(false);
-        }
+        // D-02 FIX: Gebruik de centrale resolveFileUrl utility.
+        // Voorheen had dit component zijn eigen ad-hoc resolver met fallback op file.url.
+        setIsLoadingUrl(true);
+        resolveFileUrl(file)
+            .then(url => setFileUrl(url))
+            .catch(err => {
+                console.error("Failed to load document data:", err);
+                setFileUrl(null);
+            })
+            .finally(() => setIsLoadingUrl(false));
     }, [file]);
 
     const isImage = file?.type?.startsWith('image/') || false;

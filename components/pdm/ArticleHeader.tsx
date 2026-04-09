@@ -138,7 +138,7 @@ export const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, isLocked,
                                 <input disabled={isReadOnly} required type="text" className="w-full p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 font-bold disabled:opacity-60 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" value={formDrawing} onChange={e => setFormDrawing(e.target.value)} />
                             </div>
                             <div className="col-span-1">
-                                <label className="block text-[10px] font-black text-slate-500 uppercase mb-2 tracking-widest">Tek. Rev</label>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase mb-2 tracking-widest cursor-help" title="Tekeningrevisie — het revisienummer zoals vermeld op de technische tekening van de klant. Wordt handmatig ingevuld en is onafhankelijk van de PLM revisie.">Tek. Rev ⓘ</label>
                                 <input disabled={isReadOnly} type="text" className="w-full p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 font-bold text-center disabled:opacity-60 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" value={formDrawingRev} onChange={e => setFormDrawingRev(e.target.value)} placeholder="-" />
                             </div>
                         </div>
@@ -150,8 +150,8 @@ export const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, isLocked,
                                 <label className="block text-[10px] font-black text-slate-500 uppercase mb-2 tracking-widest">Omschrijving 1 (Naam) *</label>
                                 <input disabled={isReadOnly} required type="text" className="w-full p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 font-bold text-lg disabled:opacity-60 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" value={formName} onChange={e => setFormName(e.target.value)} />
                             </div>
-                            <div className="bg-white dark:bg-slate-800 p-2 rounded-[2rem] text-center border border-slate-200 dark:border-slate-700 min-w-[70px] shadow-sm">
-                                <div className="text-[8px] uppercase font-black text-slate-400 tracking-widest mb-0.5">PLM Rev</div>
+                            <div className="bg-white dark:bg-slate-800 p-2 rounded-[2rem] text-center border border-slate-200 dark:border-slate-700 min-w-[70px] shadow-sm cursor-help" title="PLM Revisie — wordt automatisch opgehoogd (A → B → C...) bij het aanmaken van een nieuwe revisie via de knop 'Nieuwe Revisie'. Kan niet handmatig worden gewijzigd.">
+                                <div className="text-[8px] uppercase font-black text-slate-400 tracking-widest mb-0.5">PLM Rev ⓘ</div>
                                 <div className="text-2xl font-black text-slate-800 dark:text-white">{formRev}</div>
                             </div>
                         </div>

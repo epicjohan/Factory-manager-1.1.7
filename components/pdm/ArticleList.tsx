@@ -1,13 +1,12 @@
 
-import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Layers, BookOpen, Plus, Search, Filter, FileText, X, ChevronDown, ChevronUp, FileUp } from '../../icons';
-import { Article, ArticleStatus, ArticleFile, Machine, AssetType } from '../../types';
-import { FileRole, DMSDocument } from '../../types/pdm';
-import { SyncService } from '../../services/sync';
-import { KEYS } from '../../services/db/core';
-import { usePdfBlobUrl } from '../../hooks/usePdfBlobUrl';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { Layers, BookOpen, Plus, Search, Filter, FileText, X, ChevronDown, ChevronUp, FileUp, Trash2, CheckSquare, Square, Lock } from '../../icons';
+import { Article, ArticleStatus, Machine, AssetType } from '../../types';
 import { usePdmFilters } from '../../hooks/usePdmFilters';
-import { documentService } from '../../services/db/documentService';
+import { ArticleListRow } from './ui/ArticleListRow';
+import { articleService } from '../../services/db/articleService';
+import { useConfirm } from '../../contexts/ConfirmContext';
+import { useNotifications } from '../../contexts/NotificationContext';
 
 interface ArticleListProps {
     articles: Article[];
@@ -18,6 +17,8 @@ interface ArticleListProps {
     onEdit: (article: Article) => void;
     onOpenCatalog: () => void;
     onImportExcel: () => void;
+    onBulkDelete?: (ids: string[]) => void;
+    onRefresh?: () => void;
     serverUrl?: string;
 }
 
@@ -30,7 +31,6 @@ const ASSET_TYPE_LABELS: Record<string, string> = {
     [AssetType.OTHER]: 'Overig',
 };
 
-// ─── Status config ────────────────────────────────────────────────
 const STATUS_CONFIG: Record<string, { label: string; pill: string; chip: string }> = {
     [ArticleStatus.DRAFT]: { label: 'Draft', pill: 'bg-slate-600 text-white', chip: 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 border-slate-200 dark:border-slate-600' },
     [ArticleStatus.LOCKED]: { label: 'Vergrendeld', pill: 'bg-green-600 text-white shadow-sm shadow-green-500/30', chip: 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border-green-200 dark:border-green-800' },
@@ -47,141 +47,8 @@ const SORT_OPTIONS = [
 
 const PAGE_SIZE = 50;
 
-// ─── Drawing Thumbnail Component ──────────────────────────────────
-const DrawingThumbnail: React.FC<{ article: Article; serverUrl?: string }> = ({ article, serverUrl }) => {
-    const [hovered, setHovered] = useState(false);
-    const tooltipRef = useRef<HTMLDivElement>(null);
-    const [dmsUrl, setDmsUrl] = useState<string | null>(null);
-
-    // Find the primary drawing file — priority: isThumbnail > DRAWING role > first PDF > first image
-    const drawing = useMemo(() => {
-        const files: ArticleFile[] = (article as any).files || [];
-        return files.find(f => f.isThumbnail)
-            || files.find(f => f.fileRole === FileRole.DRAWING)
-            || files.find(f => f.type === 'application/pdf')
-            || files.find(f => f.type?.startsWith('image/'));
-    }, [article]);
-
-    // Async resolve DMS URL when documentId is present but url is empty
-    useEffect(() => {
-        if (!drawing) { setDmsUrl(null); return; }
-        // If url is already usable, no need to fetch from DMS
-        if (drawing.url && (drawing.url.startsWith('data:') || drawing.url.startsWith('http'))) {
-            setDmsUrl(null); // will use drawing.url directly
-            return;
-        }
-        if (drawing.documentId) {
-            documentService.getDocumentById(drawing.documentId).then(doc => {
-                setDmsUrl(doc?.url || null);
-            });
-        } else {
-            setDmsUrl(null);
-        }
-    }, [drawing]);
-
-    // Resolve the URL (base64 locally, PocketBase URL when online, or DMS fallback)
-    const resolvedUrl = useMemo(() => {
-        if (!drawing) return null;
-        // Direct URL (legacy base64 or remote http)
-        if (drawing.url?.startsWith('data:') || drawing.url?.startsWith('http')) return drawing.url;
-        // DMS resolved URL
-        if (dmsUrl) return dmsUrl;
-        // PocketBase remote fallback
-        if (serverUrl && drawing.name) {
-            return SyncService.resolveFileUrl(article.id, drawing.name, KEYS.ARTICLES, serverUrl);
-        }
-        return drawing.url || null;
-    }, [drawing, article.id, serverUrl, dmsUrl]);
-
-    const isPdf = drawing?.type === 'application/pdf';
-    const isImage = drawing?.type?.startsWith('image/');
-
-    const safePdfUrl = usePdfBlobUrl(isPdf ? resolvedUrl : null);
-
-    if (!drawing) {
-        return (
-            <div className="w-14 h-14 shrink-0 rounded-[2rem] bg-slate-100 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-300 dark:text-slate-600">
-                <FileText size={22} />
-            </div>
-        );
-    }
-
-    return (
-        <div
-            className="relative w-16 h-20 shrink-0"
-            onMouseEnter={() => setHovered(true)}
-            onMouseLeave={() => setHovered(false)}
-        >
-            {/* Thumbnail */}
-            <div className={`w-16 h-20 rounded-lg border overflow-hidden cursor-pointer transition-all duration-200 ${hovered
-                ? 'border-blue-400 shadow-lg shadow-blue-500/20 scale-105'
-                : 'border-slate-200 dark:border-slate-700'
-                } bg-slate-50 dark:bg-slate-800`}>
-                {isImage ? (
-                    <img
-                        src={resolvedUrl || undefined}
-                        alt={drawing.name}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                    />
-                ) : isPdf && safePdfUrl ? (
-                    <div className="w-full h-full relative overflow-hidden pointer-events-none bg-white">
-                        <iframe
-                            src={`${safePdfUrl}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
-                            className="absolute top-0 left-0 w-[250%] h-[250%] origin-top-left scale-[0.40] border-0"
-                            tabIndex={-1}
-                        />
-                    </div>
-                ) : (
-                    /* Other → show icon with file ext */
-                    <div className="w-full h-full flex flex-col items-center justify-center bg-blue-50 dark:bg-blue-950/30">
-                        <FileText size={20} className="text-blue-500 dark:text-blue-400" />
-                        <span className="text-[8px] font-black uppercase text-blue-400 mt-0.5 tracking-widest truncate w-full text-center px-1">
-                            {drawing.name?.split('.').pop()?.toUpperCase()}
-                        </span>
-                    </div>
-                )}
-            </div>
-
-            {/* Hover Preview Popover */}
-            {hovered && (
-                <div
-                    ref={tooltipRef}
-                    className="absolute left-20 top-1/2 -translate-y-1/2 z-50 w-96 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden pointer-events-none animate-in fade-in zoom-in-95 duration-150"
-                    style={{ minHeight: '300px' }}
-                >
-                    {isImage && resolvedUrl ? (
-                        <img
-                            src={resolvedUrl}
-                            alt={drawing.name}
-                            className="w-full h-80 object-contain bg-slate-50 dark:bg-slate-900 p-4"
-                        />
-                    ) : (
-                        safePdfUrl ? (
-                            <iframe
-                                src={`${safePdfUrl}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
-                                title={drawing.name}
-                                className="w-full h-80 border-0 bg-white"
-                            />
-                        ) : (
-                            <div className="w-full h-80 flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-xs py-4 text-center">
-                                Laden voorbeeld...
-                            </div>
-                        )
-                    )}
-                    <div className="px-5 py-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
-                        <p className="text-xs font-bold text-slate-500 dark:text-slate-400 truncate">{drawing.name}</p>
-                        <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">{drawing.fileRole}</p>
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-};
-
-// ─── Main Component ───────────────────────────────────────────────
 export const ArticleList: React.FC<ArticleListProps> = ({
-    articles, machines, canCreate, canManageCatalog, onCreateNew, onEdit, onOpenCatalog, onImportExcel, serverUrl
+    articles, machines, canCreate, canManageCatalog, onCreateNew, onEdit, onOpenCatalog, onImportExcel, onBulkDelete, onRefresh, serverUrl
 }) => {
     const {
         searchTerm, activeStatuses, sortBy, sortDir, activeMachineIds,
@@ -192,8 +59,13 @@ export const ArticleList: React.FC<ArticleListProps> = ({
     const [assetExpanded, setAssetExpanded] = useState(false);
     const [page, setPage] = useState(0);
     const filterRef = useRef<HTMLDivElement>(null);
+    const confirm = useConfirm();
+    const { addNotification } = useNotifications();
 
-    // Machines grouped by AssetType
+    // D-11: Bulk selection state
+    const [selectionMode, setSelectionMode] = useState(false);
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
     const machinesByType = useMemo(() => {
         const groups: Partial<Record<AssetType, Machine[]>> = {};
         machines.forEach(m => {
@@ -204,7 +76,6 @@ export const ArticleList: React.FC<ArticleListProps> = ({
         return groups;
     }, [machines]);
 
-    // Close filter panel on outside click
     useEffect(() => {
         const handler = (e: MouseEvent) => {
             if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
@@ -215,8 +86,12 @@ export const ArticleList: React.FC<ArticleListProps> = ({
         return () => document.removeEventListener('mousedown', handler);
     }, []);
 
-    // Reset page on search/filter/machine change
     useEffect(() => setPage(0), [searchTerm, activeStatuses, sortBy, sortDir, activeMachineIds]);
+
+    // Clear selection when exiting selection mode
+    useEffect(() => {
+        if (!selectionMode) setSelectedIds(new Set());
+    }, [selectionMode]);
 
     const filteredArticles = useMemo(() => {
         const q = searchTerm.toLowerCase().trim();
@@ -251,16 +126,73 @@ export const ArticleList: React.FC<ArticleListProps> = ({
     const pageArticles = filteredArticles.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
     const activeFilterCount = activeStatuses.length + activeMachineIds.length + (sortBy !== 'updated' ? 1 : 0);
 
-    const RevBadge: React.FC<{ article: Article }> = ({ article }) => {
-        const isLocked = article.status === ArticleStatus.LOCKED;
-        return (
-            <div className={`w-11 h-11 shrink-0 rounded-[2rem] flex flex-col items-center justify-center font-black text-white ${isLocked ? 'bg-green-600' : 'bg-slate-500'
-                }`}>
-                <span className="text-[8px] uppercase opacity-70 leading-none">Rev</span>
-                <span className="text-sm leading-none mt-0.5">{article.revision}</span>
-            </div>
-        );
-    };
+    // D-11: Bulk selection handlers
+    const toggleSelection = useCallback((id: string) => {
+        setSelectedIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id); else next.add(id);
+            return next;
+        });
+    }, []);
+
+    const selectAll = useCallback(() => {
+        setSelectedIds(new Set(filteredArticles.map(a => a.id)));
+    }, [filteredArticles]);
+
+    const deselectAll = useCallback(() => {
+        setSelectedIds(new Set());
+    }, []);
+
+    const handleBulkDelete = useCallback(async () => {
+        if (selectedIds.size === 0) return;
+        const draftOnly = Array.from(selectedIds).every(id => {
+            const art = articles.find(a => a.id === id);
+            return art?.status === ArticleStatus.DRAFT;
+        });
+        if (!draftOnly) {
+            addNotification('WARNING', 'Niet toegestaan', 'Alleen artikelen met status DRAFT kunnen verwijderd worden.');
+            return;
+        }
+        const ok = await confirm({
+            title: `${selectedIds.size} artikel(en) verwijderen`,
+            message: `Weet je zeker dat je ${selectedIds.size} artikel(en) permanent wilt verwijderen? Dit kan niet ongedaan worden gemaakt.`
+        });
+        if (ok) {
+            for (const id of selectedIds) {
+                await articleService.deleteArticle(id);
+            }
+            setSelectedIds(new Set());
+            setSelectionMode(false);
+            if (onRefresh) onRefresh();
+            addNotification('SUCCESS', 'Verwijderd', `${selectedIds.size} artikel(en) succesvol verwijderd.`);
+        }
+    }, [selectedIds, articles, confirm, addNotification, onRefresh]);
+
+    // F-05: Bulk DRAFT → LOCKED
+    const handleBulkLock = useCallback(async () => {
+        if (selectedIds.size === 0) return;
+        const draftIds = Array.from(selectedIds).filter(id => {
+            const art = articles.find(a => a.id === id);
+            return art?.status === ArticleStatus.DRAFT;
+        });
+        if (draftIds.length === 0) {
+            addNotification('WARNING', 'Niet mogelijk', 'Geen DRAFT artikelen in de selectie.');
+            return;
+        }
+        const ok = await confirm({
+            title: `${draftIds.length} artikel(en) vergrendelen`,
+            message: `Weet je zeker dat je ${draftIds.length} artikel(en) wilt vergrendelen? Vergrendelde artikelen kunnen alleen via een nieuwe revisie gewijzigd worden.`
+        });
+        if (ok) {
+            for (const id of draftIds) {
+                await articleService.updateArticleStatus(id, ArticleStatus.LOCKED);
+            }
+            setSelectedIds(new Set());
+            setSelectionMode(false);
+            if (onRefresh) onRefresh();
+            addNotification('SUCCESS', 'Vergrendeld', `${draftIds.length} artikel(en) succesvol vergrendeld.`);
+        }
+    }, [selectedIds, articles, confirm, addNotification, onRefresh]);
 
     return (
         <div className="max-w-7xl mx-auto pb-20 text-left animate-in fade-in duration-300">
@@ -295,7 +227,6 @@ export const ArticleList: React.FC<ArticleListProps> = ({
             {/* Search + Filter Bar */}
             <div className="relative mb-3" ref={filterRef}>
                 <div className="flex gap-3">
-                    {/* Search Input */}
                     <div className="relative flex-1">
                         <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                         <input
@@ -306,16 +237,27 @@ export const ArticleList: React.FC<ArticleListProps> = ({
                             onChange={e => setSearchTerm(e.target.value)}
                         />
                         {searchTerm && (
-                            <button
-                                onClick={() => setSearchTerm('')}
-                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                            >
+                            <button onClick={() => setSearchTerm('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                                 <X size={16} />
                             </button>
                         )}
                     </div>
 
-                    {/* Filter Toggle Button */}
+                    {/* D-11: Selectie mode toggle */}
+                    {canCreate && (
+                        <button
+                            onClick={() => setSelectionMode(s => !s)}
+                            className={`flex items-center gap-2 px-4 py-3 rounded-2xl border font-bold text-sm transition-all shadow-sm whitespace-nowrap ${selectionMode
+                                ? 'bg-orange-600 border-orange-600 text-white shadow-orange-500/20'
+                                : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300'
+                                }`}
+                            title="Selectie modus"
+                        >
+                            <CheckSquare size={16} />
+                            {selectionMode ? 'Annuleer' : 'Selecteer'}
+                        </button>
+                    )}
+
                     <button
                         onClick={() => setFilterOpen(o => !o)}
                         className={`flex items-center gap-2 px-5 py-3 rounded-2xl border font-bold text-sm transition-all shadow-sm whitespace-nowrap ${filterOpen || activeFilterCount > 0
@@ -338,52 +280,29 @@ export const ArticleList: React.FC<ArticleListProps> = ({
                 {filterOpen && (
                     <div className="absolute top-full mt-2 right-0 w-96 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 z-40 p-5 animate-in fade-in slide-in-from-top-2 duration-150 max-h-[80vh] overflow-y-auto">
 
-                        {/* Status Multi-Select */}
                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Status</p>
                         <div className="space-y-1.5 mb-5">
                             {Object.entries(STATUS_CONFIG).map(([status, cfg]) => (
                                 <label key={status} className="flex items-center gap-3 cursor-pointer group">
-                                    <input
-                                        type="checkbox"
-                                        checked={activeStatuses.includes(status as ArticleStatus)}
-                                        onChange={() => toggleStatus(status as ArticleStatus)}
-                                        className="w-4 h-4 rounded accent-blue-600 cursor-pointer"
-                                    />
-                                    <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider border ${cfg.chip}`}>
-                                        {cfg.label}
-                                    </span>
-                                    <span className="text-xs text-slate-400 ml-auto">
-                                        {articles.filter(a => a.status === status).length}
-                                    </span>
+                                    <input type="checkbox" checked={activeStatuses.includes(status as ArticleStatus)} onChange={() => toggleStatus(status as ArticleStatus)} className="w-4 h-4 rounded accent-blue-600 cursor-pointer" />
+                                    <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider border ${cfg.chip}`}>{cfg.label}</span>
+                                    <span className="text-xs text-slate-400 ml-auto">{articles.filter(a => a.status === status).length}</span>
                                 </label>
                             ))}
                         </div>
 
-                        {/* Machine / Asset Filter — Collapsible */}
                         {machines.length > 0 && (
                             <div className="mb-5">
-                                <button
-                                    type="button"
-                                    onClick={() => setAssetExpanded(e => !e)}
-                                    className="w-full flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors mb-2"
-                                >
+                                <button type="button" onClick={() => setAssetExpanded(e => !e)} className="w-full flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors mb-2">
                                     <span>
                                         Machines / Assets
                                         {activeMachineIds.length > 0 && (
-                                            <span className="ml-2 bg-blue-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">
-                                                {activeMachineIds.length}
-                                            </span>
+                                            <span className="ml-2 bg-blue-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">{activeMachineIds.length}</span>
                                         )}
                                     </span>
                                     <span className="flex items-center gap-2">
                                         {activeMachineIds.length > 0 && (
-                                            <span
-                                                role="button"
-                                                onClick={e => { e.stopPropagation(); activeMachineIds.forEach(id => toggleMachine(id)); }}
-                                                className="text-[9px] text-blue-500 hover:text-blue-700 font-bold normal-case tracking-normal"
-                                            >
-                                                Wis
-                                            </span>
+                                            <span role="button" onClick={e => { e.stopPropagation(); activeMachineIds.forEach(id => toggleMachine(id)); }} className="text-[9px] text-blue-500 hover:text-blue-700 font-bold normal-case tracking-normal">Wis</span>
                                         )}
                                         {assetExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
                                     </span>
@@ -393,18 +312,11 @@ export const ArticleList: React.FC<ArticleListProps> = ({
                                     <div className="border border-slate-100 dark:border-slate-700 rounded-2xl p-3 space-y-4 bg-slate-50 dark:bg-slate-900/40">
                                         {(Object.keys(machinesByType) as AssetType[]).map(type => (
                                             <div key={type}>
-                                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-300 dark:text-slate-600 mb-1.5">
-                                                    {ASSET_TYPE_LABELS[type] || type}
-                                                </p>
+                                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-300 dark:text-slate-600 mb-1.5">{ASSET_TYPE_LABELS[type] || type}</p>
                                                 <div className="space-y-1.5">
                                                     {machinesByType[type]!.map(m => (
                                                         <label key={m.id} className="flex items-center gap-3 cursor-pointer group">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={activeMachineIds.includes(m.id)}
-                                                                onChange={() => toggleMachine(m.id)}
-                                                                className="w-4 h-4 rounded accent-blue-600 cursor-pointer shrink-0"
-                                                            />
+                                                            <input type="checkbox" checked={activeMachineIds.includes(m.id)} onChange={() => toggleMachine(m.id)} className="w-4 h-4 rounded accent-blue-600 cursor-pointer shrink-0" />
                                                             <span className="text-sm text-slate-700 dark:text-slate-200 truncate">{m.name}</span>
                                                             <span className="text-[10px] text-slate-400 ml-auto shrink-0 font-mono">{m.machineNumber}</span>
                                                         </label>
@@ -417,53 +329,27 @@ export const ArticleList: React.FC<ArticleListProps> = ({
                             </div>
                         )}
 
-                        {/* Sort */}
                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Sortering</p>
                         <div className="space-y-1.5 mb-5">
                             {SORT_OPTIONS.map(opt => (
                                 <label key={opt.value} className="flex items-center gap-3 cursor-pointer">
-                                    <input
-                                        type="radio"
-                                        name="sort"
-                                        checked={sortBy === opt.value}
-                                        onChange={() => setSortBy(opt.value)}
-                                        className="w-4 h-4 accent-blue-600 cursor-pointer"
-                                    />
+                                    <input type="radio" name="sort" checked={sortBy === opt.value} onChange={() => setSortBy(opt.value)} className="w-4 h-4 accent-blue-600 cursor-pointer" />
                                     <span className="text-sm text-slate-700 dark:text-slate-200">{opt.label}</span>
                                 </label>
                             ))}
                         </div>
 
-                        {/* Sort Direction */}
                         <div className="flex gap-2 mb-5">
                             {(['asc', 'desc'] as const).map(dir => (
-                                <button
-                                    key={dir}
-                                    onClick={() => setSortDir(dir)}
-                                    className={`flex-1 py-1.5 rounded-2xl text-xs font-bold border transition-all ${sortDir === dir
-                                        ? 'bg-blue-600 text-white border-blue-600'
-                                        : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300'
-                                        }`}
-                                >
+                                <button key={dir} onClick={() => setSortDir(dir)} className={`flex-1 py-1.5 rounded-2xl text-xs font-bold border transition-all ${sortDir === dir ? 'bg-blue-600 text-white border-blue-600' : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300'}`}>
                                     {dir === 'asc' ? '↑ Oplopend' : '↓ Aflopend'}
                                 </button>
                             ))}
                         </div>
 
-                        {/* Footer */}
                         <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-700">
-                            <button
-                                onClick={clearAll}
-                                className="text-xs text-slate-400 hover:text-slate-600 font-medium"
-                            >
-                                Wis alles
-                            </button>
-                            <button
-                                onClick={() => setFilterOpen(false)}
-                                className="px-4 py-1.5 bg-blue-600 text-white rounded-2xl text-xs font-bold hover:bg-blue-700 transition-all"
-                            >
-                                Sluiten
-                            </button>
+                            <button onClick={clearAll} className="text-xs text-slate-400 hover:text-slate-600 font-medium">Wis alles</button>
+                            <button onClick={() => setFilterOpen(false)} className="px-4 py-1.5 bg-blue-600 text-white rounded-2xl text-xs font-bold hover:bg-blue-700 transition-all">Sluiten</button>
                         </div>
                     </div>
                 )}
@@ -477,80 +363,83 @@ export const ArticleList: React.FC<ArticleListProps> = ({
                         : `${filteredArticles.length} van ${articles.length} artikelen`}
                 </span>
                 {activeStatuses.map(s => (
-                    <button
-                        key={s}
-                        onClick={() => toggleStatus(s)}
-                        className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wide border ${STATUS_CONFIG[s]?.chip}`}
-                    >
-                        {STATUS_CONFIG[s]?.label}
-                        <X size={10} />
+                    <button key={s} onClick={() => toggleStatus(s)} className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wide border ${STATUS_CONFIG[s]?.chip}`}>
+                        {STATUS_CONFIG[s]?.label} <X size={10} />
                     </button>
                 ))}
                 {activeMachineIds.map(id => {
                     const m = machines.find(x => x.id === id);
                     return m ? (
-                        <button
-                            key={id}
-                            onClick={() => toggleMachine(id)}
-                            className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wide border bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800"
-                        >
-                            {m.name}
-                            <X size={10} />
+                        <button key={id} onClick={() => toggleMachine(id)} className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wide border bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800">
+                            {m.name} <X size={10} />
                         </button>
                     ) : null;
                 })}
                 {(searchTerm || activeStatuses.length > 0 || activeMachineIds.length > 0) && filteredArticles.length < articles.length && (
-                    <button onClick={() => { clearAll(); }} className="text-xs text-blue-500 hover:text-blue-700 font-medium ml-1">
-                        Wis alles
-                    </button>
+                    <button onClick={clearAll} className="text-xs text-blue-500 hover:text-blue-700 font-medium ml-1">Wis alles</button>
                 )}
             </div>
+
+            {/* D-11: Bulk Actions Bar */}
+            {selectionMode && (
+                <div className="mb-4 flex items-center gap-3 p-3 bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800/50 rounded-2xl animate-in slide-in-from-top-2 duration-200">
+                    <button onClick={selectedIds.size === filteredArticles.length ? deselectAll : selectAll} className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:border-blue-400 transition-all">
+                        {selectedIds.size === filteredArticles.length ? <CheckSquare size={14} className="text-blue-600" /> : <Square size={14} />}
+                        {selectedIds.size === filteredArticles.length ? 'Deselecteer alles' : 'Selecteer alles'}
+                    </button>
+
+                    <span className="text-xs font-bold text-orange-700 dark:text-orange-400">
+                        {selectedIds.size} geselecteerd
+                    </span>
+
+                    <div className="flex-1" />
+
+                    {/* F-05: Bulk Lock knop */}
+                    <button
+                        onClick={handleBulkLock}
+                        disabled={selectedIds.size === 0}
+                        className="flex items-center gap-2 px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+                    >
+                        <Lock size={14} /> Vergrendel ({Array.from(selectedIds).filter(id => articles.find(a => a.id === id)?.status === ArticleStatus.DRAFT).length})
+                    </button>
+
+                    <button
+                        onClick={handleBulkDelete}
+                        disabled={selectedIds.size === 0}
+                        className="flex items-center gap-2 px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+                    >
+                        <Trash2 size={14} /> Verwijder ({selectedIds.size})
+                    </button>
+                </div>
+            )}
 
             {/* Article List */}
             <div className="space-y-2">
                 {pageArticles.map(article => (
-                    <div
-                        key={article.id}
-                        onClick={() => onEdit(article)}
-                        className="group flex items-center gap-4 bg-white dark:bg-slate-800 px-5 py-4 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 transition-all cursor-pointer shadow-sm hover:shadow-md"
-                    >
-                        {/* Drawing Thumbnail */}
-                        <DrawingThumbnail article={article} serverUrl={serverUrl} />
-
-                        {/* Revision Badge */}
-                        <RevBadge article={article} />
-
-                        {/* Article Info */}
-                        <div className="flex-1 min-w-0">
-                            <h3 className="font-bold text-slate-800 dark:text-white text-base truncate">
-                                {article.name}
-                            </h3>
-                            <div className="flex flex-wrap gap-x-4 gap-y-0.5 items-center mt-0.5">
-                                <span className="text-sm font-mono text-blue-600 dark:text-blue-400 font-black tracking-tight">{article.articleCode}</span>
-                                {article.drawingNumber && (
-                                    <span className="text-xs text-slate-400 flex items-center gap-1">
-                                        <FileText size={11} /> {article.drawingNumber}
-                                    </span>
-                                )}
-                                {(article.material) && (
-                                    <span className="text-xs text-slate-400">{article.material}</span>
-                                )}
+                    <div key={article.id} className="relative">
+                        {/* D-11: Checkbox overlay in selection mode */}
+                        {selectionMode && (
+                            <div
+                                className="absolute left-0 top-0 bottom-0 z-10 flex items-center pl-3 cursor-pointer"
+                                onClick={(e) => { e.stopPropagation(); toggleSelection(article.id); }}
+                            >
+                                <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${selectedIds.has(article.id)
+                                    ? 'bg-blue-600 border-blue-600 text-white shadow-sm shadow-blue-500/30'
+                                    : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:border-blue-400'
+                                    }`}>
+                                    {selectedIds.has(article.id) && (
+                                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6L5 9L10 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                    )}
+                                </div>
                             </div>
-                            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-3 mt-1 flex-wrap">
-                                <span>{(article.operations || []).length} routing stap{(article.operations || []).length !== 1 ? 'pen' : ''}</span>
-                                {article.created && (
-                                    <span className="flex items-center gap-1.5"><span className="w-1 h-1 rounded-full bg-slate-200 dark:bg-slate-700"></span> AANGEMAAKT: {new Date(article.created).toLocaleDateString('nl-NL')}</span>
-                                )}
-                                {article.updated && (
-                                    <span className="flex items-center gap-1.5"><span className="w-1 h-1 rounded-full bg-slate-200 dark:bg-slate-700"></span> GEWIJZIGD: {new Date(article.updated).toLocaleDateString('nl-NL')}</span>
-                                )}
-                            </div>
+                        )}
+                        <div className={selectionMode ? 'pl-10' : ''}>
+                            <ArticleListRow
+                                article={article}
+                                serverUrl={serverUrl}
+                                onEdit={selectionMode ? () => toggleSelection(article.id) : onEdit}
+                            />
                         </div>
-
-                        {/* Status Badge */}
-                        <span className={`px-3 py-1 rounded-2xl text-[10px] font-black uppercase tracking-widest shrink-0 ${STATUS_CONFIG[article.status]?.pill || 'bg-slate-400 text-white'}`}>
-                            {STATUS_CONFIG[article.status]?.label || article.status}
-                        </span>
                     </div>
                 ))}
 

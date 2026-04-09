@@ -48,7 +48,9 @@ const loadFilters = (): PdmFilterState => {
 
 const saveFilters = (filters: PdmFilterState): void => {
     try {
-        localStorage.setItem(getStorageKey(), JSON.stringify(filters));
+        // P-07 FIX: Exclude searchTerm — het is vluchtig en veroorzaakt write-overhead bij elke keypress
+        const { searchTerm, ...persistable } = filters;
+        localStorage.setItem(getStorageKey(), JSON.stringify(persistable));
     } catch {
         // Ignore storage errors silently
     }

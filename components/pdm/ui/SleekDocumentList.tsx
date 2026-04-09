@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Upload, Eye, Download, Trash2, FileText, Camera, Hammer, UserCircle, Image, Table, ClipboardList, Ruler, BarChart, FileCode, Terminal, Archive, Box, Star } from '../../../icons';
+import React, { useState, useRef } from 'react';
+import { Upload, Eye, Download, Trash2, Star, UserCircle, Archive } from '../../../icons';
 import { ArticleFile, DocumentCategory, DMSDocument } from '../../../types';
-import { db } from '../../../services/storage';
 import { useDocumentMap } from '../../../hooks/useDocumentMap';
+import { useDocumentCategories } from '../../../hooks/useDocumentCategories';
 import { DocumentLibraryModal } from '../modals/DocumentLibraryModal';
 import { DocumentRenameModal } from '../modals/DocumentRenameModal';
 
@@ -69,58 +69,13 @@ export const SleekDocumentList: React.FC<SleekDocumentListProps> = ({
     const [showLibraryModal, setShowLibraryModal] = useState(false);
     const [pendingUploads, setPendingUploads] = useState<{ files: File[], role: string } | null>(null);
     const [selectedRole, setSelectedRole] = useState<string>(defaultCategoryCode);
-    const [categories, setCategories] = useState<DocumentCategory[]>([
-        { id: '1', name: 'Document', code: 'OTHER', isSystem: true, applicableTo: 'BOTH', icon: 'FileText', color: 'text-slate-500' }
-    ]);
     const { urlMap, loadingMap } = useDocumentMap(files, parentRecordId, tableKey);
 
-    useEffect(() => {
-        db.getSystemSettings().then(settings => {
-            if (settings.documentCategories && settings.documentCategories.length > 0) {
-                // Filter available categories based on applicableTo and exclusions
-                // BOTH is for Article & Setup, ALL is for everything
-                const availableCats = settings.documentCategories.filter(
-                    c => {
-                        const isMatch = c.applicableTo === applicableTo ||
-                            c.applicableTo === 'ALL' ||
-                            (c.applicableTo === 'BOTH' && (applicableTo === 'ARTICLE' || applicableTo === 'SETUP'));
-                        return isMatch && !excludedCategories.includes(c.code);
-                    }
-                );
-
-                if (availableCats.length > 0) {
-                    setCategories(availableCats);
-
-                    // If the currently selected role is not in the filtered list, pick the first valid one
-                    if (!availableCats.find(c => c.code === selectedRole)) {
-                        setSelectedRole(availableCats[0].code);
-                    }
-                }
-            }
-        });
-    }, [applicableTo, excludedCategories, selectedRole]);
-
-    const getCategoryByCode = (code: string) => {
-        return categories.find(c => c.code === code) || { name: code, icon: 'File', color: 'text-slate-400' } as any;
-    };
-
-    const getRoleIcon = (code: string) => {
-        const cat = getCategoryByCode(code);
-        switch (cat.icon) {
-            case 'Hammer': return <Hammer size={18} className={cat.color} />;
-            case 'Camera': return <Camera size={18} className={cat.color} />;
-            case 'Image': return <Image size={18} className={cat.color} />;
-            case 'Table': return <Table size={18} className={cat.color} />;
-            case 'ClipboardList': return <ClipboardList size={18} className={cat.color} />;
-            case 'Ruler': return <Ruler size={18} className={cat.color} />;
-            case 'BarChart': return <BarChart size={18} className={cat.color} />;
-            case 'FileCode': return <FileCode size={18} className={cat.color} />;
-            case 'Terminal': return <Terminal size={18} className={cat.color} />;
-            case 'Archive': return <Archive size={18} className={cat.color} />;
-            case 'Box': return <Box size={18} className={cat.color} />;
-            default: return <FileText size={18} className={cat.color} />;
-        }
-    };
+    // D-05 FIX: Gecentraliseerde hook vervangt lokale state + useEffect + icon resolver
+    const { categories, getCategoryByCode, getRoleIcon } = useDocumentCategories({
+        applicableTo,
+        excludedCategories
+    });
 
     return (
         <div className={className}>
@@ -171,7 +126,7 @@ export const SleekDocumentList: React.FC<SleekDocumentListProps> = ({
                         }}
                         onClick={() => fileInputRef.current?.click()}
                     >
-                        <input type="file" multiple ref={fileInputRef} className="hidden" accept="image/*,application/pdf" onChange={(e) => {
+                        <input type="file" multiple ref={fileInputRef} className="hidden" onChange={(e) => {
                             if (e.target.files && e.target.files.length > 0) {
                                 setPendingUploads({ files: Array.from(e.target.files), role: selectedRole });
                             }

@@ -2,18 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { History, X, Download, FileCode, Clock } from '../../../icons';
 import { ArticleFile, DMSDocument } from '../../../types';
 import { documentService } from '../../../services/db/documentService';
-import { SyncService } from '../../../services/sync';
-import { KEYS } from '../../../services/db/core';
+import { downloadDmsDocument } from '../../../utils/fileUtils';
 
 interface DocumentVersionModalProps {
     file: ArticleFile;
     isOpen: boolean;
     onClose: () => void;
-    serverUrl?: string;
-    parentRecordId: string; // The Article or Setup ID for resolving the proxy URL
+    parentRecordId: string;
 }
 
-export const DocumentVersionSequenceModal: React.FC<DocumentVersionModalProps> = ({ file, isOpen, onClose, serverUrl, parentRecordId }) => {
+export const DocumentVersionSequenceModal: React.FC<DocumentVersionModalProps> = ({ file, isOpen, onClose, parentRecordId }) => {
     const [historicalDocs, setHistoricalDocs] = useState<DMSDocument[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -42,27 +40,7 @@ export const DocumentVersionSequenceModal: React.FC<DocumentVersionModalProps> =
     if (!isOpen) return null;
 
     const handleDownload = (doc: DMSDocument, idx: number) => {
-        // Construct a temporary ArticleFile-like structure just for the URL resolver
-        const tempFile = {
-            url: '', // We don't have a direct URL, but the resolver knows how to handle documentIds
-            documentId: doc.id
-        };
-        // Resolve URL using SyncService directly against the DOCUMENTS table
-        const url = SyncService.resolveFileUrl(doc.id, doc.name, KEYS.DOCUMENTS, serverUrl);
-
-        if (!url) return;
-
-        const link = document.createElement('a');
-        link.href = url;
-        // Prefix with version number to distinguish
-        // If there are 3 previous versions, reversing them means index 0 is V3, index 1 is V2, index 2 is V1
-        // We know the current file is V4.
-        const histVersion = (file.previousVersions?.length || 0) - idx;
-        link.download = `V${histVersion}_${doc.name}`;
-
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        downloadDmsDocument(doc);
     };
 
     return (
