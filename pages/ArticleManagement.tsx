@@ -212,7 +212,7 @@ export const ArticleManagement: React.FC = () => {
                         isArticleObsolete={actions.isObsolete}
                         user={actions.user}
                         onUpdateSetup={actions.handleUpdateSetup}
-                        onDuplicateSetup={(opId, setup) => { if (!actions.isLocked) setDuplicateModal({ isOpen: true, opId, sourceSetup: setup }); }}
+                        onDuplicateSetup={(opId, setup) => { if (!actions.isObsolete) setDuplicateModal({ isOpen: true, opId, sourceSetup: setup }); }}
                         onDeleteSetup={async (opId, setupId) => {
                             await actions.handleDeleteSetup(opId, setupId);
                             setSelectedType('OPERATION');
@@ -407,6 +407,7 @@ export const ArticleManagement: React.FC = () => {
                         currentUser={actions.user?.name || 'Onbekend'}
                         onClose={() => setNotesModal({ isOpen: false, opId: null })}
                         onAddNote={actions.handleAddNote}
+                        onUpdateNote={actions.handleUpdateNote}
                     />
                 ) : null;
             })()}

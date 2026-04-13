@@ -18,10 +18,11 @@ interface SetupSheetProps {
     setup: SetupVariant;
     machine: Machine | null;
     companyName: string;
+    existingToolIds?: string[];
     onClose: () => void;
 }
 
-type Orientation = 'portrait' | 'landscape';
+
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -59,13 +60,22 @@ const STANDARD_COLS = [
 
 const LANDSCAPE_EXTRA = { key: '_remark', label: 'OPMERKING', width: 'auto', align: 'left' as const };
 
-/**
- * Build column list from template toolFields (frozenToolFields on setup, or passed in).
- * Non-header field types become extra columns appended after standard cols.
- */
-function buildColumns(toolFields: SetupFieldDefinition[], orientation: Orientation) {
-    const base = [...STANDARD_COLS];
-    if (orientation === 'landscape') base.push(LANDSCAPE_EXTRA);
+export function buildColumns(setup: SetupVariant) {
+    if (setup.frozenSheetConfig && setup.frozenSheetConfig.columns.length > 0) {
+        let cols = setup.frozenSheetConfig.columns.filter(c => c.visible).map(c => ({
+            ...c,
+            // Ensure width is handled gracefully
+            align: c.align as 'left' | 'right' | 'center'
+        }));
+        
+        if (!cols.some(c => c.key === '_remark')) {
+            cols.push(LANDSCAPE_EXTRA as any);
+        }
+        return cols;
+    }
+
+    const toolFields = setup.frozenToolFields || [];
+    const base = [...STANDARD_COLS, LANDSCAPE_EXTRA];
 
     if (!toolFields || toolFields.length === 0) return base;
 
@@ -84,7 +94,7 @@ function buildColumns(toolFields: SetupFieldDefinition[], orientation: Orientati
 }
 
 /** Extract cell value from a tool given a column key. */
-function cellValue(tool: ArticleTool, colKey: string): string {
+export function cellValue(tool: ArticleTool, colKey: string): string {
     switch (colKey) {
         case '_order': return `T${String(tool.order).padStart(2, '0')}`;
         case '_description': return tool.description || '—';
@@ -182,9 +192,10 @@ const TemplateBanner: React.FC<{ templateName?: string }> = ({ templateName }) =
 interface ToolsTableProps {
     tools: ArticleTool[];
     cols: ReturnType<typeof buildColumns>;
+    existingToolIds?: string[];
 }
 
-const ToolsTable: React.FC<ToolsTableProps> = ({ tools, cols }) => {
+const ToolsTable: React.FC<ToolsTableProps> = ({ tools, cols, existingToolIds }) => {
     const cell: React.CSSProperties = {
         padding: '3px 5px', fontSize: '9px', ...f,
         color: '#1a1a1a', borderRight: '1px solid #ddd',
@@ -204,15 +215,22 @@ const ToolsTable: React.FC<ToolsTableProps> = ({ tools, cols }) => {
                 </tr>
             </thead>
             <tbody>
-                {tools.map((tool, idx) => (
-                    <tr key={tool.id} style={{ backgroundColor: idx % 2 === 0 ? '#fff' : '#f7f7f7' }}>
-                        {cols.map(c => (
-                            <td key={c.key} style={{ ...cell, fontWeight: c.key === '_order' ? 700 : 400, textAlign: c.align }}>
-                                {cellValue(tool, c.key)}
-                            </td>
-                        ))}
-                    </tr>
-                ))}
+                {tools.map((tool, idx) => {
+                    const isExisting = existingToolIds?.includes(tool.id);
+                    return (
+                        <tr key={tool.id} style={{ 
+                            backgroundColor: isExisting ? '#e2e8f0' : (idx % 2 === 0 ? '#fff' : '#f7f7f7'),
+                            color: isExisting ? '#64748b' : '#1a1a1a',
+                            opacity: isExisting ? 0.7 : 1
+                        }}>
+                            {cols.map(c => (
+                                <td key={c.key} style={{ ...cell, fontWeight: c.key === '_order' ? 700 : 400, textAlign: c.align, color: isExisting ? '#64748b' : '#1a1a1a', textDecoration: isExisting && c.key === '_description' ? 'line-through' : 'none' }}>
+                                    {cellValue(tool, c.key)}
+                                </td>
+                            ))}
+                        </tr>
+                    );
+                })}
                 {/* Empty rows for handwritten additions */}
                 {Array.from({ length: EMPTY_ROWS }).map((_, i) => (
                     <tr key={`empty-${i}`} style={{ backgroundColor: i % 2 === 0 ? '#fff' : '#f7f7f7' }}>
@@ -250,21 +268,19 @@ const SheetFooter: React.FC<{ setupName: string; version: number; currentPage: n
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export const SetupSheet: React.FC<SetupSheetProps> = ({ article, setup, machine, companyName, onClose }) => {
-    const [orientation, setOrientation] = useState<Orientation>('portrait');
-
-    // Template fields from frozen setup, or fallback to frozenToolFields
+export const SetupSheet: React.FC<SetupSheetProps> = ({ article, setup, machine, companyName, existingToolIds, onClose }) => {
+    // Template fields from frozen setup
     const templateFields: SetupFieldDefinition[] = setup.frozenToolFields || [];
     const templateName = (setup as any).templateName as string | undefined;
 
-    const cols = buildColumns(templateFields, orientation);
-    const toolsPerPage = orientation === 'landscape' ? TOOLS_PER_PAGE_LANDSCAPE : TOOLS_PER_PAGE_PORTRAIT;
+    const cols = buildColumns(setup);
+    const toolsPerPage = TOOLS_PER_PAGE_LANDSCAPE;
     const activeTools = (setup.tools || []).filter(t => t.status !== 'REPLACED').sort((a, b) => a.order - b.order);
     const totalPages = Math.max(1, Math.ceil(activeTools.length / toolsPerPage));
     const pages = Array.from({ length: totalPages }, (_, i) => activeTools.slice(i * toolsPerPage, (i + 1) * toolsPerPage));
     if (pages.length === 0) pages.push([]);
 
-    const isLandscape = orientation === 'landscape';
+    const isLandscape = true;
 
     return (
         <>
@@ -273,7 +289,7 @@ export const SetupSheet: React.FC<SetupSheetProps> = ({ article, setup, machine,
                     body > *:not(#setup-sheet-root) { display: none !important; }
                     #setup-sheet-root { display: block !important; position: static !important; }
                     .no-print { display: none !important; }
-                    @page { size: A4 ${orientation}; margin: 10mm 12mm 10mm 12mm; }
+                    @page { size: A4 landscape; margin: 10mm 12mm 10mm 12mm; }
                 }
                 @media screen {
                     #setup-sheet-root {
@@ -287,23 +303,7 @@ export const SetupSheet: React.FC<SetupSheetProps> = ({ article, setup, machine,
             <div id="setup-sheet-root">
                 {/* Screen-only controls */}
                 <div className="no-print" style={{ position: 'fixed', top: 16, right: 16, zIndex: 1001, display: 'flex', gap: 8, alignItems: 'center' }}>
-                    {/* Orientation toggle */}
-                    <div style={{ background: '#2a2a2a', borderRadius: 8, display: 'flex', overflow: 'hidden', border: '1px solid #444' }}>
-                        {(['portrait', 'landscape'] as Orientation[]).map(o => (
-                            <button
-                                key={o}
-                                onClick={() => setOrientation(o)}
-                                style={{
-                                    padding: '7px 14px', background: orientation === o ? '#ffffff' : 'transparent',
-                                    color: orientation === o ? '#1a1a1a' : '#aaa', border: 'none',
-                                    cursor: 'pointer', fontSize: 12, fontWeight: 700,
-                                    textTransform: 'capitalize',
-                                }}
-                            >
-                                {o === 'portrait' ? '📄 Portret' : '📋 Landschap'}
-                            </button>
-                        ))}
-                    </div>
+
                     <button
                         onClick={() => window.print()}
                         style={{ padding: '8px 20px', background: '#1a1a1a', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: 13 }}
@@ -319,7 +319,7 @@ export const SetupSheet: React.FC<SetupSheetProps> = ({ article, setup, machine,
                 </div>
 
                 {/* Pages */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                     {pages.map((pageTools, pageIdx) => {
                         const isFirst = pageIdx === 0;
                         const isLast = pageIdx === totalPages - 1;
@@ -327,8 +327,8 @@ export const SetupSheet: React.FC<SetupSheetProps> = ({ article, setup, machine,
                             <div
                                 key={pageIdx}
                                 style={{
-                                    width: isLandscape ? '297mm' : '210mm',
-                                    minHeight: isLandscape ? '210mm' : '297mm',
+                                    width: '297mm',
+                                    minHeight: '210mm',
                                     backgroundColor: 'white',
                                     boxShadow: '0 4px 24px rgba(0,0,0,0.25)',
                                     display: 'flex',
@@ -356,7 +356,7 @@ export const SetupSheet: React.FC<SetupSheetProps> = ({ article, setup, machine,
                                         </div>
                                     )}
 
-                                    <ToolsTable tools={pageTools} cols={cols} />
+                                    <ToolsTable tools={pageTools} cols={cols} existingToolIds={existingToolIds} />
 
                                     {isLast && (
                                         <>

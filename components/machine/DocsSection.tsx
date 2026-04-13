@@ -91,7 +91,7 @@ export const DocsSection: React.FC<DocsSectionProps> = ({ machine }) => {
   const mappedFiles: ArticleFile[] = useMemo(() => {
     return (machine.documents || []).map((doc, idx) => ({
       id: `doc-${idx}`, // Temporary ID for list operations
-      documentId: doc.documentId,
+      documentId: doc.documentId || '',
       name: doc.name,
       type: doc.type,
       url: doc.url, // Legacy base64 support

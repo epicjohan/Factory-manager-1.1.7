@@ -85,16 +85,17 @@ export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
             ? templates.find(t => t.id === activeMachine.setupTemplateId)
             : null;
 
-    const effectiveFields = setup.frozenFields !== undefined ? setup.frozenFields : (liveTemplate?.fields || []);
-    const effectiveToolFields = setup.frozenToolFields !== undefined ? setup.frozenToolFields : (liveTemplate?.toolFields || []);
-    const isLegacyMode = setup.frozenFields === undefined && setup.frozenToolFields === undefined && !liveTemplate;
-
     // Status Logic
     const currentStatus = setup.status || SetupStatus.DRAFT;
     const isArchived = currentStatus === SetupStatus.ARCHIVED;
     const isDraft = currentStatus === SetupStatus.DRAFT;
     const isSetupLocked = isArticleObsolete || !isDraft;
     const canManage = user?.role === UserRole.MANAGER || user?.role === UserRole.ADMIN;
+
+    const effectiveFields = (isDraft && liveTemplate) ? (liveTemplate.fields || []) : (setup.frozenFields !== undefined ? setup.frozenFields : (liveTemplate?.fields || []));
+    const effectiveToolFields = (isDraft && liveTemplate) ? (liveTemplate.toolFields || []) : (setup.frozenToolFields !== undefined ? setup.frozenToolFields : (liveTemplate?.toolFields || []));
+    const effectiveSheetConfig = (isDraft && liveTemplate) ? liveTemplate.sheetConfig : setup.frozenSheetConfig;
+    const isLegacyMode = setup.frozenFields === undefined && setup.frozenToolFields === undefined && !liveTemplate;
 
     // Update handler
     const handleUpdateSetupWrapper = (updates: Partial<SetupVariant>, customLog?: string) => onUpdateSetup(activeOpId, setup.id, updates, customLog);
@@ -276,7 +277,11 @@ export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
                             onDeleteTool={handleDeleteTool}
                             onUpdateSetup={handleUpdateSetupWrapper}
                             article={article}
-                            setup={setup}
+                            setup={{ 
+                                ...setup, 
+                                frozenToolFields: effectiveToolFields, 
+                                frozenSheetConfig: effectiveSheetConfig 
+                            }}
                             machines={machines}
                         />
                     </CollapsibleSection>

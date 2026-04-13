@@ -4,7 +4,7 @@ import { User, UserRoleDefinition } from './user';
 import { Machine } from './machine';
 import { WorkSchedule, MaintenanceTicket, MaintenanceEvent, SupportRequest, MixingLog, MistLog, ChecklistLog, EfficiencyLog, MachinePart, GeneralPart } from './maintenance';
 import { EnergyLiveData, EnergyHistoricalLog, EnergySettings, AssetEnergyConfig, EnergyQuarterlyLog } from './energy';
-import { Article, PredefinedOperation, SetupTemplate, DocumentCategory, DMSDocument } from './pdm';
+import { Article, PredefinedOperation, SetupTemplate, DocumentCategory, DMSDocument, ToolPreparationRequest } from './pdm';
 import { QmsFramework, QmsFolder, QmsAudit } from './compliance';
 
 export interface SystemStatus {
@@ -124,4 +124,5 @@ export interface AppState {
   teamsWebhookUrl?: string;
   simulationState?: SimulationState;
   outbox?: SyncEntry[];
+  toolPrepRequests?: ToolPreparationRequest[];
 }

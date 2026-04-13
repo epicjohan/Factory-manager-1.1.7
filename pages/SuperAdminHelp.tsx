@@ -6,8 +6,8 @@ import {
     Settings, AlignLeft, Hash, Braces, ToggleLeft, Clock, ChevronDown, ChevronRight, 
     Code, CheckCircle, AlertTriangle, Terminal, Cpu, Zap, Monitor, 
     ShieldCheck, Archive, RefreshCw, ArrowRight, Droplet, Megaphone, Info, 
-    Shield, History, Layers, ListChecks, User, ShieldPlus, Folders, Binary as BinaryIcon, 
-    Bug, Grid, Wind, Lightbulb, FileJson, Copy, Sun, HardDrive, Globe
+    Shield, History, Layers, ListChecks, User, Folders, Binary as BinaryIcon, 
+    Bug, Grid, Wind, FileJson, Copy, Sun, HardDrive, Globe
 } from '../icons';
 
 import { 

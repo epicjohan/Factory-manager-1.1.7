@@ -1,6 +1,6 @@
 
 import { WorkSchedule, ScheduleType, NotificationTrigger, EnergySettings, FeatureFlags, SystemSettings, CommercialModule, LicenseStatus, EnergyLiveData, DataSnapshot } from '../../types';
-import { KEYS, loadTable, saveTable, CURRENT_DB_VERSION, migrateToIndexedDB, DB_NAME, outboxUtils } from './core';
+import { KEYS, loadTable, saveTable, CURRENT_DB_VERSION, migrateToIndexedDB, DB_NAME, outboxUtils, closeDB, clearAllTables } from './core';
 import { APP_INFO } from '../appInfo';
 
 const INITIAL_SETTINGS = {
@@ -204,6 +204,8 @@ export const settingsService = {
         await outboxUtils.addToOutbox(KEYS.SNAPSHOTS, 'DELETE', { id });
     },
     resetData: async (mode?: 'EMPTY' | 'DEMO') => {
+        await clearAllTables();
+        closeDB();
         await new Promise<void>((resolve) => {
             const req = indexedDB.deleteDatabase(DB_NAME);
             req.onsuccess = () => resolve();

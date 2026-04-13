@@ -159,7 +159,11 @@ export const useArticleActions = ({
             setupName = targetMachine ? targetMachine.name : 'Standaard Setup';
             if (targetMachine?.setupTemplateId) {
                 const tpl = templates.find(t => t.id === targetMachine.setupTemplateId);
-                if (tpl) { frozenFields = tpl.fields; frozenToolFields = tpl.toolFields; }
+                if (tpl) { 
+                    frozenFields = tpl.fields; 
+                    frozenToolFields = tpl.toolFields; 
+                    setupTemplateId = targetMachine.setupTemplateId;
+                }
             }
         } else {
             const catalogOp = mkgOperations.find(op => op.id === id);
@@ -266,7 +270,7 @@ export const useArticleActions = ({
         const newMachineName = targetMachine ? targetMachine.name : 'Nieuwe Setup';
         const newSetupId = generateId();
 
-        let newSetup: SetupVariant = {
+        const newSetup: SetupVariant = {
             id: newSetupId, name: newMachineName, machineId: targetMachineId,
             status: SetupStatus.DRAFT, version: 1, isDefault: false,
             verificationStatus: SetupVerificationStatus.UNVERIFIED,
@@ -278,13 +282,18 @@ export const useArticleActions = ({
 
         if (targetMachine?.setupTemplateId) {
             const tpl = templates.find(t => t.id === targetMachine.setupTemplateId);
-            if (tpl) { newSetup.frozenFields = tpl.fields; newSetup.frozenToolFields = tpl.toolFields; }
+            if (tpl) { 
+                newSetup.frozenFields = tpl.fields; 
+                newSetup.frozenToolFields = tpl.toolFields; 
+                newSetup.frozenSheetConfig = tpl.sheetConfig;
+            }
         } else if (mode === 'CLONE') {
             newSetup.frozenFields = sourceSetup.frozenFields;
             newSetup.frozenToolFields = sourceSetup.frozenToolFields;
+            newSetup.frozenSheetConfig = sourceSetup.frozenSheetConfig;
         }
 
-        let newFiles: ArticleFile[] = [];
+        const newFiles: ArticleFile[] = [];
 
         if (mode === 'CLONE') {
             newSetup.steps = (sourceSetup.steps || []).map(s => ({ ...s, id: generateId() }));
@@ -326,6 +335,19 @@ export const useArticleActions = ({
             op.id === opId ? { ...op, notes: [note, ...(op.notes || [])] } : op
         );
         const updated = { ...editingArticle, operations: updatedOps };
+        await articleService.updateArticle(updated);
+    };
+
+    const handleUpdateNote = async (opId: string, noteId: string, updates: Partial<OperationNote>) => {
+        if (!editingArticle) return;
+        const updatedOps = editingArticle.operations.map(op => {
+            if (op.id !== opId) return op;
+            return {
+                ...op,
+                notes: (op.notes || []).map(n => n.id === noteId ? { ...n, ...updates } : n)
+            };
+        });
+        const updated = { ...editingArticle, operations: updatedOps };
         setEditingArticle(updated);
         await articleService.updateArticle(updated);
     };
@@ -359,6 +381,7 @@ export const useArticleActions = ({
         confirmDuplicateSetup,
         handleArchiveArticle,
         handleAddNote,
+        handleUpdateNote,
         handleChangeStatus,
 
         // Utils

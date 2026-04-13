@@ -120,7 +120,7 @@ export const SiteEnergyView: React.FC = () => {
                     const isWorking = hour >= 7 && hour < 17;
                     let cons = isWorking ? 40000 : 4000;
                     cons += Math.random() * 15000;
-                    let prod = (hour >= 6 && hour <= 20) ? 60000 * Math.sin(((hour - 6) / 14) * Math.PI) * (0.7 + Math.random() * 0.3) : 0;
+                    const prod = (hour >= 6 && hour <= 20) ? 60000 * Math.sin(((hour - 6) / 14) * Math.PI) * (0.7 + Math.random() * 0.3) : 0;
                     data.push({
                         label: `${hour.toString().padStart(2, '0')}:${((i % 4) * 15).toString().padStart(2, '0')}`,
                         consumption: Math.round(cons),

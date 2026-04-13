@@ -1,5 +1,5 @@
 import React from 'react';
-// @ts-ignore - Vite PWA virtual module interceptor
+// @ts-expect-error - Vite PWA virtual module interceptor
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { RefreshCw, X } from '../icons';
 

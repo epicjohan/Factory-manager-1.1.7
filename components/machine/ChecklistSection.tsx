@@ -50,7 +50,7 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({ machine }) =
             case ChecklistInterval.DAGELIJKS:
                 done = lastLog.date.startsWith(now.toISOString().split('T')[0]);
                 break;
-            case ChecklistInterval.WEKELIJKS:
+            case ChecklistInterval.WEKELIJKS: {
                 const getWeek = (d: Date) => {
                     const date = new Date(d.getTime());
                     date.setHours(0, 0, 0, 0);
@@ -60,6 +60,7 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({ machine }) =
                 };
                 done = getWeek(lastDate) === getWeek(now) && lastDate.getFullYear() === now.getFullYear();
                 break;
+            }
             case ChecklistInterval.MAANDELIJKS:
                 done = lastDate.getMonth() === now.getMonth() && lastDate.getFullYear() === now.getFullYear();
                 break;

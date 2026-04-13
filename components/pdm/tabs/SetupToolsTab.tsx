@@ -6,6 +6,7 @@ import { ToolBlock } from '../shared/ToolBlock';
 import { generateId, loadTable, KEYS } from '../../../services/db/core';
 import { useAuth } from '../../../contexts/AuthContext';
 import { SetupSheet } from '../SetupSheet';
+import { ToolRequestModal } from '../modals/ToolRequestModal';
 
 interface SetupToolsTabProps {
     tools: ArticleTool[];
@@ -32,6 +33,7 @@ export const SetupToolsTab: React.FC<SetupToolsTabProps> = ({
 
     // Setup Sheet state
     const [showSheet, setShowSheet] = useState(false);
+    const [showToolRequest, setShowToolRequest] = useState(false);
     const [companyName, setCompanyName] = useState('Factory Manager');
 
     useEffect(() => {
@@ -167,13 +169,22 @@ export const SetupToolsTab: React.FC<SetupToolsTabProps> = ({
                 <div className="flex items-center gap-2">
                     {/* Setup Sheet knoppen */}
                     {article && setup && (
-                        <button
-                            onClick={() => setShowSheet(true)}
-                            className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-[2rem] font-bold text-[11px] uppercase tracking-widest transition-all"
-                            title="Setup Sheet openen / printen / PDF downloaden"
-                        >
-                            <Printer size={14} /> Setup Sheet
-                        </button>
+                        <>
+                            <button
+                                onClick={() => setShowToolRequest(true)}
+                                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-[2rem] font-bold text-[11px] uppercase tracking-widest shadow-lg shadow-indigo-500/20 transition-all hover:scale-105 active:scale-95"
+                                title="Gereedschapslijst klaarzetten / aanvragen"
+                            >
+                                <Wrench size={14} /> Oproep Tooling
+                            </button>
+                            <button
+                                onClick={() => setShowSheet(true)}
+                                className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-[2rem] font-bold text-[11px] uppercase tracking-widest transition-all"
+                                title="Setup Sheet openen / printen / PDF downloaden"
+                            >
+                                <Printer size={14} /> Setup Sheet
+                            </button>
+                        </>
                     )}
                     {!isLocked && (
                         <button onClick={onAddTool} className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-[2rem] font-black text-[11px] uppercase shadow-lg shadow-blue-500/20 transition-all hover:scale-105 active:scale-95"><Plus size={16} /> Tool Toevoegen</button>
@@ -313,6 +324,16 @@ export const SetupToolsTab: React.FC<SetupToolsTabProps> = ({
                     machine={activeMachine}
                     companyName={companyName}
                     onClose={() => setShowSheet(false)}
+                />
+            )}
+
+            {/* TOOL REQUEST MODAL */}
+            {showToolRequest && article && setup && (
+                <ToolRequestModal
+                    article={article}
+                    setup={setup}
+                    tools={tools}
+                    onClose={() => setShowToolRequest(false)}
                 />
             )}
         </div>

@@ -23,9 +23,7 @@ export const CreateMachine: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const isEditing = !!id;
 
-    if (!user || user.role !== UserRole.ADMIN) {
-        return <Navigate to="/" replace />;
-    }
+
 
     // REACTIVE HOOKS
     const { data: schedules } = useTable<WorkSchedule>(KEYS.SCHEDULES);
@@ -161,6 +159,10 @@ export const CreateMachine: React.FC = () => {
     };
 
     const filteredTemplates = templates.filter(t => t.assetType === formData.type);
+
+    if (!user || user.role !== UserRole.ADMIN) {
+        return <Navigate to="/" replace />;
+    }
 
     return (
         <div className="max-w-4xl mx-auto pb-10">

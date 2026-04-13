@@ -31,11 +31,11 @@ export const JobSection: React.FC<JobSectionProps> = ({ machine }) => {
         const options: { article: Article, setup: SetupVariant, opDesc: string }[] = [];
 
         articles.forEach(art => {
-            if (art.status !== ArticleStatus.RELEASED) return;
+            if (art.status !== ArticleStatus.LOCKED) return;
             if (term && !art.articleCode.toLowerCase().includes(term) && !art.name.toLowerCase().includes(term)) return;
 
-            art.operations.forEach(op => {
-                op.setups.forEach(setup => {
+            art.operations.forEach((op: typeof art.operations[0]) => {
+                op.setups.forEach((setup: SetupVariant) => {
                     const isDirectMatch = setup.machineId === machine.id;
                     if (isDirectMatch) {
                         options.push({ article: art, setup, opDesc: op.description });

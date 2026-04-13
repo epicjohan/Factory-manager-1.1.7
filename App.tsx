@@ -44,6 +44,7 @@ import { LoginScreen } from './pages/LoginScreen';
 import { ArticleManagement } from './pages/ArticleManagement';
 import { TemplateManagement } from './pages/TemplateManagement';
 import { ProductionDashboard } from './pages/ProductionDashboard';
+import { ToolPreparation } from './pages/ToolPreparation';
 import { UserRole, AssetType, AppModule, FocasLiveStats } from './types';
 
 const ModuleGuard: React.FC<{ module: AppModule, children: React.ReactNode }> = ({ module, children }) => {
@@ -178,6 +179,7 @@ const App: React.FC = () => {
                                     <Route path="/support" element={<ProtectedRoute><SupportDashboard /></ProtectedRoute>} />
                                     <Route path="/questions" element={<ProtectedRoute><QuestionsDashboard /></ProtectedRoute>} />
                                     <Route path="/articles" element={<ProtectedRoute><ModuleGuard module={AppModule.ARTICLES}><ArticleManagement /></ModuleGuard></ProtectedRoute>} />
+                                    <Route path="/tool-prep" element={<ProtectedRoute><ModuleGuard module={AppModule.ARTICLES}><ToolPreparation /></ModuleGuard></ProtectedRoute>} />
                                     <Route path="/compliance" element={<ProtectedRoute><ModuleGuard module={AppModule.COMPLIANCE}><ComplianceDashboard /></ModuleGuard></ProtectedRoute>} />
                                     <Route path="/compliance/:id" element={<ProtectedRoute><ModuleGuard module={AppModule.COMPLIANCE}><ComplianceDetail /></ModuleGuard></ProtectedRoute>} />
                                     <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminDashboard /></AdminRoute></ProtectedRoute>} />

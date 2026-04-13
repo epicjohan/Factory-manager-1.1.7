@@ -1,5 +1,5 @@
 import fs from 'fs';
-import path from 'url';
+import path from 'path';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
 import * as fs_std from 'fs';
@@ -303,7 +303,11 @@ fs_std.writeFileSync(path.join(OUTPUT_DIR, 'START.bat'), START_BAT);
 
 console.log('🗜️  Stap 3: ZIP archief maken...');
 try {
-    execSync(`powershell -Command "Compress-Archive -Path '${OUTPUT_DIR}\\*' -DestinationPath '${ZIP_FILE}' -Force"`);
+    if (process.platform === 'win32') {
+        execSync(`powershell -Command "Compress-Archive -Path '${OUTPUT_DIR}\\\\' -DestinationPath '${ZIP_FILE}' -Force"`);
+    } else {
+        execSync(`cd "${OUTPUT_DIR}" && zip -r "${ZIP_FILE}" .`);
+    }
     console.log(`\n✅ RELEASE KLAAR: ${path.basename(ZIP_FILE)}`);
 } catch (e) {
     console.log(`\n⚠️ ZIP mislukt, map /release is wel klaar.`);

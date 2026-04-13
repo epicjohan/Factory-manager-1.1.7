@@ -276,7 +276,7 @@ export const MachineToolGuard: React.FC = () => {
                                     <span className="font-mono text-white">{activeToolStat?.currentCycles || 0} / {activeToolStat?.maxCycles || 0}</span>
                                 </div>
                                 <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                                    <div className={`h-full transition-all duration-500 ${activeToolStat?.currentCycles! >= activeToolStat?.maxCycles! - 2 ? (activeToolStat?.currentCycles! >= activeToolStat?.maxCycles! ? 'bg-orange-50' : 'bg-yellow-500') : 'bg-blue-500'}`} style={{ width: `${Math.min(100, (activeToolStat?.currentCycles || 0) / (activeToolStat?.maxCycles || 1) * 100)}%` }}></div>
+                                    <div className={`h-full transition-all duration-500 ${(activeToolStat?.currentCycles || 0) >= (activeToolStat?.maxCycles || 0) - 2 ? ((activeToolStat?.currentCycles || 0) >= (activeToolStat?.maxCycles || 0) ? 'bg-orange-50' : 'bg-yellow-500') : 'bg-blue-500'}`} style={{ width: `${Math.min(100, (activeToolStat?.currentCycles || 0) / (activeToolStat?.maxCycles || 1) * 100)}%` }}></div>
                                 </div>
                             </div>
                         </div>

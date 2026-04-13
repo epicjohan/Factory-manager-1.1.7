@@ -43,6 +43,7 @@ export interface ArticleFile {
   previousVersions?: string[]; // Array of past documentIds for history tracing
   name?: string;
   type?: string;
+  url?: string;
 
   uploadedBy: string;
   uploadDate: string;
@@ -89,6 +90,18 @@ export interface SetupFieldDefinition {
   defaultValue?: any;
 }
 
+export interface SetupSheetColumn {
+  key: string;       // e.g., '_order', '_description', or 'toolData.spindleSpeed'
+  label: string;
+  width: string;     // e.g. '50px', 'auto'
+  align: 'left' | 'center' | 'right';
+  visible: boolean;
+}
+
+export interface SetupSheetConfig {
+  columns: SetupSheetColumn[];
+}
+
 export interface SetupTemplate {
   id: string;
   name: string;
@@ -96,6 +109,7 @@ export interface SetupTemplate {
   assetType: AssetType;
   fields: SetupFieldDefinition[];
   toolFields?: SetupFieldDefinition[];
+  sheetConfig?: SetupSheetConfig;
   isDefault?: boolean;
   updated?: string;
 }
@@ -146,6 +160,7 @@ export interface SetupVariant {
   templateData?: Record<string, any>;
   frozenFields?: SetupFieldDefinition[];
   frozenToolFields?: SetupFieldDefinition[];
+  frozenSheetConfig?: SetupSheetConfig;
 }
 
 export interface OperationNote {
@@ -153,6 +168,7 @@ export interface OperationNote {
   date: string;
   user: string;
   text: string;
+  isImplemented?: boolean;
 }
 
 export interface ArticleOperation {
@@ -242,4 +258,34 @@ export interface ArticleTool {
   replacedToolId?: string; // ID van de tool die deze vervangen heeft
   changeReason?: string;   // Waarom is deze tool toegevoegd/gewijzigd?
   dateChanged?: string;
+}
+
+export enum ToolRequestStatus {
+  PENDING = 'PENDING',
+  IN_PROGRESS = 'IN_PROGRESS',
+  READY = 'READY',
+  CANCELLED = 'CANCELLED'
+}
+
+export interface ToolPreparationRequest {
+  id: string;
+  articleId: string;
+  articleCode: string; // Voor snelle weergave
+  drawingNumber: string;
+  setupId: string;
+  setupName: string;   // Voor snelle weergave
+  machineId?: string;
+  
+  requestedBy: string; // Gebruikersnaam
+  requestDate: string; // ISO Datum 
+  dueDate: string;     // Wanneer moet het op de kar liggen?
+  
+  existingToolIds: string[]; 
+  preparedToolIds?: string[];
+  
+  notes?: string;
+  status: ToolRequestStatus;
+  
+  assignedTo?: string; 
+  completedAt?: string;
 }

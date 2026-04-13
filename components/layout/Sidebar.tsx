@@ -93,7 +93,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             {(!isCollapsed && isOpen) && (
                                 <div className="mt-1 ml-3 pl-3 border-l-2 border-slate-200/80 dark:border-slate-700/50 space-y-1">
                                     {group.items.map((item: any) => {
-                                        let badgeCount = item.badgeKey === 'support' ? pendingSupport : item.badgeKey === 'questions' ? pendingQuestions : 0;
+                                        const badgeCount = item.badgeKey === 'support' ? pendingSupport : item.badgeKey === 'questions' ? pendingQuestions : 0;
                                         return (
                                             <Link key={item.path} to={item.path} className={getLinkClasses(item.path)}>
                                                 <div className="relative shrink-0">

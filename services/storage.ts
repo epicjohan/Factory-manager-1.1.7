@@ -11,6 +11,7 @@ import { articleService } from './db/articleService';
 import { templateService } from './db/templateService';
 import { qmsService } from './db/qmsService';
 import { documentService } from './db/documentService';
+import { toolPrepService } from './db/toolPrepService';
 
 migrateToIndexedDB();
 
@@ -76,7 +77,8 @@ export const getStore = async (): Promise<AppState> => {
         // SECURITY S-03: adminPassword en serverApiKey worden NIET in AppState geladen.
         // Gebruik settingsService.getServerSettings() voor directe toegang.,
         simulationState: await machineService.getSimulationState(),
-        outbox: await outboxUtils.getOutbox()
+        outbox: await outboxUtils.getOutbox(),
+        toolPrepRequests: await toolPrepService.getToolPrepRequests()
     };
 };
 
@@ -111,7 +113,8 @@ export const setStore = async (state: AppState) => {
         state.documents ? saveTable(KEYS.DOCUMENTS, state.documents) : Promise.resolve(),
         state.energyHistorical ? saveTable(KEYS.LOGS_ENERGY_HISTORICAL, state.energyHistorical) : Promise.resolve(),
         saveTable(KEYS.SIMULATION, state.simulationState),
-        state.outbox ? saveTable(KEYS.OUTBOX, state.outbox) : Promise.resolve()
+        state.outbox ? saveTable(KEYS.OUTBOX, state.outbox) : Promise.resolve(),
+        state.toolPrepRequests ? saveTable(KEYS.TOOL_PREP_REQUESTS, state.toolPrepRequests) : Promise.resolve()
     ]);
 
     await saveTable(KEYS.METADATA, {
@@ -141,6 +144,7 @@ export const db = {
     ...articleService,
     ...templateService,
     ...qmsService,
+    ...toolPrepService,
 
     getMkgOperations: () => loadTable<PredefinedOperation[]>(KEYS.MKG_OPERATIONS, []),
     addMkgOperation: async (op: PredefinedOperation) => {

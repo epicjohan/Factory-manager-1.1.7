@@ -44,6 +44,8 @@ export const SetupGeneralTab: React.FC<SetupGeneralTabProps> = ({ setup, isLocke
             if (tpl) {
                 updates.frozenFields = tpl.fields;
                 updates.frozenToolFields = tpl.toolFields;
+                updates.frozenSheetConfig = tpl.sheetConfig;
+                updates.setupTemplateId = machine.setupTemplateId;
             }
         }
         onUpdate(updates);
@@ -152,6 +154,16 @@ export const SetupGeneralTab: React.FC<SetupGeneralTabProps> = ({ setup, isLocke
                                             </div>
                                         ))}
                                     </div>
+                                </div>
+                            )}
+                            
+                            {/* ACTIVE TEMPLATE DISPLAY FOR MACHINE */}
+                            {setup.setupTemplateId && (
+                                <div className="mt-3 ml-1 animate-in fade-in">
+                                    <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold flex items-center gap-1.5 uppercase tracking-wider">
+                                        <Box size={12} className="text-orange-500" /> 
+                                        Actief Sjabloon: <span className="text-slate-600 dark:text-slate-300 italic">{templates.find(t => t.id === setup.setupTemplateId)?.name || 'Onbekend Sjabloon'}</span>
+                                    </p>
                                 </div>
                             )}
                         </>

@@ -39,11 +39,12 @@ export const KEYS = {
     DOCUMENTS: 'fm_table_documents',
     QMS_FRAMEWORKS: 'fm_table_qms_frameworks',
     QMS_FOLDERS: 'fm_table_qms_folders',
-    QMS_AUDITS: 'fm_table_qms_audits'
+    QMS_AUDITS: 'fm_table_qms_audits',
+    TOOL_PREP_REQUESTS: 'fm_table_tool_prep_requests'
 };
 
 export const DB_NAME = 'FactoryManagerDB';
-export const CURRENT_DB_VERSION = 4;
+export const CURRENT_DB_VERSION = 5;
 
 // BUG B-05 FIX: crypto.getRandomValues() is cryptografisch veilig — onvoorspelbaar en niet repliceerbaar.
 // Math.random() is deterministisch en kan worden voorspeld bij kennis van de seed.
@@ -163,6 +164,31 @@ const getDB = (): Promise<IDBDatabase> => {
         };
         request.onerror = () => reject(request.error);
     });
+};
+
+export const closeDB = () => {
+    if (cachedDB) {
+        cachedDB.close();
+        cachedDB = null;
+    }
+};
+
+export const clearAllTables = async () => {
+    try {
+        const db = await getDB();
+        const storeNames = Array.from(db.objectStoreNames);
+        if (storeNames.length === 0) return;
+        const tx = db.transaction(storeNames, 'readwrite');
+        storeNames.forEach(storeName => {
+            tx.objectStore(storeName).clear();
+        });
+        return new Promise<void>((resolve, reject) => {
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error);
+        });
+    } catch (e) {
+        console.error("Failed to clear tables:", e);
+    }
 };
 
 export const saveTable = async (key: string, data: any) => {

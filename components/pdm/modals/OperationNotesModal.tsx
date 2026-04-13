@@ -9,10 +9,11 @@ interface OperationNotesModalProps {
     currentUser: string;
     onClose: () => void;
     onAddNote: (opId: string, note: OperationNote) => void;
+    onUpdateNote: (opId: string, noteId: string, updates: Partial<OperationNote>) => void;
 }
 
 export const OperationNotesModal: React.FC<OperationNotesModalProps> = ({
-    operation, currentUser, onClose, onAddNote
+    operation, currentUser, onClose, onAddNote, onUpdateNote
 }) => {
     const [text, setText] = useState('');
     const [submitting, setSubmitting] = useState(false);
@@ -84,18 +85,29 @@ export const OperationNotesModal: React.FC<OperationNotesModalProps> = ({
                         </div>
                     ) : (
                         sortedNotes.map(note => (
-                            <div key={note.id} className="flex gap-3">
+                            <div key={note.id} className={`flex gap-3 transition-opacity ${note.isImplemented ? 'opacity-60' : ''}`}>
                                 {/* Avatar */}
                                 <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-[10px] font-black shrink-0 mt-0.5">
                                     {getInitials(note.user)}
                                 </div>
                                 {/* Bubble */}
                                 <div className="flex-1 bg-slate-50 dark:bg-slate-800 rounded-2xl rounded-tl-sm px-4 py-3">
-                                    <div className="flex items-baseline justify-between gap-2 mb-1">
-                                        <span className="text-xs font-black text-slate-700 dark:text-slate-200">{note.user}</span>
+                                    <div className="flex items-center justify-between gap-2 mb-1">
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-xs font-black text-slate-700 dark:text-slate-200">{note.user}</span>
+                                            <label className="flex items-center gap-1.5 cursor-pointer group hover:bg-slate-200 dark:hover:bg-slate-700 px-2 py-0.5 rounded-md transition-colors">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={!!note.isImplemented}
+                                                    onChange={() => onUpdateNote(operation.id, note.id, { isImplemented: !note.isImplemented })}
+                                                    className="w-3.5 h-3.5 text-emerald-500 rounded border-slate-300 focus:ring-emerald-500 dark:border-slate-600 dark:bg-slate-800 cursor-pointer" 
+                                                />
+                                                <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors">Voltooid</span>
+                                            </label>
+                                        </div>
                                         <span className="text-[10px] text-slate-400 shrink-0">{formatNoteDate(note.date)}</span>
                                     </div>
-                                    <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">{note.text}</p>
+                                    <p className={`text-sm leading-relaxed whitespace-pre-wrap ${note.isImplemented ? 'text-slate-400 dark:text-slate-500 line-through' : 'text-slate-600 dark:text-slate-300'}`}>{note.text}</p>
                                 </div>
                             </div>
                         ))

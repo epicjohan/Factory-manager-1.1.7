@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../services/storage';
-import { SetupTemplate, AssetType, SetupFieldDefinition, SetupFieldType } from '../types';
+import { SetupTemplate, AssetType, SetupFieldDefinition, SetupFieldType, SetupSheetColumn, SetupSheetConfig, Article, SetupVariant, Machine, SetupStatus } from '../types';
+import { SetupSheet } from '../components/pdm/SetupSheet';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../contexts/NotificationContext';
 import { useTable } from '../hooks/useTable';
@@ -42,6 +43,18 @@ const STANDARD_TOOL_FIELDS: SetupFieldDefinition[] = [
     { key: 'internalCooling', label: 'Interne Koeling', type: 'boolean', colSpan: 4 },
 ];
 
+const INITIAL_SHEET_COLS: SetupSheetColumn[] = [
+    { key: '_order', label: 'T#', width: '32px', align: 'center', visible: true },
+    { key: '_description', label: 'OMSCHRIJVING', width: 'auto', align: 'left', visible: true },
+    { key: '_matrixCode', label: 'MATRIX CODE', width: '80px', align: 'left', visible: true },
+    { key: '_assemblyCode', label: 'ASSEMBLAGE', width: '72px', align: 'left', visible: true },
+    { key: '_cuttingLength', label: 'SNI mm', width: '48px', align: 'right', visible: true },
+    { key: '_overhangLength', label: 'UIT mm', width: '48px', align: 'right', visible: true },
+    { key: '_holder', label: 'HOUDER', width: '56px', align: 'left', visible: true },
+    { key: '_lifeTime', label: 'LEVENSDUUR', width: '72px', align: 'left', visible: true },
+    { key: '_cooling', label: 'KOE', width: '32px', align: 'center', visible: true },
+];
+
 export const TemplateManagement: React.FC = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
@@ -53,9 +66,10 @@ export const TemplateManagement: React.FC = () => {
     const [selectedTemplate, setSelectedTemplate] = useState<SetupTemplate | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState<Partial<SetupTemplate>>({});
+    const [showFullPreview, setShowFullPreview] = useState(false);
 
-    // Tab state: FIXTURE (Standard Setup) or TOOLS
-    const [activeTab, setActiveTab] = useState<'FIXTURE' | 'TOOLS'>('FIXTURE');
+    // Tab state: FIXTURE (Standard Setup), TOOLS, or SHEET
+    const [activeTab, setActiveTab] = useState<'FIXTURE' | 'TOOLS' | 'SHEET'>('FIXTURE');
 
     // Field Editor State
     const [showFieldModal, setShowFieldModal] = useState(false);
@@ -111,7 +125,8 @@ export const TemplateManagement: React.FC = () => {
         const templateToSave = {
             ...editData,
             fields: editData.fields || [],
-            toolFields: isProcessTemplate ? [] : (editData.toolFields || [])
+            toolFields: isProcessTemplate ? [] : (editData.toolFields || []),
+            sheetConfig: { columns: getSheetColumns() }
         } as SetupTemplate;
 
         await db.saveTemplate(templateToSave);
@@ -128,6 +143,71 @@ export const TemplateManagement: React.FC = () => {
             setSelectedTemplate(null);
             setIsEditing(false);
         }
+    };
+
+    // --- SETUP SHEET CONFIG LOGIC ---
+
+    const getSheetColumns = (): SetupSheetColumn[] => {
+        const config = editData.sheetConfig;
+        let baseCols = config ? [...config.columns] : [...INITIAL_SHEET_COLS];
+        const toolFields = editData.toolFields || [];
+
+        // 1. Remove columns for toolFields that were deleted
+        baseCols = baseCols.filter(col => {
+            if (col.key.startsWith('toolData.')) {
+                const tfKey = col.key.replace('toolData.', '');
+                return toolFields.some(tf => tf.key === tfKey);
+            }
+            return true;
+        });
+
+        // 2. Update labels for existing custom columns (in case they were renamed)
+        baseCols = baseCols.map(col => {
+            if (col.key.startsWith('toolData.')) {
+                const tfKey = col.key.replace('toolData.', '');
+                const tf = toolFields.find(f => f.key === tfKey);
+                if (tf) {
+                    return { ...col, label: tf.label.toUpperCase() };
+                }
+            }
+            return col;
+        });
+
+        // 3. Add any newly created tool fields to the columns list
+        toolFields.forEach(tf => {
+            if (tf.type === 'header') return;
+            const key = `toolData.${tf.key}`;
+            if (!baseCols.find(c => c.key === key)) {
+                baseCols.push({
+                    key,
+                    label: tf.label.toUpperCase(),
+                    width: tf.type === 'boolean' ? '36px' : tf.type === 'number' ? '56px' : '80px',
+                    align: tf.type === 'number' ? 'right' : 'left',
+                    visible: true
+                });
+            }
+        });
+
+        return baseCols;
+    };
+
+    const handleToggleSheetColumn = (colKey: string) => {
+        const cols = getSheetColumns().map(c => c.key === colKey ? { ...c, visible: !c.visible } : c);
+        setEditData({ ...editData, sheetConfig: { columns: cols } });
+    };
+
+    const moveSheetColumn = (idx: number, direction: 'UP' | 'DOWN') => {
+        const cols = getSheetColumns();
+        const newCols = [...cols];
+        const swapIdx = direction === 'UP' ? idx - 1 : idx + 1;
+        if (swapIdx < 0 || swapIdx >= newCols.length) return;
+        [newCols[idx], newCols[swapIdx]] = [newCols[swapIdx], newCols[idx]];
+        setEditData({ ...editData, sheetConfig: { columns: newCols } });
+    };
+
+    const handleColumnWidthChange = (colKey: string, width: string) => {
+        const cols = getSheetColumns().map(c => c.key === colKey ? { ...c, width } : c);
+        setEditData({ ...editData, sheetConfig: { columns: cols } });
     };
 
     // --- FIELD MANIPULATION ---
@@ -168,7 +248,7 @@ export const TemplateManagement: React.FC = () => {
             options: fieldData.type === 'select' ? currentOptions : undefined
         };
 
-        let fieldsCopy = [...getActiveFields()];
+        const fieldsCopy = [...getActiveFields()];
 
         if (editingFieldIndex !== null) {
             fieldsCopy[editingFieldIndex] = newField;
@@ -187,7 +267,7 @@ export const TemplateManagement: React.FC = () => {
     const deleteField = async (index: number) => {
         const ok = await confirm({ title: 'Veld verwijderen', message: 'Wil je dit veld uit het sjabloon verwijderen?' });
         if (!ok) return;
-        let fieldsCopy = [...getActiveFields()];
+        const fieldsCopy = [...getActiveFields()];
         fieldsCopy.splice(index, 1);
         if (activeTab === 'FIXTURE') {
             setEditData({ ...editData, fields: fieldsCopy });
@@ -197,7 +277,7 @@ export const TemplateManagement: React.FC = () => {
     };
 
     const moveField = (index: number, direction: 'UP' | 'DOWN') => {
-        let fieldsCopy = [...getActiveFields()];
+        const fieldsCopy = [...getActiveFields()];
         if (direction === 'UP' && index > 0) {
             [fieldsCopy[index], fieldsCopy[index - 1]] = [fieldsCopy[index - 1], fieldsCopy[index]];
         } else if (direction === 'DOWN' && index < fieldsCopy.length - 1) {
@@ -331,6 +411,12 @@ export const TemplateManagement: React.FC = () => {
                                         >
                                             <Wrench size={14} /> Gereedschap Velden
                                         </button>
+                                        <button
+                                            onClick={() => setActiveTab('SHEET')}
+                                            className={`px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${activeTab === 'SHEET' ? 'bg-white dark:bg-slate-800 text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                        >
+                                            <LayoutGrid size={14} /> Setup Sheet Layout
+                                        </button>
                                     </div>
                                 ) : (
                                     <div className="flex items-center gap-2 px-6 py-3 bg-blue-600/10 text-blue-600 rounded-[2rem] border border-blue-500/20 w-fit animate-in slide-in-from-top-2 duration-300">
@@ -341,69 +427,172 @@ export const TemplateManagement: React.FC = () => {
                             </div>
 
                             <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-slate-50/50 dark:bg-slate-900/20">
-                                <div className="flex justify-between items-center mb-6">
-                                    <h3 className="font-black text-slate-400 uppercase tracking-[0.2em] text-sm">
-                                        {isProcessTemplate ? 'Proces Configuratie' : (activeTab === 'FIXTURE' ? 'Opspanning Configuratie' : 'Gereedschap Configuratie')}
-                                    </h3>
-                                    <div className="flex items-center gap-2">
-                                        {/* Standaard velden knop — alleen op TOOLS tab */}
-                                        {activeTab === 'TOOLS' && !isProcessTemplate && (
-                                            <button
-                                                onClick={addStandardToolFields}
-                                                className="px-4 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 text-amber-700 dark:text-amber-400 rounded-2xl text-xs font-bold shadow-sm hover:bg-amber-100 transition-all flex items-center gap-2"
-                                                title="Voegt Snijlengte, Uitsteeklengte, Vrijloop, Houder, Matrix Code en Interne Koeling toe als standaard velden"
+                                {activeTab !== 'SHEET' && (
+                                    <>
+                                        <div className="flex justify-between items-center mb-6">
+                                            <h3 className="font-black text-slate-400 uppercase tracking-[0.2em] text-sm">
+                                                {isProcessTemplate ? 'Proces Configuratie' : (activeTab === 'FIXTURE' ? 'Opspanning Configuratie' : 'Gereedschap Configuratie')}
+                                            </h3>
+                                            <div className="flex items-center gap-2">
+                                                {/* Standaard velden knop — alleen op TOOLS tab */}
+                                                {activeTab === 'TOOLS' && !isProcessTemplate && (
+                                                    <button
+                                                        onClick={addStandardToolFields}
+                                                        className="px-4 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 text-amber-700 dark:text-amber-400 rounded-2xl text-xs font-bold shadow-sm hover:bg-amber-100 transition-all flex items-center gap-2"
+                                                        title="Voegt Snijlengte, Uitsteeklengte, Vrijloop, Houder, Matrix Code en Interne Koeling toe als standaard velden"
+                                                    >
+                                                        <Sparkles size={14} /> Standaard Velden Toevoegen
+                                                    </button>
+                                                )}
+                                                <button onClick={() => openFieldEditor()} className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-bold shadow-sm hover:border-indigo-500 hover:text-indigo-600 transition-all flex items-center gap-2">
+                                                    <Plus size={14} /> Veld Toevoegen
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            {getActiveFields().map((field, idx) => (
+                                                <div key={idx} className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4 group hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors">
+                                                    <div className="flex flex-col gap-1 text-slate-300">
+                                                        <button onClick={() => moveField(idx, 'UP')} disabled={idx === 0} className="hover:text-indigo-500 disabled:opacity-30"><ChevronUp size={16} /></button>
+                                                        <button onClick={() => moveField(idx, 'DOWN')} disabled={idx === (getActiveFields().length || 0) - 1} className="hover:text-indigo-500 disabled:opacity-30"><ChevronDown size={16} /></button>
+                                                    </div>
+
+                                                    <div className={`p-3 rounded-2xl ${field.type === 'header' ? 'bg-slate-100 text-slate-600' : 'bg-indigo-50 text-indigo-600'} dark:bg-slate-700 dark:text-slate-300`}>
+                                                        {(() => {
+                                                            const Icon = FIELD_TYPES.find(t => t.type === field.type)?.icon || Type;
+                                                            return <Icon size={20} />;
+                                                        })()}
+                                                    </div>
+
+                                                    <div className="flex-1">
+                                                        <div className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                                                            {field.label}
+                                                            {field.required && <span className="text-[9px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded uppercase tracking-wider">Verplicht</span>}
+                                                            {field.highlightFilled && <span className="text-[9px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded uppercase tracking-wider border border-amber-200 flex items-center gap-1"><AlertTriangle size={10} /> Alert</span>}
+                                                        </div>
+                                                        <div className="text-xs text-slate-400 font-mono mt-0.5 flex gap-2">
+                                                            <span>key: {field.key}</span>
+                                                            <span>•</span>
+                                                            <span>width: {Math.round((field.colSpan || 6) / 12 * 100)}%</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <button onClick={() => openFieldEditor(idx)} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-2xl transition-colors"><Edit size={16} /></button>
+                                                        <button onClick={() => deleteField(idx)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-colors"><Trash2 size={16} /></button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            {getActiveFields().length === 0 && (
+                                                <div className="text-center py-12 text-slate-400 italic border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl">
+                                                    Nog geen velden toegevoegd.
+                                                </div>
+                                            )}
+                                        </div>
+                                    </>
+                                )}
+
+                            {activeTab === 'SHEET' && !isProcessTemplate && (
+                                <div className="space-y-8 animate-in fade-in">
+                                    <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <h4 className="font-bold text-slate-800 dark:text-white uppercase tracking-widest text-xs">Kolommen Zichtbaarheid & Volgorde</h4>
+                                        </div>
+                                        <p className="text-xs text-slate-500 mb-6">Vink de kolommen uit die je niet wilt tonen op de uitgeprinte Setup Sheet constructie. Velden gedefinieerd in het sjabloon verschijnen hier ook automatisch.</p>
+                                        
+                                        <div className="bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 p-4 rounded-2xl mb-6 text-xs flex gap-3 items-start border border-blue-200 dark:border-blue-800/50">
+                                            <div className="space-y-2">
+                                                <p><strong>Tips voor kolombreedte instellingen:</strong></p>
+                                                <ul className="list-disc pl-4 space-y-1 opacity-90">
+                                                    <li>Vul <code>auto</code> in om het systeem de ideale breedte te laten bepalen op basis van de inhoud. Let op dat dit bij héél veel tekst soms wat ver uiteen kan rekken.</li>
+                                                    <li>Gebruik vaste pixels (bijv. <code>32px</code>, <code>80px</code> of <code>120px</code>) voor een keiharde vaste grens, ideaal voor waardes zoals diameters of status vinkjes.</li>
+                                                    <li>Gebruik percentages (bijv. <code>10%</code> of <code>25%</code>) als je wilt dat de kolom dynamisch deelsgewijs meeschaalt met de gehele papierbreedte.</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="space-y-3">
+                                            {getSheetColumns().map((col, idx, arr) => (
+                                                <div key={col.key} className={`flex items-center gap-4 p-4 border-2 rounded-2xl transition-all ${col.visible ? 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800' : 'border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 opacity-60'}`}>
+                                                    <div className="flex flex-col gap-1 text-slate-300">
+                                                        <button onClick={() => moveSheetColumn(idx, 'UP')} disabled={idx === 0} className="hover:text-indigo-500 disabled:opacity-30"><ChevronUp size={16} /></button>
+                                                        <button onClick={() => moveSheetColumn(idx, 'DOWN')} disabled={idx === arr.length - 1} className="hover:text-indigo-500 disabled:opacity-30"><ChevronDown size={16} /></button>
+                                                    </div>
+                                                    
+                                                    <label className="flex items-center gap-3 cursor-pointer">
+                                                        <input 
+                                                            type="checkbox" 
+                                                            checked={col.visible} 
+                                                            onChange={() => handleToggleSheetColumn(col.key)} 
+                                                            className="w-5 h-5 text-indigo-600 rounded bg-white border-slate-300 focus:ring-indigo-500 dark:bg-slate-900 dark:border-slate-600 cursor-pointer" 
+                                                        />
+                                                    </label>
+
+                                                    <div className="flex-1">
+                                                        <div className={`font-bold text-sm ${col.visible ? 'text-indigo-900 dark:text-indigo-200' : 'text-slate-500 dark:text-slate-400'}`}>{col.label}</div>
+                                                        <div className="text-[10px] text-slate-400 uppercase tracking-widest font-mono mt-0.5">{col.key.replace('toolData.', '')} • {col.align}</div>
+                                                    </div>
+
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Breedte:</span>
+                                                        <input
+                                                            type="text"
+                                                            value={col.width}
+                                                            onChange={(e) => handleColumnWidthChange(col.key, e.target.value)}
+                                                            className="w-24 text-sm font-mono px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none text-slate-700 dark:text-slate-300"
+                                                            placeholder="e.g. 50px, auto"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* LIVE PREVIEW */}
+                                    <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden">
+                                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500" />
+                                        <div className="flex justify-between items-center mb-6">
+                                            <h4 className="font-black text-slate-800 dark:text-white uppercase tracking-widest text-xs flex items-center gap-2">
+                                                <Sparkles size={16} className="text-indigo-500" /> Live Preview Weergave
+                                            </h4>
+                                            <button 
+                                                onClick={() => setShowFullPreview(true)}
+                                                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-[2rem] flex items-center gap-2 transition-colors shadow-sm"
                                             >
-                                                <Sparkles size={14} /> Standaard Velden Toevoegen
+                                                <LayoutTemplate size={14} /> Open Volledige Preview
                                             </button>
-                                        )}
-                                        <button onClick={() => openFieldEditor()} className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-bold shadow-sm hover:border-indigo-500 hover:text-indigo-600 transition-all flex items-center gap-2">
-                                            <Plus size={14} /> Veld Toevoegen
-                                        </button>
+                                        </div>
+                                        <div className="w-full overflow-x-auto custom-scrollbar pb-4 border border-slate-200 dark:border-slate-700">
+                                            <table className="w-full text-[10px] border-collapse bg-white dark:bg-slate-900 font-sans table-fixed min-w-max">
+                                                <thead>
+                                                    <tr className="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+                                                        {getSheetColumns().filter(c => c.visible).map(c => (
+                                                            <th key={c.key} style={{ width: c.width, textAlign: c.align }} className="p-3 border-r border-slate-200 dark:border-slate-700 font-bold uppercase tracking-widest text-slate-600 dark:text-slate-400">
+                                                                {c.label}
+                                                            </th>
+                                                        ))}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr className="border-b border-slate-200 dark:border-slate-700">
+                                                        {getSheetColumns().filter(c => c.visible).map(c => (
+                                                            <td key={c.key} style={{ textAlign: c.align }} className="p-3 border-r border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium">
+                                                                {c.key === '_order' ? 'T01' : 
+                                                                 c.align === 'center' ? 'JA' : 
+                                                                 c.align === 'right' ? '12.5' : 
+                                                                 'Data'}
+                                                            </td>
+                                                        ))}
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
-
-                                <div className="space-y-3">
-                                    {getActiveFields().map((field, idx) => (
-                                        <div key={idx} className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4 group hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors">
-                                            <div className="flex flex-col gap-1 text-slate-300">
-                                                <button onClick={() => moveField(idx, 'UP')} disabled={idx === 0} className="hover:text-indigo-500 disabled:opacity-30"><ChevronUp size={16} /></button>
-                                                <button onClick={() => moveField(idx, 'DOWN')} disabled={idx === (getActiveFields().length || 0) - 1} className="hover:text-indigo-500 disabled:opacity-30"><ChevronDown size={16} /></button>
-                                            </div>
-
-                                            <div className={`p-3 rounded-2xl ${field.type === 'header' ? 'bg-slate-100 text-slate-600' : 'bg-indigo-50 text-indigo-600'} dark:bg-slate-700 dark:text-slate-300`}>
-                                                {(() => {
-                                                    const Icon = FIELD_TYPES.find(t => t.type === field.type)?.icon || Type;
-                                                    return <Icon size={20} />;
-                                                })()}
-                                            </div>
-
-                                            <div className="flex-1">
-                                                <div className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                                    {field.label}
-                                                    {field.required && <span className="text-[9px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded uppercase tracking-wider">Verplicht</span>}
-                                                    {field.highlightFilled && <span className="text-[9px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded uppercase tracking-wider border border-amber-200 flex items-center gap-1"><AlertTriangle size={10} /> Alert</span>}
-                                                </div>
-                                                <div className="text-xs text-slate-400 font-mono mt-0.5 flex gap-2">
-                                                    <span>key: {field.key}</span>
-                                                    <span>•</span>
-                                                    <span>width: {Math.round((field.colSpan || 6) / 12 * 100)}%</span>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button onClick={() => openFieldEditor(idx)} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-2xl transition-colors"><Edit size={16} /></button>
-                                                <button onClick={() => deleteField(idx)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-colors"><Trash2 size={16} /></button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                    {getActiveFields().length === 0 && (
-                                        <div className="text-center py-12 text-slate-400 italic border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl">
-                                            Nog geen velden toegevoegd.
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </>
+                            )}
+                        </div>
+                    </>
                     ) : (
                         <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
                             <LayoutTemplate size={64} className="mb-4 opacity-20" />
@@ -412,6 +601,17 @@ export const TemplateManagement: React.FC = () => {
                     )}
                 </div>
             </div>
+
+            {/* FULL SETUP SHEET PREVIEW MODAL */}
+            {showFullPreview && (
+                <SetupSheet 
+                    article={{ id: 'preview', name: 'Demonstratie Artikel', drawingNumber: 'DRW-TEST-100', drawingRevision: 'A', revision: 1 } as unknown as Article}
+                    setup={{ id: 'preview-setup', name: 'Setup: ' + (editData.name || 'Sjabloon'), version: 1, status: SetupStatus.DRAFT, frozenSheetConfig: { columns: getSheetColumns() }, tools: Array.from({ length: 5 }).map((_, i) => ({ id: `t${i}`, order: i + 1, description: `Dummy Tool ${i+1}`, matrixCode: `MX-${1000+i}` })) } as unknown as SetupVariant}
+                    machine={{ id: 'preview-machine', name: editData.assetType === AssetType.CNC ? 'Test Freesmachine' : 'Test Draaibank', machineNumber: 'M-101' } as unknown as Machine}
+                    companyName="VOORBEELD BEDRIJF"
+                    onClose={() => setShowFullPreview(false)}
+                />
+            )}
 
             {/* Field Editor Modal */}
             {showFieldModal && (
