@@ -155,7 +155,8 @@ const sanitizeDataForServer = (data: any, collection?: string): any => {
     if (typeof data !== 'object' || data === null) return data;
     const clean = Array.isArray(data) ? [...data] : { ...data };
 
-    // Strip autodate velden voor alle collections omdat PocketBase timestamps server-side beheert
+    // Alle collecties gebruiken nu autodate voor created/updated.
+    // PocketBase beheert deze timestamps server-side, dus strippen we ze altijd.
     if (collection) {
         delete clean.created;
         delete clean.updated;

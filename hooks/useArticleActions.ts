@@ -335,6 +335,7 @@ export const useArticleActions = ({
             op.id === opId ? { ...op, notes: [note, ...(op.notes || [])] } : op
         );
         const updated = { ...editingArticle, operations: updatedOps };
+        setEditingArticle(updated);
         await articleService.updateArticle(updated);
     };
 
