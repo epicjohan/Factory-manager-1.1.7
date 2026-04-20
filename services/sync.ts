@@ -569,23 +569,18 @@ export const SyncService = {
             const insertEndpoint = `${url}/api/collections/${collection}/records`;
             const updateEndpoint = `${url}/api/collections/${collection}/records/${entry.data.id}`;
 
-            // SYNC-IMPROVEMENT: Soft Delete — DELETE acties worden omgezet naar een PATCH
-            // met een deletedAt timestamp. Hierdoor blijven verwijderde records traceerbaar
-            // en worden ze via pullDeltas door alle clients opgepikt.
             let effectiveAction = entry.action;
             let endpoint: string;
             if (entry.action === 'DELETE' && entry.data.id) {
-                effectiveAction = 'UPDATE';
-                endpoint = updateEndpoint;
+                endpoint = updateEndpoint; // Wait, updateEndpoint is the URL with the ID
             } else {
                 endpoint = entry.action === 'INSERT' ? insertEndpoint : updateEndpoint;
             }
 
             // BUG-06: Geef de collection naam mee zodat sanitizeDataForServer autodate velden kan strippen
             let cleanData: any;
-            if (entry.action === 'DELETE' && entry.data.id) {
-                // Soft delete: stuur alleen de deletedAt timestamp
-                cleanData = { deletedAt: new Date().toISOString().replace('T', ' ').split('.')[0] };
+            if (entry.action === 'DELETE') {
+                cleanData = {}; // No body needed for DELETE
             } else {
                 cleanData = sanitizeDataForServer(entry.data, collection);
             }

@@ -259,12 +259,19 @@ migrate((db) => {
       type: "base",
       fields: [
         { name: "documentNumber", type: "text" },
-        { name: "name", type: "text", required: true },
-        { name: "type", type: "text" },
+        { name: "name", type: "text" },
+        { name: "filename", type: "text" },
+        { name: "categoryId", type: "text" },
+        { name: "tags", type: "json" },
+        { name: "fileData", type: "json" },
+        { name: "description", type: "text" },
         { name: "size", type: "number" },
-        { name: "file", type: "file", options: { maxSelect: 1 } },
+        { name: "type", type: "text" },
         { name: "uploadedBy", type: "text" },
-        { name: "uploadDate", type: "date" }
+        { name: "version", type: "number" },
+        { name: "status", type: "text" },
+        { name: "file", type: "file", options: { maxSelect: 1 } },
+        { name: "uploadDate", type: "text" }
       ]
     }
   ];
