@@ -7,6 +7,37 @@ import { useTable } from '../../hooks/useTable';
 import { KEYS, generateId } from '../../services/db/core';
 import { useConfirm } from '../../contexts/ConfirmContext';
 
+const TimeInput = ({ value, onChange, className }: { value: string, onChange: (v: string) => void, className?: string }) => {
+    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+        let val = e.target.value.trim();
+        if (!val) { onChange(''); return; }
+        if (!val.includes(':')) {
+            if (val.length === 4) val = val.slice(0, 2) + ':' + val.slice(2);
+            else if (val.length === 3) val = '0' + val.slice(0, 1) + ':' + val.slice(1);
+            else if (val.length === 2) val = val + ':00';
+            else if (val.length === 1) val = '0' + val + ':00';
+            else val = '00:00';
+        }
+        const parts = val.split(':');
+        let h = parseInt(parts[0]) || 0;
+        let m = parseInt(parts[1]) || 0;
+        if (h > 23) h = 23;
+        if (m > 59) m = 59;
+        onChange(String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0'));
+    };
+    return (
+        <input
+            type="text"
+            className={className}
+            value={value}
+            onChange={(e) => onChange(e.target.value.replace(/[^0-9:]/g, ''))}
+            onBlur={handleBlur}
+            placeholder="00:00"
+            maxLength={5}
+        />
+    );
+};
+
 export const SettingsSchedules: React.FC = () => {
     const { data: schedules } = useTable<WorkSchedule>(KEYS.SCHEDULES);
     const confirm = useConfirm();
@@ -115,9 +146,9 @@ export const SettingsSchedules: React.FC = () => {
                                         <div className="w-24 font-bold text-slate-600 dark:text-slate-300 text-sm uppercase tracking-widest">{shift.label}</div>
                                         <div className="flex-1 flex gap-3">
                                             {shift.enabled && <>
-                                                <input type="time" lang="nl-NL" className="p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white text-xs font-mono font-bold" value={shift.startTime} onChange={e => { const n = [...tempShifts]; n[idx].startTime = e.target.value; setTempShifts(n); }} />
+                                                <TimeInput className="p-3 w-20 text-center rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white text-xs font-mono font-bold" value={shift.startTime} onChange={(val) => { const n = [...tempShifts]; n[idx].startTime = val; setTempShifts(n); }} />
                                                 <span className="self-center text-slate-400 font-bold">-</span>
-                                                <input type="time" lang="nl-NL" className="p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white text-xs font-mono font-bold" value={shift.endTime} onChange={e => { const n = [...tempShifts]; n[idx].endTime = e.target.value; setTempShifts(n); }} />
+                                                <TimeInput className="p-3 w-20 text-center rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white text-xs font-mono font-bold" value={shift.endTime} onChange={(val) => { const n = [...tempShifts]; n[idx].endTime = val; setTempShifts(n); }} />
                                             </>}
                                         </div>
                                         <button type="button" onClick={() => { const n = [...tempShifts]; n[idx].enabled = !n[idx].enabled; setTempShifts(n); }} className={`px-4 py-3 rounded-[2rem] text-[10px] font-black uppercase tracking-widest transition-all ${shift.enabled ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-200 text-slate-500 dark:bg-slate-700'}`}>{shift.enabled ? 'AAN' : 'UIT'}</button>

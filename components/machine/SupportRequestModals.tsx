@@ -96,7 +96,34 @@ export const SupportRequestModals: React.FC<SupportRequestModalsProps> = ({ acti
                         <>
                             <div className="space-y-1"><label className="block text-[10px] font-black text-slate-500 uppercase mb-1 tracking-widest">Order / Project Nr</label><input required type="text" className="w-full p-3 rounded-[2rem] border-2 border-slate-200 dark:bg-slate-700 dark:border-slate-600 dark:text-white text-sm font-bold focus:border-blue-500 outline-none transition-colors" value={materialOrderNumber} onChange={e => setMaterialOrderNumber(e.target.value)} placeholder="Bijv. 2024-500" /></div>
                             <div className="space-y-1"><label className="block text-[10px] font-black text-slate-500 uppercase mb-1 tracking-widest">Locatie (Optioneel)</label><input type="text" className="w-full p-3 rounded-[2rem] border-2 border-slate-200 dark:bg-slate-700 dark:border-slate-600 dark:text-white text-sm font-bold focus:border-blue-500 outline-none transition-colors" value={materialLocation} onChange={e => setMaterialLocation(e.target.value)} placeholder="Bijv. Palletplek A" /></div>
-                            <div className="space-y-1"><label className="block text-[10px] font-black text-slate-500 uppercase mb-1 tracking-widest">Gewenste Tijd</label><input type="time" lang="nl-NL" className="w-full p-3 rounded-[2rem] border-2 border-slate-200 dark:bg-slate-700 dark:border-slate-600 dark:text-white text-sm font-bold focus:border-blue-500 outline-none transition-colors" value={materialDesiredTime} onChange={e => setMaterialDesiredTime(e.target.value)} /></div>
+                            <div className="space-y-1">
+                                <label className="block text-[10px] font-black text-slate-500 uppercase mb-1 tracking-widest">Gewenste Tijd</label>
+                                <input 
+                                    type="text" 
+                                    maxLength={5} 
+                                    placeholder="00:00" 
+                                    className="w-full text-center p-3 rounded-[2rem] border-2 border-slate-200 dark:bg-slate-700 dark:border-slate-600 dark:text-white text-sm font-bold focus:border-blue-500 outline-none transition-colors" 
+                                    value={materialDesiredTime} 
+                                    onChange={(e) => setMaterialDesiredTime(e.target.value.replace(/[^0-9:]/g, ''))} 
+                                    onBlur={(e) => {
+                                        let val = e.target.value.trim();
+                                        if (!val) return;
+                                        if (!val.includes(':')) {
+                                            if (val.length === 4) val = val.slice(0, 2) + ':' + val.slice(2);
+                                            else if (val.length === 3) val = '0' + val.slice(0, 1) + ':' + val.slice(1);
+                                            else if (val.length === 2) val = val + ':00';
+                                            else if (val.length === 1) val = '0' + val + ':00';
+                                            else val = '00:00';
+                                        }
+                                        const parts = val.split(':');
+                                        let h = parseInt(parts[0]) || 0;
+                                        let m = parseInt(parts[1]) || 0;
+                                        if (h > 23) h = 23;
+                                        if (m > 59) m = 59;
+                                        setMaterialDesiredTime(String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0'));
+                                    }} 
+                                />
+                            </div>
                             <div className="space-y-1"><label className="block text-[10px] font-black text-slate-500 uppercase mb-2 tracking-widest">Urgentie</label><div className="flex gap-2"><button type="button" onClick={() => setMaterialUrgency('NORMAL')} className={`flex-1 py-3 rounded-[2rem] border-2 font-black uppercase text-[10px] tracking-widest transition-all ${materialUrgency === 'NORMAL' ? 'bg-blue-50 border-blue-500 text-blue-700' : 'bg-white dark:bg-slate-700 text-slate-400 border-slate-200'}`}>Normaal</button><button type="button" onClick={() => setMaterialUrgency('HIGH')} className={`flex-1 py-3 rounded-[2rem] border-2 font-black uppercase text-[10px] tracking-widest transition-all ${materialUrgency === 'HIGH' ? 'bg-red-50 border-red-500 text-red-700' : 'bg-white dark:bg-slate-700 text-slate-400 border-slate-200'}`}>SPOED</button></div></div>
                         </>
                     )}
