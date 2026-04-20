@@ -129,12 +129,14 @@ export const useArticleActions = ({
         const ok = await confirm({ title: 'Setup verwijderen', message: 'Weet je zeker dat je deze setup wilt verwijderen?' });
         if (ok) {
             const setupName = editingArticle?.operations.find(o => o.id === opId)?.setups.find(s => s.id === setupId)?.name || 'Setup';
-            updateCurrentArticle(art => ({
-                ...art, operations: art.operations.map(o => {
+            updateCurrentArticle(art => {
+                const newOperations = art.operations.map(o => {
                     if (o.id !== opId) return o;
                     return { ...o, setups: o.setups.filter(s => s.id !== setupId) };
-                })
-            }), `Setup '${setupName}' verwijderd.`);
+                }).filter(o => o.setups.length > 0);
+
+                return { ...art, operations: newOperations };
+            }, `Setup '${setupName}' verwijderd.`);
         }
         return true; // Signal for navigation reset
     };
