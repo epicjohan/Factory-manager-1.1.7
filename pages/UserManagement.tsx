@@ -325,7 +325,7 @@ export const UserManagement: React.FC = () => {
                                         {MODULE_GROUPS.map(group => group.items.map(item => {
                                             const isEnabled = globallyEnabledModules.includes(item.id);
                                             return (
-                                                <div key={item.id} onClick={() => isEnabled && toggleModuleAccess(item.id)} className={`flex items-center gap-2 p-2 rounded-2xl cursor-pointer select-none ${!isEnabled ? 'opacity-40' : allowedModules.includes(item.id) ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700' : 'hover:bg-slate-200 dark:hover:bg-slate-700'}`}>
+                                                <div key={item.path} onClick={() => isEnabled && toggleModuleAccess(item.id)} className={`flex items-center gap-2 p-2 rounded-2xl cursor-pointer select-none ${!isEnabled ? 'opacity-40' : allowedModules.includes(item.id) ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700' : 'hover:bg-slate-200 dark:hover:bg-slate-700'}`}>
                                                     {allowedModules.includes(item.id) ? <CheckSquare size={16} /> : <Square size={16} />}
                                                     <span className="text-xs font-bold">{item.label}</span>
                                                 </div>

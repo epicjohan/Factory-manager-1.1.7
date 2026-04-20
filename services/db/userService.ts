@@ -71,8 +71,9 @@ export const userService = {
             // First run migration: Populate DB with default roles
             roles = DEFAULT_ROLES;
             await saveTable(KEYS.ROLES, roles);
-            // We do not push to outbox immediately to avoid flooding, 
-            // the sync service will pick them up if they are missing on server.
+            for (const r of roles) {
+                await outboxUtils.addToOutbox(KEYS.ROLES, 'INSERT', r);
+            }
         }
         return roles;
     },
