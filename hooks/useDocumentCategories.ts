@@ -40,9 +40,9 @@ export const useDocumentCategories = (options: UseDocumentCategoriesOptions = {}
     // Laad categorieën eenmalig uit system settings
     useEffect(() => {
         if (loaded) return;
-        db.getSystemSettings().then(settings => {
-            if (settings.documentCategories && settings.documentCategories.length > 0) {
-                setAllCategories(settings.documentCategories);
+        db.getDocumentCategories().then(dbCategories => {
+            if (dbCategories && dbCategories.length > 0) {
+                setAllCategories(dbCategories);
             }
             setLoaded(true);
         });

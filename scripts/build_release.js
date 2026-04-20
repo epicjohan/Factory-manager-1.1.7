@@ -255,6 +255,19 @@ migrate((db) => {
       ]
     },
     {
+      name: "document_categories",
+      type: "base",
+      fields: [
+        { name: "name", type: "text" },
+        { name: "code", type: "text" },
+        { name: "icon", type: "text" },
+        { name: "color", type: "text" },
+        { name: "isSystem", type: "bool" },
+        { name: "applicableTo", type: "text" },
+        { name: "order", type: "number" }
+      ]
+    },
+    {
       name: "documents",
       type: "base",
       fields: [
