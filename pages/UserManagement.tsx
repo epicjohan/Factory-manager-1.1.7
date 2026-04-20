@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { User, UserRoleDefinition, Permission, Machine, AppModule, AssetTab, CommercialModule, AssetType } from '../types';
+import { User, UserRoleDefinition, Permission, Machine, AppModule, AssetTab, CommercialModule, AssetType, UserRole } from '../types';
 import { db, ROLE_DEFAULT_TABS } from '../services/storage';
 import { generateId, KEYS } from '../services/db/core';
 import { MODULE_GROUPS, ModuleGroupConfig } from '../config/moduleGroups';
@@ -93,7 +93,7 @@ export const UserManagement: React.FC = () => {
         setRestrictedAccess(user.restrictedAccess || false);
         setAllowedAssetIds(user.allowedAssetIds || []);
         setAllowedModules(user.allowedModules || Object.values(AppModule));
-        setAllowedTabs(user.allowedTabs || ROLE_DEFAULT_TABS['OPERATOR'] || Object.values(AssetTab));
+        setAllowedTabs(user.allowedTabs || ROLE_DEFAULT_TABS[UserRole.OPERATOR] || Object.values(AssetTab));
         setDefaultPath(user.defaultPath || '/');
         setActiveMainTab('USERS');
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -110,7 +110,7 @@ export const UserManagement: React.FC = () => {
         setRestrictedAccess(false);
         setAllowedAssetIds([]);
         setAllowedModules(Object.values(AppModule));
-        setAllowedTabs(ROLE_DEFAULT_TABS['OPERATOR']);
+        setAllowedTabs(ROLE_DEFAULT_TABS[UserRole.OPERATOR]);
         setDefaultPath('/');
     };
 

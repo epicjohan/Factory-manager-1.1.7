@@ -87,7 +87,7 @@ export const ArticleManagement: React.FC = () => {
 
     // Auto-select drawing when article loads
     useEffect(() => {
-        if (actions.editingArticle && actions.editingArticle.files) {
+        if (actions.editingArticle && Array.isArray(actions.editingArticle.files)) {
             const drawing = actions.editingArticle.files.find(f => f.fileRole === FileRole.DRAWING)
                 || actions.editingArticle.files.find(f => f.type === 'application/pdf');
             if (drawing) setActiveFile(drawing);

@@ -478,6 +478,16 @@ export const SyncService = {
             delete parsedData.filesMeta;
         }
 
+        // Mapping fix voor DOCUMENTS
+        // Omdat de JSON response alleen 'file' (string) heeft, bouwen we .url direct weer op.
+        if (tableKey === KEYS.DOCUMENTS && parsedData.file) {
+            const currentMeta = await loadTable<any>(KEYS.METADATA, {});
+            if (currentMeta && currentMeta.serverUrl) {
+                const base = currentMeta.serverUrl.endsWith('/') ? currentMeta.serverUrl.slice(0, -1) : currentMeta.serverUrl;
+                parsedData.url = `${base}/api/files/documents/${parsedData.id}/${parsedData.file}`;
+            }
+        }
+
         // SYSTEM_CONFIG is een singleton, geen array
         if (tableKey === KEYS.SYSTEM_CONFIG) {
             if (parsedData.id) {

@@ -101,6 +101,17 @@ migrate((db) => {
         { name: "defaultPath", type: "text" }
       ] 
     },
+    {
+      name: "user_roles",
+      type: "base",
+      fields: [
+        { name: "name", type: "text", required: true },
+        { name: "description", type: "text" },
+        { name: "isSystem", type: "bool" },
+        { name: "color", type: "text" },
+        { name: "permissions", type: "json" }
+      ]
+    },
     { 
       name: "tickets", 
       type: "base", 

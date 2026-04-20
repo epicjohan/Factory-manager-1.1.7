@@ -91,17 +91,21 @@ export const ensureParsedData = (data: any): any => {
         'allowedAssetIds', 'allowedModules', 'allowedTabs',
         'activeModules', 'notificationEmails', 'actions',
         'usedParts', 'shifts', 'andonConfig', 'mtConnectConfig',
-        'fields', 'toolFields', 'templateData', 'operations', 'bomItems', 'files', 'auditTrail',
+        'fields', 'toolFields', 'templateData', 'operations', 'bomItems', 'files', 'filesMeta', 'auditTrail',
         'documents'
     ];
 
     Object.keys(result).forEach(key => {
         if (jsonFields.includes(key) && typeof result[key] === 'string') {
-            try {
-                result[key] = JSON.parse(result[key]);
-            } catch (e) {
-                // B-02 FIX: waarschuw bij ongeldige JSON zodat dataproblemen zichtbaar worden
-                console.warn(`[ensureParsedData] Kon veld '${key}' niet parsen als JSON:`, e);
+            if (result[key].trim() === '') {
+                result[key] = []; // Fallback gracefully for empty JSON arrays incorrectly sent as empty strings
+            } else {
+                try {
+                    result[key] = JSON.parse(result[key]);
+                } catch (e) {
+                    // B-02 FIX: waarschuw bij ongeldige JSON zodat dataproblemen zichtbaar worden
+                    console.warn(`[ensureParsedData] Kon veld '${key}' niet parsen als JSON:`, e);
+                }
             }
         }
     });

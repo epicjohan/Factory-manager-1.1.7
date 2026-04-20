@@ -253,6 +253,19 @@ migrate((db) => {
         { name: "toolFields", type: "json" },
         { name: "isDefault", type: "bool" }
       ]
+    },
+    {
+      name: "documents",
+      type: "base",
+      fields: [
+        { name: "documentNumber", type: "text" },
+        { name: "name", type: "text", required: true },
+        { name: "type", type: "text" },
+        { name: "size", type: "number" },
+        { name: "file", type: "file", options: { maxSelect: 1 } },
+        { name: "uploadedBy", type: "text" },
+        { name: "uploadDate", type: "date" }
+      ]
     }
   ];
 

@@ -1,9 +1,9 @@
 
 export enum UserRole {
-  ADMIN = 'ADMIN',
-  MAINTENANCE = 'MAINTENANCE',
-  OPERATOR = 'OPERATOR',
-  MANAGER = 'MANAGER'
+  ADMIN = 'sysadmin0000000',
+  MAINTENANCE = 'sysmaint0000000',
+  OPERATOR = 'sysoperator0000',
+  MANAGER = 'sysmanager00000'
 }
 
 export enum Permission {

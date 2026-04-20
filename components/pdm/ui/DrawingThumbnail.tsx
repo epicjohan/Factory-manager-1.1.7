@@ -24,11 +24,17 @@ export const DrawingThumbnail: React.FC<DrawingThumbnailProps> = ({ article, ser
     const [dmsUrl, setDmsUrl] = useState<string | null>(null);
 
     const drawing = useMemo(() => {
-        const files: ArticleFile[] = (article as any).files || [];
+        let rawFiles: any = (article as any).files || [];
+        if (typeof rawFiles === 'string') {
+            try { rawFiles = JSON.parse(rawFiles); } catch(e) { rawFiles = []; }
+        }
+        if (!Array.isArray(rawFiles)) rawFiles = [];
+        
+        const files: ArticleFile[] = rawFiles;
         return files.find(f => f.isThumbnail)
             || files.find(f => f.fileRole === FileRole.DRAWING)
             || files.find(f => f.type === 'application/pdf')
-            || files.find(f => f.type?.startsWith('image/'));
+            || files.find(f => typeof f.type === 'string' && f.type.startsWith('image/'));
     }, [article]);
 
     useEffect(() => {

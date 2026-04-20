@@ -25,7 +25,8 @@ export const ArticleFiles: React.FC<ArticleFilesProps> = ({ articleId, files, is
     const [fileToDelete, setFileToDelete] = useState<ArticleFile | null>(null);
 
     // Filter alleen de bronbestanden (zonder setupId)
-    const sourceFiles = files.filter(f => !f.setupId);
+    const safeFiles = Array.isArray(files) ? files : [];
+    const sourceFiles = safeFiles.filter(f => !f.setupId);
 
     const handleFiles = async (fileList: FileList | File[], role: string) => {
         if (!fileList || isLocked) return;

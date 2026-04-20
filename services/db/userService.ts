@@ -37,9 +37,26 @@ const DEFAULT_ROLES: UserRoleDefinition[] = [
     }
 ];
 
+const LEGACY_ROLE_MAP: Record<string, string> = {
+    'ADMIN': UserRole.ADMIN,
+    'MAINTENANCE': UserRole.MAINTENANCE,
+    'OPERATOR': UserRole.OPERATOR,
+    'MANAGER': UserRole.MANAGER
+};
+
 export const userService = {
     getUsers: async () => {
-        return await loadTable<User[]>(KEYS.USERS, []);
+        let users = await loadTable<User[]>(KEYS.USERS, []);
+        let migrated = false;
+        users = users.map(u => {
+            if (LEGACY_ROLE_MAP[u.role]) {
+                migrated = true;
+                return { ...u, role: LEGACY_ROLE_MAP[u.role] };
+            }
+            return u;
+        });
+        if (migrated) await saveTable(KEYS.USERS, users);
+        return users;
     },
     addUser: async (user: User) => { 
         const now = getNowISO();
@@ -74,6 +91,17 @@ export const userService = {
             for (const r of roles) {
                 await outboxUtils.addToOutbox(KEYS.ROLES, 'INSERT', r);
             }
+        } else {
+            // Migrate legacy roles
+            let migrated = false;
+            roles = roles.map(r => {
+                if (LEGACY_ROLE_MAP[r.id]) {
+                    migrated = true;
+                    return { ...r, id: LEGACY_ROLE_MAP[r.id] };
+                }
+                return r;
+            });
+            if (migrated) await saveTable(KEYS.ROLES, roles);
         }
         return roles;
     },
