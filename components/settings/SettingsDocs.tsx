@@ -41,7 +41,7 @@ export const SettingsDocs: React.FC = () => {
     const { addNotification } = useNotifications();
     const confirm = useConfirm();
     const [categories, setCategories] = useState<DocumentCategory[]>([]);
-    const [saveStatus, setSaveStatus] = useState<'idle' | 'saved' | 'saving'>('idle');
+
 
     // Form state
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -56,27 +56,26 @@ export const SettingsDocs: React.FC = () => {
 
     useEffect(() => {
         const load = async () => {
-            const settings = await db.getSystemSettings();
-            if (settings.documentCategories && settings.documentCategories.length > 0) {
-                setCategories(settings.documentCategories);
+            let catData = await db.getDocumentCategories();
+            if (catData && catData.length > 0) {
+                setCategories(catData);
             } else {
-                setCategories([
-                    { id: '1', name: 'Tekening (PDF)', code: 'DRAWING', applicableTo: 'BOTH', isSystem: true, color: 'text-blue-500', icon: 'FileText' },
-                    { id: '2', name: '3D Model', code: 'MODEL', applicableTo: 'BOTH', isSystem: true, color: 'text-purple-500', icon: 'Box' },
-                    { id: '5', name: 'Overig', code: 'OTHER', applicableTo: 'BOTH', isSystem: true, color: 'text-slate-500', icon: 'FileText' }
-                ]);
+                // Initialiseer defaults in DB als deze nog leeg is
+                const defaultCats: DocumentCategory[] = [
+                    { id: generateId(), name: 'Tekening (PDF)', code: 'DRAWING', applicableTo: 'BOTH', isSystem: true, color: 'text-blue-500', icon: 'FileText', order: 10 },
+                    { id: generateId(), name: '3D Model', code: 'MODEL', applicableTo: 'BOTH', isSystem: true, color: 'text-purple-500', icon: 'Box', order: 20 },
+                    { id: generateId(), name: 'CAM Programma', code: 'CAM', applicableTo: 'SETUP', isSystem: true, color: 'text-orange-500', icon: 'FileCode', order: 30 },
+                    { id: generateId(), name: 'NC Code', code: 'NC', applicableTo: 'SETUP', isSystem: true, color: 'text-green-500', icon: 'Terminal', order: 40 },
+                    { id: generateId(), name: 'Overig', code: 'OTHER', applicableTo: 'BOTH', isSystem: true, color: 'text-slate-500', icon: 'FileText', order: 99 }
+                ];
+                setCategories(defaultCats);
+                for (const c of defaultCats) {
+                    await db.addDocumentCategory(c);
+                }
             }
         };
         load();
     }, []);
-
-    const handleSave = async () => {
-        setSaveStatus('saving');
-        const current = await db.getSystemSettings();
-        await db.setSystemSettings({ ...current, documentCategories: categories });
-        setSaveStatus('saved');
-        setTimeout(() => setSaveStatus('idle'), 3000);
-    };
 
     const resetForm = () => {
         setEditingId(null);
@@ -105,20 +104,17 @@ export const SettingsDocs: React.FC = () => {
         setIsFormOpen(true);
     };
 
-    const handleSubmitForm = () => {
+    const handleSubmitForm = async () => {
         if (!newName.trim() || !newCode.trim()) return;
 
-        // Auto-format code only if we are allowed to change it
         let formattedCode = newCode.trim().toUpperCase().replace(/[^A-Z0-9_]/g, '');
 
-        // Ensure system categories keep their original code if user tries to bypass UI
         if (isSystemEdit) {
             const originalCat = categories.find(c => c.id === editingId);
             if (originalCat) {
                 formattedCode = originalCat.code;
             }
         } else {
-            // Check for uniqueness if it's a new or changed code
             const existingCat = categories.find(c => c.code === formattedCode);
             if (existingCat && existingCat.id !== editingId) {
                 addNotification('WARNING', 'Let op', 'Deze code bestaat al. Kies een unieke code.');
@@ -127,19 +123,20 @@ export const SettingsDocs: React.FC = () => {
         }
 
         if (editingId) {
-            // Update existing category
-            setCategories(categories.map(c =>
-                c.id === editingId ? {
-                    ...c,
+            const categoryToUpdate = categories.find(c => c.id === editingId);
+            if (categoryToUpdate) {
+                const updated = {
+                    ...categoryToUpdate,
                     name: newName.trim(),
-                    code: formattedCode, // Usually won't change if system
+                    code: formattedCode,
                     icon: newIcon,
                     color: newColor,
                     applicableTo: newApplicableTo
-                } : c
-            ));
+                };
+                setCategories(categories.map(c => c.id === editingId ? updated : c));
+                await db.updateDocumentCategory(updated);
+            }
         } else {
-            // Create new category
             const newCategory: DocumentCategory = {
                 id: generateId(),
                 name: newName.trim(),
@@ -151,6 +148,7 @@ export const SettingsDocs: React.FC = () => {
                 order: (categories.length + 1) * 10
             };
             setCategories([...categories, newCategory]);
+            await db.addDocumentCategory(newCategory);
         }
 
         resetForm();
@@ -164,6 +162,7 @@ export const SettingsDocs: React.FC = () => {
         const ok = await confirm({ title: 'Categorie verwijderen', message: 'Geselecteerde categorie verwijderen?' });
         if (ok) {
             setCategories(categories.filter(c => c.id !== catId));
+            await db.deleteDocumentCategory(catId);
         }
     };
 
@@ -347,15 +346,7 @@ export const SettingsDocs: React.FC = () => {
                 </div>
             </div>
 
-            <div className="flex justify-end pt-4">
-                <button
-                    onClick={handleSave}
-                    className={`px-8 py-3 rounded-[2rem] shadow-lg font-bold flex items-center gap-2 transition-all ${saveStatus === 'saved' ? 'bg-green-600 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
-                >
-                    {saveStatus === 'saved' ? <CheckCircle size={20} /> : <Save size={20} />}
-                    <span>{saveStatus === 'saved' ? 'Configuratie Opslaan' : 'Wijzigingen in DB Opslaan'}</span>
-                </button>
-            </div>
+
         </div>
     );
 };
