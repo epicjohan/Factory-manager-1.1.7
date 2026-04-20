@@ -179,7 +179,7 @@ const App: React.FC = () => {
                                     <Route path="/support" element={<ProtectedRoute><SupportDashboard /></ProtectedRoute>} />
                                     <Route path="/questions" element={<ProtectedRoute><QuestionsDashboard /></ProtectedRoute>} />
                                     <Route path="/articles" element={<ProtectedRoute><ModuleGuard module={AppModule.ARTICLES}><ArticleManagement /></ModuleGuard></ProtectedRoute>} />
-                                    <Route path="/tool-prep" element={<ProtectedRoute><ModuleGuard module={AppModule.ARTICLES}><ToolPreparation /></ModuleGuard></ProtectedRoute>} />
+                                    <Route path="/tool-prep" element={<ProtectedRoute><ModuleGuard module={AppModule.TOOL_PREP}><ToolPreparation /></ModuleGuard></ProtectedRoute>} />
                                     <Route path="/compliance" element={<ProtectedRoute><ModuleGuard module={AppModule.COMPLIANCE}><ComplianceDashboard /></ModuleGuard></ProtectedRoute>} />
                                     <Route path="/compliance/:id" element={<ProtectedRoute><ModuleGuard module={AppModule.COMPLIANCE}><ComplianceDetail /></ModuleGuard></ProtectedRoute>} />
                                     <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminDashboard /></AdminRoute></ProtectedRoute>} />

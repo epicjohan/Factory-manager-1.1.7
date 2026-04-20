@@ -29,7 +29,7 @@ export const COMMERCIAL_MODULES: CommercialModuleDefinition[] = [
         name: "Product Data Management (PDM)",
         description: "Beheer artikelen, digitale werkvoorbereiding, routing en setup sheets.",
         icon: FileText,
-        enables: [AppModule.ARTICLES]
+        enables: [AppModule.ARTICLES, AppModule.TOOL_PREP]
     },
     {
         id: CommercialModule.ENERGY,
