@@ -692,9 +692,9 @@ export const SyncService = {
                 // SYNC-IMPROVEMENT: Gebruik effectiveAction voor de HTTP methode.
                 // Bij soft delete is de effectiveAction 'UPDATE' (PATCH) i.p.v. 'DELETE'.
                 let res = await fetchWithTimeout(endpoint, {
-                    method: effectiveAction === 'INSERT' ? 'POST' : 'PATCH',
+                    method: effectiveAction === 'INSERT' ? 'POST' : (effectiveAction === 'DELETE' ? 'DELETE' : 'PATCH'),
                     headers: currentHeaders,
-                    body: body,
+                    body: effectiveAction === 'DELETE' ? undefined : body,
                     timeout: 45000
                 });
 
