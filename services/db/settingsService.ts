@@ -22,50 +22,78 @@ const INITIAL_SETTINGS = {
 // S-02 FIX: Web Crypto API AES-GCM Encryptie voor het PocketBase admin wachtwoord
 const DEVICE_KEY_NAME = 'fm_device_key';
 
-const getDeviceKey = async (): Promise<CryptoKey> => {
+const getDeviceKey = async (): Promise<CryptoKey | null> => {
+    // Valback als Web Crypto API niet beschikbaar is (bijv. plain HTTP ipv HTTPS testomgevingen)
+    if (!window.crypto || !window.crypto.subtle) { return null; }
+
     let keyStr = localStorage.getItem(DEVICE_KEY_NAME);
     if (!keyStr) {
-        const key = await crypto.subtle.generateKey(
-            { name: 'AES-GCM', length: 256 },
-            true,
-            ['encrypt', 'decrypt']
-        );
-        const exported = await crypto.subtle.exportKey('raw', key);
-        keyStr = btoa(String.fromCharCode(...new Uint8Array(exported)));
-        localStorage.setItem(DEVICE_KEY_NAME, keyStr);
-        return key;
+        try {
+            const key = await window.crypto.subtle.generateKey(
+                { name: 'AES-GCM', length: 256 },
+                true,
+                ['encrypt', 'decrypt']
+            );
+            const exported = await window.crypto.subtle.exportKey('raw', key);
+            keyStr = btoa(String.fromCharCode(...new Uint8Array(exported)));
+            localStorage.setItem(DEVICE_KEY_NAME, keyStr);
+            return key;
+        } catch (e) {
+            return null; // Fallback op fout
+        }
     }
-    const raw = Uint8Array.from(atob(keyStr), c => c.charCodeAt(0));
-    return crypto.subtle.importKey('raw', raw, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+    try {
+        const raw = Uint8Array.from(atob(keyStr), c => c.charCodeAt(0));
+        return window.crypto.subtle.importKey('raw', raw, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+    } catch (e) {
+        return null;
+    }
 };
 
 const encryptPassword = async (password: string): Promise<string> => {
     if (!password) return '';
-    const key = await getDeviceKey();
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    const encoded = new TextEncoder().encode(password);
-    const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encoded);
-    
-    const combined = new Uint8Array(iv.length + encrypted.byteLength);
-    combined.set(iv, 0);
-    combined.set(new Uint8Array(encrypted), iv.length);
-    return 'ENC:' + btoa(String.fromCharCode(...combined));
+    try {
+        const key = await getDeviceKey();
+        if (!key) {
+            // Unsecure context fallback (Base64) - Alleen voor HTTP IP adressen zonder SSL 
+            return 'B64:' + btoa(password);
+        }
+        const iv = window.crypto.getRandomValues(new Uint8Array(12));
+        const encoded = new TextEncoder().encode(password);
+        const encrypted = await window.crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encoded);
+        
+        const combined = new Uint8Array(iv.length + encrypted.byteLength);
+        combined.set(iv, 0);
+        combined.set(new Uint8Array(encrypted), iv.length);
+        return 'ENC:' + btoa(String.fromCharCode(...combined));
+    } catch (e) {
+        console.warn("Password encryption failed, falling back", e);
+        return 'B64:' + btoa(password);
+    }
 };
 
 const decryptPassword = async (encryptedData: string): Promise<string> => {
     if (!encryptedData) return '';
+    
+    if (encryptedData.startsWith('B64:')) {
+        try { return atob(encryptedData.substring(4)); } catch { return encryptedData; }
+    }
+
     if (!encryptedData.startsWith('ENC:')) {
         // Fallback voor legacy plaintext wachtwoorden (migratie-pad)
-        // Optioneel: Deze zouden we op termijn kunnen re-encrypten bij ophalen.
         return encryptedData;
     }
     try {
+        const key = await getDeviceKey();
+        if (!key) { 
+            console.error("No crypto key available to decrypt password");
+            return ''; 
+        }
         const b64 = encryptedData.substring(4);
         const raw = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
         const iv = raw.slice(0, 12);
         const data = raw.slice(12);
-        const key = await getDeviceKey();
-        const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, data);
+        const decrypted = await window.crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, data);
         return new TextDecoder().decode(decrypted);
     } catch (e) {
         console.error("Password decryption failed", e);
