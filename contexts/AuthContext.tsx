@@ -41,6 +41,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [cachedSettings, setCachedSettings] = useState<SystemSettings>({ companyName: 'Factory Manager', activeModules: [CommercialModule.CORE] });
     const [user, setUser] = useState<User | null>(null);
 
+    const handleSetUser = (u: User | null) => {
+        setUser(u);
+        if (u) {
+            localStorage.setItem('cnc_active_user', u.id);
+            localStorage.setItem('cnc_active_user_full', JSON.stringify(u));
+        } else {
+            localStorage.removeItem('cnc_active_user');
+            localStorage.removeItem('cnc_active_user_full');
+        }
+    };
+
     useEffect(() => {
         const init = async () => {
             // Haal users, roles en settings op
@@ -56,10 +67,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             const savedUserId = localStorage.getItem('cnc_active_user');
             if (savedUserId === GHOST_USER.id) {
-                setUser(GHOST_USER);
+                handleSetUser(GHOST_USER);
             } else if (savedUserId) {
                 const freshUser = loadedUsers.find(u => u.id === savedUserId);
-                if (freshUser) setUser(freshUser);
+                if (freshUser) handleSetUser(freshUser);
             }
         };
         init();
@@ -89,7 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     const freshUser = loadedUsers.find(u => u.id === currentUser.id);
                     // Deep compare om onnodige state updates te voorkomen
                     if (freshUser && JSON.stringify(freshUser) !== JSON.stringify(currentUser)) {
-                        setUser(freshUser);
+                        handleSetUser(freshUser);
                     }
                 }
             }
@@ -120,15 +131,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const login = async (userId: string) => {
         if (userId === GHOST_USER.id) {
-            setUser(GHOST_USER);
-            localStorage.setItem('cnc_active_user', GHOST_USER.id);
+            handleSetUser(GHOST_USER);
             return;
         }
         const currentUsers = await db.getUsers();
         const found = currentUsers.find(u => u.id === userId);
         if (found) {
-            setUser(found);
-            localStorage.setItem('cnc_active_user', found.id);
+            handleSetUser(found);
         }
     };
 
@@ -149,8 +158,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const logout = () => {
-        setUser(null);
-        localStorage.removeItem('cnc_active_user');
+        handleSetUser(null);
     };
 
     const hasPermission = (permission: Permission): boolean => {
