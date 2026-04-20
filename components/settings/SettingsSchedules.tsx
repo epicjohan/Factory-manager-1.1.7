@@ -115,9 +115,9 @@ export const SettingsSchedules: React.FC = () => {
                                         <div className="w-24 font-bold text-slate-600 dark:text-slate-300 text-sm uppercase tracking-widest">{shift.label}</div>
                                         <div className="flex-1 flex gap-3">
                                             {shift.enabled && <>
-                                                <input type="time" className="p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white text-xs font-mono font-bold" value={shift.startTime} onChange={e => { const n = [...tempShifts]; n[idx].startTime = e.target.value; setTempShifts(n); }} />
+                                                <input type="time" lang="nl-NL" className="p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white text-xs font-mono font-bold" value={shift.startTime} onChange={e => { const n = [...tempShifts]; n[idx].startTime = e.target.value; setTempShifts(n); }} />
                                                 <span className="self-center text-slate-400 font-bold">-</span>
-                                                <input type="time" className="p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white text-xs font-mono font-bold" value={shift.endTime} onChange={e => { const n = [...tempShifts]; n[idx].endTime = e.target.value; setTempShifts(n); }} />
+                                                <input type="time" lang="nl-NL" className="p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white text-xs font-mono font-bold" value={shift.endTime} onChange={e => { const n = [...tempShifts]; n[idx].endTime = e.target.value; setTempShifts(n); }} />
                                             </>}
                                         </div>
                                         <button type="button" onClick={() => { const n = [...tempShifts]; n[idx].enabled = !n[idx].enabled; setTempShifts(n); }} className={`px-4 py-3 rounded-[2rem] text-[10px] font-black uppercase tracking-widest transition-all ${shift.enabled ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-200 text-slate-500 dark:bg-slate-700'}`}>{shift.enabled ? 'AAN' : 'UIT'}</button>
