@@ -38,7 +38,7 @@ export const ToolRequestDetailModal: React.FC<ToolRequestDetailModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl w-[98vw] max-w-[1600px] max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
                 
                 {/* Header */}
                 <div className="flex items-start justify-between p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
