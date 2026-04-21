@@ -82,21 +82,21 @@ export const formatDateForPB = (date: string | Date): string => {
     }
 };
 
+export const JSON_FIELDS = [
+    'liveStats', 'toolStats', 'checklist', 'permissions',
+    'allowedAssetIds', 'allowedModules', 'allowedTabs',
+    'activeModules', 'notificationEmails', 'actions',
+    'usedParts', 'shifts', 'andonConfig', 'mtConnectConfig',
+    'fields', 'toolFields', 'templateData', 'operations', 'bomItems', 'files', 'filesMeta', 'auditTrail',
+    'documents'
+];
+
 export const ensureParsedData = (data: any): any => {
     if (!data || typeof data !== 'object') return data;
     const result = Array.isArray(data) ? [...data] : { ...data };
 
-    const jsonFields = [
-        'liveStats', 'toolStats', 'checklist', 'permissions',
-        'allowedAssetIds', 'allowedModules', 'allowedTabs',
-        'activeModules', 'notificationEmails', 'actions',
-        'usedParts', 'shifts', 'andonConfig', 'mtConnectConfig',
-        'fields', 'toolFields', 'templateData', 'operations', 'bomItems', 'files', 'filesMeta', 'auditTrail',
-        'documents'
-    ];
-
     Object.keys(result).forEach(key => {
-        if (jsonFields.includes(key) && typeof result[key] === 'string') {
+        if (JSON_FIELDS.includes(key) && typeof result[key] === 'string') {
             if (result[key].trim() === '') {
                 result[key] = []; // Fallback gracefully for empty JSON arrays incorrectly sent as empty strings
             } else {

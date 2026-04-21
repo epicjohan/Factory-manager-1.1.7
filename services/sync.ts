@@ -3,7 +3,7 @@
 // Alle data wordt nu direct via loadTable/saveTable geladen/opgeslagen.
 import { db } from './storage';
 import { AppState, SyncEntry, SyncAction, UploadedDocument } from '../types';
-import { KEYS, loadTable, saveTable, outboxUtils, formatDateForPB, ensureParsedData } from './db/core';
+import { KEYS, loadTable, saveTable, outboxUtils, formatDateForPB, ensureParsedData, JSON_FIELDS } from './db/core';
 import { APP_INFO } from './appInfo';
 import { VersionManager } from './versionManager';
 
@@ -165,9 +165,17 @@ const sanitizeDataForServer = (data: any, collection?: string): any => {
     Object.keys(clean).forEach(key => {
         const val = clean[key];
         if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(val)) {
+            // Reformat ISO timestamps to pocketbase format
             clean[key] = val.replace('T', ' ').split('.')[0];
+        } else if (JSON_FIELDS.includes(key)) {
+            // FIX: Some PocketBase servers are configured to use 'Text' columns for JSON objects and arrays instead of 'JSON' columns.
+            // When we do an application/json POST with `{ privileges: ["x"] }`, Pocketbase validation will reject the POST.
+            // Therefore, we MUST stringify all explicitly marked JSON_FIELDS so that Pocketbase natively saves them as Text.
+            if (val !== undefined && val !== null) {
+               clean[key] = typeof val === 'string' ? val : JSON.stringify(val);
+            }
         } else if (typeof val === 'object' && val !== null && !Array.isArray(val)) {
-            clean[key] = sanitizeDataForServer(val);
+            clean[key] = sanitizeDataForServer(val, collection); // Note: Make sure the collection arg gets passed downstream!
         }
     });
     return clean;
