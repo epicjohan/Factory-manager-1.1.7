@@ -12,7 +12,7 @@ import { useConfirm } from '../contexts/ConfirmContext';
 import {
     ArrowLeft, LayoutTemplate, Plus, Trash2, Save, Edit,
     ChevronUp, ChevronDown, Check, X, FileText, Hash,
-    ToggleLeft, List, AlignLeft, Type, Wrench, Layers, Copy, Box, AlertTriangle, LayoutGrid, Sparkles
+    ToggleLeft, List, AlignLeft, Type, Wrench, Layers, Copy, Box, AlertTriangle, LayoutGrid, Sparkles, GripVertical
 } from '../icons';
 
 const FIELD_TYPES: { type: SetupFieldType; label: string; icon: any }[] = [
@@ -80,6 +80,14 @@ export const TemplateManagement: React.FC = () => {
     const [currentOptions, setCurrentOptions] = useState<string[]>([]);
     const [optionInput, setOptionInput] = useState('');
     const [bulkMode, setBulkMode] = useState(false);
+
+    // Drag and Drop State
+    const [draggedFieldIndex, setDraggedFieldIndex] = useState<number | null>(null);
+    const [draggedColIndex, setDraggedColIndex] = useState<number | null>(null);
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault(); // allow drop
+    };
 
     useEffect(() => {
         if (selectedTemplate) {
@@ -205,6 +213,25 @@ export const TemplateManagement: React.FC = () => {
         setEditData({ ...editData, sheetConfig: { columns: newCols } });
     };
 
+    const handleDragStartCol = (e: React.DragEvent, index: number) => {
+        setDraggedColIndex(index);
+        e.dataTransfer.effectAllowed = 'move';
+    };
+
+    const handleDropCol = (e: React.DragEvent, targetIndex: number) => {
+        e.preventDefault();
+        if (draggedColIndex === null || draggedColIndex === targetIndex) {
+            setDraggedColIndex(null);
+            return;
+        }
+        const cols = getSheetColumns();
+        const newCols = [...cols];
+        const [movedCol] = newCols.splice(draggedColIndex, 1);
+        newCols.splice(targetIndex, 0, movedCol);
+        setEditData({ ...editData, sheetConfig: { columns: newCols } });
+        setDraggedColIndex(null);
+    };
+
     const handleColumnWidthChange = (colKey: string, width: string) => {
         const cols = getSheetColumns().map(c => c.key === colKey ? { ...c, width } : c);
         setEditData({ ...editData, sheetConfig: { columns: cols } });
@@ -288,6 +315,29 @@ export const TemplateManagement: React.FC = () => {
         } else {
             setEditData({ ...editData, toolFields: fieldsCopy });
         }
+    };
+
+    const handleDragStartField = (e: React.DragEvent, index: number) => {
+        setDraggedFieldIndex(index);
+        e.dataTransfer.effectAllowed = 'move';
+    };
+
+    const handleDropField = (e: React.DragEvent, targetIndex: number) => {
+        e.preventDefault();
+        if (draggedFieldIndex === null || draggedFieldIndex === targetIndex) {
+            setDraggedFieldIndex(null);
+            return;
+        }
+        const fieldsCopy = [...getActiveFields()];
+        const [movedField] = fieldsCopy.splice(draggedFieldIndex, 1);
+        fieldsCopy.splice(targetIndex, 0, movedField);
+        
+        if (activeTab === 'FIXTURE') {
+            setEditData({ ...editData, fields: fieldsCopy });
+        } else {
+            setEditData({ ...editData, toolFields: fieldsCopy });
+        }
+        setDraggedFieldIndex(null);
     };
 
     /**
@@ -452,7 +502,15 @@ export const TemplateManagement: React.FC = () => {
 
                                         <div className="space-y-3">
                                             {getActiveFields().map((field, idx) => (
-                                                <div key={idx} className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4 group hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors">
+                                                <div 
+                                                    key={idx} 
+                                                    draggable
+                                                    onDragStart={(e) => handleDragStartField(e, idx)}
+                                                    onDragOver={handleDragOver}
+                                                    onDrop={(e) => handleDropField(e, idx)}
+                                                    className={`cursor-grab active:cursor-grabbing bg-white dark:bg-slate-800 p-4 rounded-2xl border ${draggedFieldIndex === idx ? 'border-dashed border-indigo-400 opacity-50' : 'border-slate-200 dark:border-slate-700 shadow-sm'} flex items-center gap-4 group hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors`}
+                                                >
+                                                    <div className="text-slate-300 hover:text-indigo-500 transition-colors cursor-grab px-1 shrink-0"><GripVertical size={20} /></div>
                                                     <div className="flex flex-col gap-1 text-slate-300">
                                                         <button onClick={() => moveField(idx, 'UP')} disabled={idx === 0} className="hover:text-indigo-500 disabled:opacity-30"><ChevronUp size={16} /></button>
                                                         <button onClick={() => moveField(idx, 'DOWN')} disabled={idx === (getActiveFields().length || 0) - 1} className="hover:text-indigo-500 disabled:opacity-30"><ChevronDown size={16} /></button>
@@ -514,7 +572,15 @@ export const TemplateManagement: React.FC = () => {
                                         
                                         <div className="space-y-3">
                                             {getSheetColumns().map((col, idx, arr) => (
-                                                <div key={col.key} className={`flex items-center gap-4 p-4 border-2 rounded-2xl transition-all ${col.visible ? 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800' : 'border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 opacity-60'}`}>
+                                                <div 
+                                                    key={col.key} 
+                                                    draggable
+                                                    onDragStart={(e) => handleDragStartCol(e, idx)}
+                                                    onDragOver={handleDragOver}
+                                                    onDrop={(e) => handleDropCol(e, idx)}
+                                                    className={`cursor-grab active:cursor-grabbing flex items-center gap-4 p-4 border-2 rounded-2xl transition-all ${draggedColIndex === idx ? 'border-dashed border-indigo-400 opacity-50 bg-indigo-50/10' : (col.visible ? 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800' : 'border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 opacity-60')}`}
+                                                >
+                                                    <div className="text-slate-300 hover:text-indigo-500 transition-colors cursor-grab px-1 shrink-0"><GripVertical size={20} /></div>
                                                     <div className="flex flex-col gap-1 text-slate-300">
                                                         <button onClick={() => moveSheetColumn(idx, 'UP')} disabled={idx === 0} className="hover:text-indigo-500 disabled:opacity-30"><ChevronUp size={16} /></button>
                                                         <button onClick={() => moveSheetColumn(idx, 'DOWN')} disabled={idx === arr.length - 1} className="hover:text-indigo-500 disabled:opacity-30"><ChevronDown size={16} /></button>
