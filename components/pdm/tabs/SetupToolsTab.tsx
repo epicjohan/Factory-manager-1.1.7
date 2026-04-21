@@ -4,9 +4,13 @@ import { ArticleTool, SetupTemplate, SetupChangeEntry, SetupVariant, SetupFieldD
 import { Machine } from '../../../types';
 import { ToolBlock } from '../shared/ToolBlock';
 import { generateId, loadTable, KEYS } from '../../../services/db/core';
+import { db } from '../../../services/storage';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useNotifications } from '../../../contexts/NotificationContext';
+import { useConfirm } from '../../../contexts/ConfirmContext';
 import { SetupSheet } from '../SetupSheet';
 import { ToolRequestModal } from '../modals/ToolRequestModal';
+import { ToolRequestStatus, ToolPreparationRequest } from '../../../types';
 
 interface SetupToolsTabProps {
     tools: ArticleTool[];
@@ -30,6 +34,7 @@ export const SetupToolsTab: React.FC<SetupToolsTabProps> = ({
     article, setup, machines
 }) => {
     const { user } = useAuth();
+    const confirm = useConfirm();
 
     // Setup Sheet state
     const [showSheet, setShowSheet] = useState(false);
@@ -46,6 +51,22 @@ export const SetupToolsTab: React.FC<SetupToolsTabProps> = ({
 
     // State
     const [showHistory, setShowHistory] = useState(false);
+    const [activeToolRequest, setActiveToolRequest] = useState<ToolPreparationRequest | null>(null);
+    const { addNotification } = useNotifications();
+
+    useEffect(() => {
+        if (!setup) return;
+        const fetchRequests = async () => {
+            const reqs = await loadTable<ToolPreparationRequest[]>(KEYS.TOOL_PREP_REQUESTS, []);
+            // Find an active request (not READY) for this setup
+            const pendingReqs = reqs.filter(r => r.setupId === setup.id && r.status !== ToolRequestStatus.READY);
+            const mostRecent = pendingReqs.sort((a,b) => new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime())[0];
+            setActiveToolRequest(mostRecent || null);
+        };
+        fetchRequests();
+        window.addEventListener(`db:${KEYS.TOOL_PREP_REQUESTS}:updated`, fetchRequests);
+        return () => window.removeEventListener(`db:${KEYS.TOOL_PREP_REQUESTS}:updated`, fetchRequests);
+    }, [setup]);
 
     // Delete Confirmation Modal State
     const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; toolId: string | null; toolLabel: string }>({ isOpen: false, toolId: null, toolLabel: '' });
@@ -59,6 +80,27 @@ export const SetupToolsTab: React.FC<SetupToolsTabProps> = ({
             onDeleteTool(deleteModal.toolId);
         }
         setDeleteModal({ isOpen: false, toolId: null, toolLabel: '' });
+    };
+
+    const handleRevokeRequest = async () => {
+        if (!activeToolRequest) return;
+        const confirmRevoke = await confirm({
+            title: 'Oproep Intrekken',
+            message: 'Weet je zeker dat je deze gereedschapsoproep wilt intrekken? Dit stelt de tool manager hiervan op de hoogte en verwijdert de aanvraag.',
+            confirmLabel: 'Intrekken',
+            cancelLabel: 'Annuleren',
+            danger: true
+        });
+
+        if (confirmRevoke) {
+            try {
+                await db.deleteToolPrepRequest(activeToolRequest.id);
+                addNotification('SUCCESS', 'Oproep Ingetrokken', 'De gereedschapslijst oproep is verwijderd.');
+                setActiveToolRequest(null);
+            } catch (e) {
+                addNotification('ERROR', 'Fout', 'Er is een fout opgetreden bij het intrekken.');
+            }
+        }
     };
 
     // Replace Modal State
@@ -170,13 +212,34 @@ export const SetupToolsTab: React.FC<SetupToolsTabProps> = ({
                     {/* Setup Sheet knoppen */}
                     {article && setup && (
                         <>
-                            <button
-                                onClick={() => setShowToolRequest(true)}
-                                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-[2rem] font-bold text-[11px] uppercase tracking-widest shadow-lg shadow-indigo-500/20 transition-all hover:scale-105 active:scale-95"
-                                title="Gereedschapslijst klaarzetten / aanvragen"
-                            >
-                                <Wrench size={14} /> Oproep Tooling
-                            </button>
+                            {activeToolRequest ? (
+                                <div className="flex items-center gap-2 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 rounded-full p-1 pr-3 shadow-sm">
+                                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                                        activeToolRequest.status === ToolRequestStatus.IN_PROGRESS 
+                                            ? 'bg-blue-100 text-blue-700' 
+                                            : 'bg-yellow-100 text-yellow-700'
+                                    }`}>
+                                        Aanvraag: {activeToolRequest.status === ToolRequestStatus.IN_PROGRESS ? 'Mee Bezig' : 'Onderweg'}
+                                    </span>
+                                    {activeToolRequest.status === ToolRequestStatus.PENDING && (
+                                        <button 
+                                            onClick={handleRevokeRequest}
+                                            className="text-red-500 hover:text-red-700 font-bold text-[10px] uppercase tracking-widest ml-1 transition-colors"
+                                            title="Trek deze aanvraag in"
+                                        >
+                                            Intrekken
+                                        </button>
+                                    )}
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => setShowToolRequest(true)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-[2rem] font-bold text-[11px] uppercase tracking-widest shadow-lg shadow-indigo-500/20 transition-all hover:scale-105 active:scale-95"
+                                    title="Gereedschapslijst klaarzetten / aanvragen"
+                                >
+                                    <Wrench size={14} /> {(setup.tools && setup.tools.length > 0) ? 'Oproep Tooling' : 'Geen tools'}
+                                </button>
+                            )}
                             <button
                                 onClick={() => setShowSheet(true)}
                                 className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-[2rem] font-bold text-[11px] uppercase tracking-widest transition-all"
