@@ -51,8 +51,11 @@ const DEFAULT_TEMPLATES: SetupTemplate[] = [
 export const templateService = {
     getTemplates: async () => {
         let templates = await loadTable<SetupTemplate[]>(KEYS.SETUP_TEMPLATES, []);
-        if (templates.length === 0) {
-            templates = DEFAULT_TEMPLATES;
+        // SELF-HEALING: Verwijder templates zonder geldig ID (veroorzaakt door eerdere bug)
+        const validTemplates = templates.filter(t => t && typeof t.id === 'string' && t.id.trim() !== '');
+        
+        if (validTemplates.length !== templates.length || validTemplates.length === 0) {
+            templates = validTemplates.length === 0 ? DEFAULT_TEMPLATES : validTemplates;
             await saveTable(KEYS.SETUP_TEMPLATES, templates);
         }
         return templates;

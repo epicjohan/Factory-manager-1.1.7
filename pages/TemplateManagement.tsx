@@ -92,8 +92,6 @@ export const TemplateManagement: React.FC = () => {
     useEffect(() => {
         if (selectedTemplate) {
             setEditData(JSON.parse(JSON.stringify(selectedTemplate)));
-        } else {
-            setEditData({});
         }
     }, [selectedTemplate]);
 
