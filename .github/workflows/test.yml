@@ -1,0 +1,42 @@
+name: Factory Manager Reliability & Test Suite
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+      - 'feature/*'
+  pull_request:
+    branches:
+      - main
+      - master
+      - develop
+
+jobs:
+  test:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Code Quality (Typescript)
+        run: npm run type-check
+
+      - name: Automated Unit Tests
+        run: npm run test -- --run
+
+      - name: Generate Coverage Report
+        run: npx vitest run --coverage
+        continue-on-error: true # Not mandatory but nice to have in GH

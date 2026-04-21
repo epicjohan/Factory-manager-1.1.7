@@ -8,12 +8,14 @@ import { DocumentCategory } from '../../types';
 const mocks = vi.hoisted(() => {
     return {
         getSystemSettings: vi.fn(),
+        getDocumentCategories: vi.fn(),
     };
 });
 
 vi.mock('../../services/storage', () => ({
     db: {
-        getSystemSettings: mocks.getSystemSettings
+        getSystemSettings: mocks.getSystemSettings,
+        getDocumentCategories: mocks.getDocumentCategories
     }
 }));
 
@@ -28,7 +30,7 @@ const mockCategories: DocumentCategory[] = [
 describe('useDocumentCategories', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        mocks.getSystemSettings.mockResolvedValue({ documentCategories: mockCategories });
+        mocks.getDocumentCategories.mockResolvedValue(mockCategories);
     });
 
     it('should correctly filter categories based on applicableTo="ARTICLE"', async () => {
