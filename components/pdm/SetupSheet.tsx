@@ -290,7 +290,19 @@ export const SetupSheet: React.FC<SetupSheetProps> = ({ article, setup, machine,
                     body > *:not(#setup-sheet-root) { display: none !important; }
                     #setup-sheet-root { display: block !important; position: static !important; }
                     .no-print { display: none !important; }
-                    @page { size: A4 landscape; margin: 10mm 12mm 10mm 12mm; }
+                    @page { size: A4 landscape; margin: 10mm; }
+                    * {
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }
+                    .print-page {
+                        width: 100% !important;
+                        min-height: 0 !important;
+                        height: 100vh !important;
+                        margin: 0 !important;
+                        box-shadow: none !important;
+                        page-break-inside: avoid !important;
+                    }
                 }
                 @media screen {
                     #setup-sheet-root {
@@ -320,13 +332,14 @@ export const SetupSheet: React.FC<SetupSheetProps> = ({ article, setup, machine,
                 </div>
 
                 {/* Pages */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                     {pages.map((pageTools, pageIdx) => {
                         const isFirst = pageIdx === 0;
                         const isLast = pageIdx === totalPages - 1;
                         return (
                             <div
                                 key={pageIdx}
+                                className="print-page"
                                 style={{
                                     width: '297mm',
                                     minHeight: '210mm',
