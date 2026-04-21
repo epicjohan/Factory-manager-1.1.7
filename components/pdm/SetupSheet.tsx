@@ -298,7 +298,7 @@ export const SetupSheet: React.FC<SetupSheetProps> = ({ article, setup, machine,
                     .print-page {
                         width: 100% !important;
                         min-height: 0 !important;
-                        height: 100vh !important;
+                        height: auto !important;
                         margin: 0 !important;
                         box-shadow: none !important;
                         page-break-inside: avoid !important;
