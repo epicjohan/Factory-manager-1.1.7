@@ -211,7 +211,7 @@ export const ToolPreparation: React.FC = () => {
                                                 {getStatusLabel(req.status)}
                                             </span>
                                             <span className="text-xs font-bold text-slate-400 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-0.5">
-                                                {req.articleCode}
+                                                {req.articleCode} {req.drawingNumber ? `— ${req.drawingNumber}` : ''}
                                             </span>
                                         </div>
                                         <h3 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight">{req.setupName}</h3>
