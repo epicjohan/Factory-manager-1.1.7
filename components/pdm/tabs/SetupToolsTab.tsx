@@ -3,7 +3,7 @@ import { Wrench, Plus, Info, RotateCcw, AlertTriangle, X, History, Clock, Trash2
 import { ArticleTool, SetupTemplate, SetupChangeEntry, SetupVariant, SetupFieldDefinition, Article } from '../../../types';
 import { Machine } from '../../../types';
 import { ToolBlock } from '../shared/ToolBlock';
-import { generateId, loadTable, KEYS } from '../../../services/db/core';
+import { generateId, loadTable, KEYS, getNowISO } from '../../../services/db/core';
 import { db } from '../../../services/storage';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useNotifications } from '../../../contexts/NotificationContext';
@@ -95,6 +95,19 @@ export const SetupToolsTab: React.FC<SetupToolsTabProps> = ({
         if (confirmRevoke) {
             try {
                 await db.deleteToolPrepRequest(activeToolRequest.id);
+
+                if (article && setup) {
+                    const updatedArticle = { ...article };
+                    if (!updatedArticle.auditTrail) updatedArticle.auditTrail = [];
+                    updatedArticle.auditTrail.unshift({
+                        id: generateId(),
+                        timestamp: getNowISO(),
+                        user: user?.name || 'Unknown',
+                        action: `Gereedschapslijst aanvraag ingetrokken voor setup: ${setup.name}`
+                    });
+                    await db.updateArticle(updatedArticle);
+                }
+
                 addNotification('SUCCESS', 'Oproep Ingetrokken', 'De gereedschapslijst oproep is verwijderd.');
                 setActiveToolRequest(null);
             } catch (e) {

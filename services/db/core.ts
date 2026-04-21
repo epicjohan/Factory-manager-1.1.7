@@ -58,7 +58,7 @@ export const generateId = (length: number = 15): string => {
 };
 
 export const getNowISO = () => {
-    return new Date().toISOString().replace('T', ' ').split('.')[0];
+    return new Date().toLocaleString('sv-SE', { timeZone: 'Europe/Amsterdam' }).replace('T', ' ').replace(',', '');
 };
 
 // D-03 FIX: Gecentraliseerde user-name resolver.
@@ -75,10 +75,10 @@ export const getCurrentUserName = (): string => {
 export const formatDateForPB = (date: string | Date): string => {
     try {
         const d = typeof date === 'string' ? new Date(date) : date;
-        if (isNaN(d.getTime())) return new Date().toISOString().replace('T', ' ').split('.')[0];
-        return d.toISOString().replace('T', ' ').split('.')[0];
+        if (isNaN(d.getTime())) return getNowISO();
+        return d.toLocaleString('sv-SE', { timeZone: 'Europe/Amsterdam' }).replace('T', ' ').replace(',', '');
     } catch (e) {
-        return new Date().toISOString().replace('T', ' ').split('.')[0];
+        return getNowISO();
     }
 };
 

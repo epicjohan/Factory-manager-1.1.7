@@ -4,6 +4,7 @@ import { Article, SetupVariant, ArticleTool, ToolPreparationRequest, ToolRequest
 import { useAuth } from '../../../contexts/AuthContext';
 import { useNotifications } from '../../../contexts/NotificationContext';
 import { db } from '../../../services/storage';
+import { generateId, getNowISO } from '../../../services/db/core';
 
 interface ToolRequestModalProps {
     article: Article;
@@ -66,8 +67,19 @@ export const ToolRequestModal: React.FC<ToolRequestModalProps> = ({ article, set
                 notes,
                 status: ToolRequestStatus.PENDING
             };
-
             await db.addToolPrepRequest(req);
+
+            // Audit Trail Logger
+            const updatedArticle = { ...article };
+            if (!updatedArticle.auditTrail) updatedArticle.auditTrail = [];
+            updatedArticle.auditTrail.unshift({
+                id: generateId(),
+                timestamp: getNowISO(),
+                user: user?.name || 'Unknown',
+                action: `Gereedschapslijst aangevraagd voor setup: ${setup.name}`
+            });
+            await db.updateArticle(updatedArticle);
+            
             addNotification('SUCCESS', 'Oproep Verzonden', `Gereedschapslijst voor setup ${setup.name} is aangevraagd!`);
             onClose();
         } catch (e) {
