@@ -93,7 +93,7 @@ export const ToolFieldsRenderer: React.FC<ToolFieldsRendererProps> = ({
                                         onChange={e => onDynamicChange(field.key, field.type === 'number' ? parseFloat(e.target.value) : e.target.value)}
                                     />
                                 )}
-                                {field.unit && field.type !== 'textarea' && <span className={`absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold ${isHighlightActive ? 'text-amber-700/60 dark:text-amber-200/60' : 'text-slate-400'}`}>{field.unit}</span>}
+                                {field.unit && field.type !== 'textarea' && <span className={`absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold ${isHighlightActive ? 'text-amber-700/60 dark:text-amber-200/60' : 'text-slate-400'}`}>{field.unit}</span>}
                             </div>
                         </div>
                     );
