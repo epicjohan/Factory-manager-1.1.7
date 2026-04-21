@@ -11,6 +11,7 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Article, ArticleTool, SetupVariant, Machine, SetupStatus, SetupFieldDefinition } from '../../types';
+import { useAuth } from '../../contexts/AuthContext';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -254,10 +255,10 @@ const NotesBlock: React.FC = () => (
     </div>
 );
 
-const SheetFooter: React.FC<{ setupName: string; version: number; currentPage: number; totalPages: number }> = ({ setupName, version, currentPage, totalPages }) => (
+const SheetFooter: React.FC<{ setupName: string; version: number; currentPage: number; totalPages: number; printedBy: string }> = ({ setupName, version, currentPage, totalPages, printedBy }) => (
     <div style={{ borderTop: '1px solid #ddd', marginTop: 'auto', paddingTop: 4, display: 'flex', justifyContent: 'space-between' }}>
         <span style={{ ...f, fontSize: '7px', color: '#aaa', fontStyle: 'italic' }}>
-            Factory Manager | Setup: {setupName} | v{version} | Afgedrukt op: {today()}{currentPage < totalPages ? ' | Vervolg op volgende pagina →' : ''}
+            Factory Manager | Setup: {setupName} | v{version} | Afgedrukt door: {printedBy} op {today()}{currentPage < totalPages ? ' | Vervolg op volgende pagina →' : ''}
         </span>
         {currentPage === totalPages && (
             <span style={{ ...f, fontSize: '7px', color: '#aaa', fontStyle: 'italic' }}>
@@ -270,6 +271,8 @@ const SheetFooter: React.FC<{ setupName: string; version: number; currentPage: n
 // ── Main component ────────────────────────────────────────────────────────────
 
 export const SetupSheet: React.FC<SetupSheetProps> = ({ article, setup, machine, companyName, existingToolIds, onClose }) => {
+    const { user } = useAuth();
+    const userName = user?.name || 'Onbekend';
     // Template fields from frozen setup
     const templateFields: SetupFieldDefinition[] = setup.frozenToolFields || [];
     const templateName = (setup as any).templateName as string | undefined;
@@ -390,7 +393,7 @@ export const SetupSheet: React.FC<SetupSheetProps> = ({ article, setup, machine,
                                 </div>
 
                                 <div style={{ padding: '0 14px 8px 14px' }}>
-                                    <SheetFooter setupName={setup.name} version={setup.version || 1} currentPage={pageIdx + 1} totalPages={totalPages} />
+                                    <SheetFooter setupName={setup.name} version={setup.version || 1} currentPage={pageIdx + 1} totalPages={totalPages} printedBy={userName} />
                                 </div>
                             </div>
                         );
