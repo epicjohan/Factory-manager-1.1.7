@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { X, Calendar, Clock, CheckCircle, Printer, CheckSquare } from '../../../icons';
-import { Article, SetupVariant, Machine, ToolPreparationRequest } from '../../../types';
+import { X, Calendar, Clock, CheckCircle, Printer, CheckSquare, Save } from '../../../icons';
+import { Article, SetupVariant, Machine, ToolPreparationRequest, ToolRequestStatus } from '../../../types';
 import { buildColumns, cellValue } from '../SetupSheet';
 
 interface ToolRequestDetailModalProps {
@@ -11,11 +11,12 @@ interface ToolRequestDetailModalProps {
     companyName: string;
     onClose: () => void;
     onToggleTool: (toolId: string, isPrepared: boolean) => Promise<void>;
+    onUpdateStatus?: (status: ToolRequestStatus) => Promise<void>;
     onPrint: () => void;
 }
 
 export const ToolRequestDetailModal: React.FC<ToolRequestDetailModalProps> = ({
-    request, article, setup, machine, companyName, onClose, onToggleTool, onPrint
+    request, article, setup, machine, companyName, onClose, onToggleTool, onUpdateStatus, onPrint
 }) => {
     // Generate identical columns to what the printed sheet would have
     const columns = buildColumns(setup).filter(c => c.key !== '_remark'); // filter out landscape remark for digital view
@@ -38,7 +39,7 @@ export const ToolRequestDetailModal: React.FC<ToolRequestDetailModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl w-[98vw] max-w-[1600px] max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl w-[98vw] max-w-[1600px] h-[95vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
                 
                 {/* Header */}
                 <div className="flex items-start justify-between p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
@@ -68,17 +69,27 @@ export const ToolRequestDetailModal: React.FC<ToolRequestDetailModalProps> = ({
                             </div>
                         )}
                     </div>
-                    <div className="flex flex-col items-end gap-3 shrink-0">
-                        <button onClick={onClose} className="p-3 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300 rounded-full transition-colors">
-                            <X size={24} />
-                        </button>
-
+                    <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 shrink-0">
+                        {onUpdateStatus && (
+                            <select 
+                                value={request.status}
+                                onChange={(e) => onUpdateStatus(e.target.value as ToolRequestStatus)}
+                                className="px-4 py-3 text-xs font-bold uppercase tracking-widest bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none cursor-pointer hover:border-indigo-400 transition-colors"
+                            >
+                                <option value={ToolRequestStatus.PENDING}>Aangevraagd</option>
+                                <option value={ToolRequestStatus.IN_PROGRESS}>Mee Bezig</option>
+                                <option value={ToolRequestStatus.READY}>Klaar</option>
+                            </select>
+                        )}
                         <button 
                             onClick={onPrint}
                             className="flex items-center gap-2 px-5 py-3 bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg transition-all hover:-translate-y-0.5"
                         >
                             <Printer size={16} />
-                            Print A4 Sheet
+                            Print A4
+                        </button>
+                        <button onClick={onClose} className="p-3 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300 rounded-full transition-colors">
+                            <X size={24} />
                         </button>
                     </div>
                 </div>

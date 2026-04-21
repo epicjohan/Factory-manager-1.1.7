@@ -245,6 +245,10 @@ export const ToolPreparation: React.FC = () => {
                          setSelectedRequest(updatedReq);
                          setRequests(prev => prev.map(r => r.id === updatedReq.id ? updatedReq : r));
                     }}
+                    onUpdateStatus={async (status) => {
+                        await updateStatus(selectedRequest, status);
+                        setSelectedRequest(prev => prev ? { ...prev, status } : prev);
+                    }}
                     onPrint={() => setViewMode('PRINT')}
                 />
             )}
