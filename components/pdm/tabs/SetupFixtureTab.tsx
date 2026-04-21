@@ -121,8 +121,8 @@ export const SetupFixtureTab: React.FC<SetupFixtureTabProps> = ({
                             <div key={field.key} className={spanClass + " space-y-2"}>
                                 <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">{field.label}</label>
                                 <div className="relative">
-                                    <input disabled={isLocked} type={field.type === 'number' ? 'number' : 'text'} className="w-full p-3.5 rounded-[2rem] border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-bold outline-none focus:border-blue-500 transition-all disabled:opacity-60 disabled:border-transparent dark:text-white" value={val} onChange={e => onUpdateTemplateData(field.key, field.type === 'number' ? parseFloat(e.target.value) : e.target.value)} />
-                                    {field.unit && <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">{field.unit}</span>}
+                                    <input disabled={isLocked} type={field.type === 'number' ? 'number' : 'text'} className={`w-full p-3.5 ${field.unit ? 'pr-20' : ''} rounded-[2rem] border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-bold outline-none focus:border-blue-500 transition-all disabled:opacity-60 disabled:border-transparent dark:text-white`} value={val} onChange={e => onUpdateTemplateData(field.key, field.type === 'number' ? parseFloat(e.target.value) : e.target.value)} />
+                                    {field.unit && <span className="absolute right-10 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">{field.unit}</span>}
                                 </div>
                             </div>
                         );
