@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { X, Download, FileText, ZoomIn, ExternalLink } from '../../icons';
 import { ArticleFile } from '../../types';
 import { usePdfBlobUrl } from '../../hooks/usePdfBlobUrl';
-import { documentService } from '../../services/db/documentService';
+import { resolveFileUrl } from '../../utils/fileUtils';
 
 interface FilePreviewModalProps {
     file: ArticleFile | null;
@@ -28,27 +28,18 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClos
             return;
         }
 
-        if (file.documentId && !file.url) {
-            setIsLoadingUrl(true);
-            documentService.getDocumentById(file.documentId)
-                .then(doc => {
-                    if (doc && doc.url) {
-                        setFileUrl(doc.url);
-                    } else {
-                        setFileUrl(file.url || null);
-                    }
-                })
-                .catch(err => {
-                    console.error("Failed to load document data:", err);
-                    setFileUrl(file.url || null);
-                })
-                .finally(() => {
-                    setIsLoadingUrl(false);
-                });
-        } else {
-            setFileUrl(file.url || null);
-            setIsLoadingUrl(false);
-        }
+        setIsLoadingUrl(true);
+        resolveFileUrl(file)
+            .then(url => {
+                setFileUrl(url);
+            })
+            .catch(err => {
+                console.error("Failed to load document data:", err);
+                setFileUrl(file.url || null);
+            })
+            .finally(() => {
+                setIsLoadingUrl(false);
+            });
     }, [file]);
 
     const isImage = file?.type?.startsWith('image/') || false;
