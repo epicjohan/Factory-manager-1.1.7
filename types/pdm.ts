@@ -62,6 +62,7 @@ export interface DMSDocument {
   type: string;
   size?: number;
   url: string; // Base64 locally, or PocketBase URL when synced
+  file?: string; // Native filename returned by Pocketbase API
   uploadedBy: string;
   uploadDate: string;
   isSynced?: boolean;

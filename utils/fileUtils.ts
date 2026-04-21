@@ -8,16 +8,31 @@
 
 import { ArticleFile, DMSDocument } from '../types';
 import { documentService } from '../services/db/documentService';
+import { SyncService } from '../services/sync';
+import { db } from '../services/storage';
+import { KEYS } from '../services/db/core';
 
 /**
  * Resolvet de downloadbare URL voor een ArticleFile.
- * Haalt de base64/blob URL op uit de DMS store via documentId.
+ * Haalt de base64/blob URL op uit de DMS store via documentId of genereert dynamisch de PB link.
  */
 export const resolveFileUrl = async (file: ArticleFile): Promise<string | null> => {
     if (!file.documentId) return null;
     try {
         const doc = await documentService.getDocumentById(file.documentId);
-        return doc?.url || null;
+        if (!doc) return null;
+
+        // B-08 FIX: Dynamisch opbouwen op basis van de server settings als `.file` (Pocketbase Filename) beschikbaar is.
+        // Hiermee omzeilen we hardcoded "localhost" URLs die onbruikbaar zijn voor andere PC's.
+        const pbFile = (doc as any).file;
+        if (pbFile) {
+            const serverConfig = await db.getServerSettings();
+            if (serverConfig && serverConfig.url) {
+                return SyncService.resolveFileUrl(doc.id, pbFile, KEYS.DOCUMENTS, serverConfig.url);
+            }
+        }
+
+        return doc.url || null;
     } catch (e) {
         console.error('[fileUtils] Fout bij resolven van document URL:', e);
         return null;

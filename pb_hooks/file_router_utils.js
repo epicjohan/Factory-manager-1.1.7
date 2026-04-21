@@ -223,12 +223,23 @@ function routeArticleFiles(record, rootPath) {
 
             try { $os.mkdirAll(targetDir, 0o755); } catch (e) { return; }
 
-            var destFilename = sanitize(fileMeta.name || fileMeta.pbFilename);
+            // D-03 FIX: files are now stored in `documents` collection relationally, not physically on the `articles` record.
+            var dmsId = fileMeta.dmsDocumentId || fileMeta.dmsId;
+            var pbFileName = sanitize(fileMeta.pbFilename || fileMeta.fileName);
+            var destFilename = sanitize(fileMeta.name || pbFileName);
             var destPath = targetDir + "\\" + destFilename;
 
             try { $os.stat(destPath); return; } catch (e) {}
 
-            var fileKey = record.baseFilesPath() + "/" + fileMeta.pbFilename;
+            var fileKey = "";
+            if (dmsId && dmsId.length > 5) {
+               // Look up file in documents collection
+               fileKey = "documents/" + dmsId + "/" + pbFileName;
+            } else {
+               // Legacy fallback
+               fileKey = record.baseFilesPath() + "/" + pbFileName;
+            }
+
             try {
                 var reader = fsys.getFile(fileKey);
                 $os.writeFile(destPath, toString(reader), 0o644);
