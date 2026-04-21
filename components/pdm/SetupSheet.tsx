@@ -9,6 +9,7 @@
  */
 
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Article, ArticleTool, SetupVariant, Machine, SetupStatus, SetupFieldDefinition } from '../../types';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -282,7 +283,7 @@ export const SetupSheet: React.FC<SetupSheetProps> = ({ article, setup, machine,
 
     const isLandscape = true;
 
-    return (
+    return createPortal(
         <>
             <style>{`
                 @media print {
@@ -383,6 +384,7 @@ export const SetupSheet: React.FC<SetupSheetProps> = ({ article, setup, machine,
                     })}
                 </div>
             </div>
-        </>
+        </>,
+        document.body
     );
 };
