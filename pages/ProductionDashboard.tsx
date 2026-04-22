@@ -219,7 +219,7 @@ export const ProductionDashboard: React.FC = () => {
     }, [hasDrawings, hasImages]);
 
     // Safe PDF BLOB URL for inline viewing
-    const isDrawingPdf = activeDrawing?.type === 'application/pdf';
+    const isDrawingPdf = activeDrawing?.type === 'application/pdf' || activeDrawing?.name?.toLowerCase().endsWith('.pdf');
     const safePdfUrl = usePdfBlobUrl(isDrawingPdf ? resolvedDrawingUrl : null);
 
     useEffect(() => {

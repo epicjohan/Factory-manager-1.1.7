@@ -25,14 +25,8 @@ export function usePdfBlobUrl(url: string | null | undefined): string | null {
             return;
         }
 
-        // If it's a normal HTTP(S) URL, pass it through directly
-        if (!url.startsWith('data:')) {
-            setBlobUrl(url);
-            return;
-        }
-
-        // Safety: only process data:application/pdf
-        if (!url.startsWith('data:application/pdf')) {
+        // Safety: only process data:application/pdf or http(s) URLs
+        if (url.startsWith('data:') && !url.startsWith('data:application/pdf')) {
             setBlobUrl(null);
             return;
         }
@@ -47,7 +41,7 @@ export function usePdfBlobUrl(url: string | null | undefined): string | null {
 
         let active = true;
 
-        // Convert base64 data URL to blob
+        // Convert data URL or fetch HTTP URL to blob
         try {
             fetch(url)
                 .then(res => {
@@ -56,18 +50,21 @@ export function usePdfBlobUrl(url: string | null | undefined): string | null {
                 })
                 .then(blob => {
                     if (active) {
-                        const created = URL.createObjectURL(blob);
+                        // Force MIME type to application/pdf to ensure native browser rendering
+                        const pdfBlob = new Blob([blob], { type: 'application/pdf' });
+                        const created = URL.createObjectURL(pdfBlob);
                         blobCache.set(cacheKey, created); // Cache it permanently
                         setBlobUrl(created);
                     }
                 })
                 .catch(err => {
-                    console.warn("usePdfBlobUrl: could not convert data URL to blob:", err);
-                    if (active) setBlobUrl(null);
+                    console.warn("usePdfBlobUrl: could not convert URL to blob:", err);
+                    // Fallback to the raw URL on failure (better than nothing)
+                    if (active) setBlobUrl(url);
                 });
         } catch (err) {
             console.warn("usePdfBlobUrl: synchronous error:", err);
-            if (active) setBlobUrl(null);
+            if (active) setBlobUrl(url);
         }
 
         return () => {
