@@ -88,7 +88,8 @@ const TABLE_MAP: Record<string, string> = {
     [KEYS.LOGS_ENERGY_QUARTERLY]: 'logs_energy_quarterly',
     [KEYS.QMS_FRAMEWORKS]: 'qms_frameworks',
     [KEYS.QMS_FOLDERS]: 'qms_folders',
-    [KEYS.QMS_AUDITS]: 'qms_audits'
+    [KEYS.QMS_AUDITS]: 'qms_audits',
+    [KEYS.TOOL_PREP_REQUESTS]: 'tool_prep_requests'
 };
 
 const COLLECTION_TO_KEY = Object.fromEntries(
@@ -127,7 +128,8 @@ const STATE_KEY_MAP: Partial<Record<string, keyof AppState>> = {
     [KEYS.SYSTEM_CONFIG]: 'systemSettings' as keyof AppState,
     [KEYS.QMS_FRAMEWORKS]: 'qmsFrameworks',
     [KEYS.QMS_FOLDERS]: 'qmsFolders',
-    [KEYS.QMS_AUDITS]: 'qmsAudits'
+    [KEYS.QMS_AUDITS]: 'qmsAudits',
+    [KEYS.TOOL_PREP_REQUESTS]: 'toolPrepRequests' as keyof AppState
 };
 
 // created/updated meesturen veroorzaakt stille validatiefouten of onjuiste overwrite.
