@@ -63,7 +63,7 @@ export const NativePdfViewer: React.FC<NativePdfViewerProps> = ({ fileUrl, class
                     {({ resetTransform }) => (
                         <React.Fragment>
                             {/* Zoom knoppen toegevoegd mocht pinch of double click niet handig zijn */}
-                            <div className="absolute top-4 right-4 z-[60] flex gap-2 bg-black/60 p-1.5 rounded-full backdrop-blur-md border border-white/10 shadow-lg">
+                            <div className="absolute bottom-4 right-4 z-[60] flex gap-2 bg-black/60 p-1.5 rounded-full backdrop-blur-md border border-white/10 shadow-lg">
                                 <button onClick={() => resetTransform()} className="px-3 py-1 text-xs font-bold text-white uppercase tracking-widest hover:text-blue-400">Reset</button>
                             </div>
                             
@@ -105,7 +105,7 @@ export const NativePdfViewer: React.FC<NativePdfViewerProps> = ({ fileUrl, class
             </div>
             
             {numPages > 1 && (
-                <div className="absolute bottom-4 right-4 bg-black/60 text-white px-4 py-2 rounded-full text-xs font-bold backdrop-blur-md">
+                <div className="absolute bottom-4 left-4 z-[60] bg-black/60 text-white px-4 py-2 rounded-full text-xs font-bold backdrop-blur-md">
                     {numPages} Pagina's
                 </div>
             )}
