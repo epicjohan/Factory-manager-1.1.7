@@ -140,7 +140,7 @@ export const ROLE_DEFAULT_TABS = {
     [UserRole.ADMIN]: Object.values(AssetTab),
     [UserRole.MANAGER]: Object.values(AssetTab),
     [UserRole.MAINTENANCE]: [AssetTab.OVERVIEW, AssetTab.MAINTENANCE, AssetTab.CHECKLIST, AssetTab.PARTS, AssetTab.DOCS, AssetTab.COOLANT, AssetTab.MIST, AssetTab.CALL],
-    [UserRole.OPERATOR]: [AssetTab.OVERVIEW, AssetTab.LIVE, AssetTab.EFFICIENCY, AssetTab.CHECKLIST, AssetTab.CALL, AssetTab.COOLANT, AssetTab.MAINTENANCE]
+    [UserRole.OPERATOR]: [AssetTab.OVERVIEW, AssetTab.JOB, AssetTab.LIVE, AssetTab.EFFICIENCY, AssetTab.CHECKLIST, AssetTab.CALL, AssetTab.COOLANT, AssetTab.MAINTENANCE]
 };
 
 // B-02 FIX: Gecachte IndexedDB connectie — voorkomt een indexedDB.open() bij elke operatie.

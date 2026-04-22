@@ -93,7 +93,7 @@ const AssetLabelModal: React.FC<{ machine: Machine, onClose: () => void }> = ({ 
 export const MachineDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const { hasPermission, canAccessAsset, canAccessModule } = useAuth();
+    const { hasPermission, canAccessAsset, canAccessModule, user, roles } = useAuth();
     const { activeTickets } = useMaintenance(id);
 
     // Gebruik de reactieve hook voor de machine data
@@ -155,8 +155,8 @@ export const MachineDetail: React.FC = () => {
         return sched ? sched.name : 'Standaard (24/7)';
     };
 
-    // Add JOB tab if PDM module is enabled and machine is CNC
-    const showJobTab = machine.type === AssetType.CNC && canAccessModule(AppModule.ARTICLES);
+    // Add JOB tab if PDM module is enabled globally via canAccessModule OR if explicitly allowed in user tabs
+    const showJobTab = machine.type === AssetType.CNC && (canAccessModule(AppModule.ARTICLES) || user?.allowedTabs?.includes(AssetTab.JOB));
 
     const availableTabs = [
         { id: AssetTab.OVERVIEW, icon: Activity, label: 'Overzicht' },
@@ -170,7 +170,17 @@ export const MachineDetail: React.FC = () => {
         { id: AssetTab.PARTS, icon: Database, label: 'Onderdelen' },
         { id: AssetTab.DOCS, icon: FileText, label: 'Docs' },
     ].filter(tab => {
-        // Filter tabs op basis van gebruikersrechten indien van toepassing
+        if (!user) return false;
+
+        // Geef systeembeheerders altijd toegang
+        const isAdmin = user.role === UserRole.ADMIN || !!roles.find(r => r.id === user.role && r.isSystem && r.name === 'Administrator');
+        if (isAdmin) return true;
+
+        // Valideer expliciet tegen allowedTabs
+        if (user.allowedTabs && user.allowedTabs.length > 0) {
+            return user.allowedTabs.includes(tab.id);
+        }
+
         return true;
     });
 
