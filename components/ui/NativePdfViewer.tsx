@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { pdfjs, Document, Page } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
+import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { Loader2 } from '../../icons';
 
 // In Vite, this is the recommended way to load the pdf.js worker
@@ -34,10 +35,40 @@ export const NativePdfViewer: React.FC<NativePdfViewerProps> = ({ fileUrl, class
         if (onLoadError) onLoadError(error);
     };
 
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [containerWidth, setContainerWidth] = useState<number>(window.innerWidth - 40);
+
+    useEffect(() => {
+        if (!containerRef.current) return;
+        const observer = new ResizeObserver((entries) => {
+            if (entries[0]?.contentRect?.width) {
+                // Keep some padding
+                setContainerWidth(Math.max(300, entries[0].contentRect.width - 20));
+            }
+        });
+        observer.observe(containerRef.current);
+        return () => observer.disconnect();
+    }, []);
+
     return (
-        <div className={`relative flex flex-col items-center bg-slate-100 overflow-y-auto custom-scrollbar ${className}`}>
-            <div className="flex-1 w-full flex justify-center py-4">
-                <Document
+        <div ref={containerRef} className={`relative flex flex-col items-center bg-slate-100 overflow-hidden ${className}`}>
+            <div className="flex-1 w-full h-full flex justify-center py-4 bg-slate-800 rounded-xl overflow-hidden">
+                <TransformWrapper 
+                    initialScale={1} 
+                    minScale={0.5} 
+                    maxScale={8} 
+                    centerOnInit={true}
+                    wheel={{ step: 0.1 }}
+                >
+                    {({ resetTransform }) => (
+                        <React.Fragment>
+                            {/* Zoom knoppen toegevoegd mocht pinch of double click niet handig zijn */}
+                            <div className="absolute top-4 right-4 z-[60] flex gap-2 bg-black/60 p-1.5 rounded-full backdrop-blur-md border border-white/10 shadow-lg">
+                                <button onClick={() => resetTransform()} className="px-3 py-1 text-xs font-bold text-white uppercase tracking-widest hover:text-blue-400">Reset</button>
+                            </div>
+                            
+                            <TransformComponent wrapperStyle={{ width: '100%', height: '100%' }} contentStyle={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                <Document
                     file={fileUrl}
                     onLoadSuccess={onDocumentLoadSuccess}
                     onLoadError={handleLoadError}
@@ -61,12 +92,16 @@ export const NativePdfViewer: React.FC<NativePdfViewerProps> = ({ fileUrl, class
                                 pageNumber={index + 1}
                                 renderTextLayer={false}
                                 renderAnnotationLayer={false}
-                                // Width scaling to fit standard screens (adjusting to responsive bounds dynamically is hard in react-pdf without resize observer, so we use max-width 100%)
-                                width={Math.min(window.innerWidth - 40, 1200)} 
+                                // Fit bounds
+                                width={containerWidth} 
                             />
                         </div>
                     ))}
                 </Document>
+                            </TransformComponent>
+                        </React.Fragment>
+                    )}
+                </TransformWrapper>
             </div>
             
             {numPages > 1 && (
