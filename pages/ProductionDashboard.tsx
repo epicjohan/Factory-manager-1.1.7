@@ -11,6 +11,7 @@ import { useNotifications } from '../contexts/NotificationContext';
 import { usePdfBlobUrl } from '../hooks/usePdfBlobUrl';
 import { FilePreviewModal } from '../components/ui/FilePreviewModal';
 import { SupportRequestModals } from '../components/machine/SupportRequestModals';
+import { resolveFileUrl } from '../utils/fileUtils';
 import {
     ArrowLeft, StopCircle, CheckSquare,
     Image as ImageIcon, FileText, Maximize, Minimize,
@@ -173,12 +174,12 @@ export const ProductionDashboard: React.FC = () => {
         }
 
         // Otherwise resolve from DMS
-        if (drawingDocId) {
-            documentService.getDocumentById(drawingDocId)
-                .then(doc => {
-                    if (doc?.url) {
+        if (drawingDocId && activeDrawing) {
+            resolveFileUrl(activeDrawing)
+                .then(url => {
+                    if (url) {
                         lastResolvedDrawingRef.current = key;
-                        setResolvedDrawingUrl(doc.url);
+                        setResolvedDrawingUrl(url);
                     }
                 })
                 .catch(err => console.warn('Could not resolve drawing URL:', err));
@@ -196,8 +197,8 @@ export const ProductionDashboard: React.FC = () => {
                     resolved[img.id] = img.url;
                 } else if (img.documentId) {
                     try {
-                        const doc = await documentService.getDocumentById(img.documentId);
-                        if (doc?.url) resolved[img.id] = doc.url;
+                        const url = await resolveFileUrl(img);
+                        if (url) resolved[img.id] = url;
                     } catch (_) {}
                 }
             }
