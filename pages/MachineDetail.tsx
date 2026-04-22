@@ -297,7 +297,7 @@ export const MachineDetail: React.FC = () => {
                             <div onClick={() => setActiveTab(AssetTab.JOB)} className="bg-gradient-to-br from-blue-600 to-indigo-700 p-6 rounded-[2rem] shadow-lg shadow-blue-500/20 border border-blue-500 cursor-pointer hover:scale-[1.01] transition-transform text-white">
                                 <div className="flex justify-between items-center mb-2">
                                     <h3 className="font-black text-xs uppercase tracking-widest flex items-center gap-2 opacity-90"><Briefcase size={16} /> Huidige Order</h3>
-                                    <span className="text-[10px] bg-white/20 px-3 py-1 rounded-full font-mono font-black tracking-widest">{machine.activeJob.startTime.split('T')[1].slice(0, 5)}</span>
+                                    <span className="text-[10px] bg-white/20 px-3 py-1 rounded-full font-mono font-black tracking-widest">{machine.activeJob.startTime.includes('T') ? machine.activeJob.startTime.split('T')[1].slice(0, 5) : machine.activeJob.startTime.split(' ')[1]?.slice(0, 5) || '--:--'}</span>
                                 </div>
                                 <div className="text-3xl font-black italic tracking-tighter uppercase">{machine.activeJob.articleCode}</div>
                                 <div className="text-sm font-bold opacity-90 mt-1">{machine.activeJob.setupName}</div>
