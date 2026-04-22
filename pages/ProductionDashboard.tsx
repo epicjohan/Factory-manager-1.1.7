@@ -12,6 +12,7 @@ import { usePdfBlobUrl } from '../hooks/usePdfBlobUrl';
 import { FilePreviewModal } from '../components/ui/FilePreviewModal';
 import { NativePdfViewer } from '../components/ui/NativePdfViewer';
 import { SupportRequestModals } from '../components/machine/SupportRequestModals';
+import { buildColumns, cellValue } from '../components/pdm/SetupSheet';
 import { resolveFileUrl } from '../utils/fileUtils';
 import {
     ArrowLeft, StopCircle, CheckSquare,
@@ -688,30 +689,37 @@ export const ProductionDashboard: React.FC = () => {
                         )}
 
                         {/* TAB 2: TOOLS (INTERACTIVE LIST) */}
-                        {activeTab === 'TOOLS' && (
+                        {activeTab === 'TOOLS' && setup && (
                             <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                                {setupTools.map((tool) => (
-                                    <div
-                                        key={tool.id}
-                                        onClick={() => setSelectedTool(tool)}
-                                        className="bg-white hover:bg-slate-50 border border-slate-200 hover:border-blue-300 p-4 rounded-[2rem] flex gap-4 items-center cursor-pointer transition-all active:scale-[0.98] shadow-sm"
-                                    >
-                                        <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center font-black text-lg text-blue-600 border border-slate-200 shadow-inner">
-                                            {tool.order}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="font-bold text-slate-800 text-sm mb-1 truncate">{tool.description}</div>
-                                            <div className="flex gap-2">
-                                                {tool.holder && (
-                                                    <div className="bg-slate-100 px-2 py-0.5 rounded text-[10px] font-mono text-slate-500 border border-slate-200 truncate">
-                                                        {tool.holder}
-                                                    </div>
-                                                )}
-                                                <div className="text-[10px] text-blue-500 font-bold self-center">Details &rarr;</div>
+                                {setupTools.map((tool) => {
+                                    const cols = buildColumns(setup).filter(c => c.key !== '_order' && c.key !== '_description' && c.key !== '_remark');
+                                    return (
+                                        <div
+                                            key={tool.id}
+                                            onClick={() => setSelectedTool(tool)}
+                                            className="bg-white hover:bg-slate-50 border border-slate-200 hover:border-blue-300 p-4 rounded-[2rem] flex gap-4 items-center cursor-pointer transition-all active:scale-[0.98] shadow-sm"
+                                        >
+                                            <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center font-black text-lg text-blue-600 border border-slate-200 shadow-inner shrink-0">
+                                                {tool.order}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="font-bold text-slate-800 text-sm mb-1 truncate">{tool.description}</div>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {cols.map(c => {
+                                                        const val = cellValue(tool, c.key);
+                                                        if (!val || val === '—') return null;
+                                                        return (
+                                                            <div key={c.key} className="bg-slate-100 px-2 py-0.5 rounded text-[10px] font-mono text-slate-500 border border-slate-200 truncate max-w-full">
+                                                                <span className="font-bold uppercase mr-1">{c.label}:</span>{val} {('unit' in c && typeof c.unit === 'string') ? c.unit : ''}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                                <div className="text-[10px] text-blue-500 font-bold mt-2">Details &rarr;</div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                                 {setupTools.length === 0 && <div className="text-slate-400 italic text-sm text-center py-10">Geen gereedschappen gedefinieerd.</div>}
                             </div>
                         )}
@@ -828,50 +836,20 @@ export const ProductionDashboard: React.FC = () => {
 
                         {/* Modal Content */}
                         <div className="p-8 overflow-y-auto custom-scrollbar">
-                            <div className="grid grid-cols-2 gap-4 mb-8">
-                                <div className="bg-slate-50 p-4 rounded-[1.5rem] border border-slate-200">
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Matrix Code</span>
-                                    <span className="text-lg font-mono font-bold text-blue-600">{selectedTool.matrixCode || '-'}</span>
-                                </div>
-                                <div className="bg-slate-50 p-4 rounded-[1.5rem] border border-slate-200">
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Assembly ID</span>
-                                    <span className="text-lg font-mono font-bold text-slate-800">{selectedTool.assemblyCode || '-'}</span>
-                                </div>
-                                <div className="bg-slate-50 p-4 rounded-[1.5rem] border border-slate-200">
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 flex items-center gap-1"><Ruler size={10} /> Snijlengte</span>
-                                    <span className="text-lg font-bold text-slate-800">{selectedTool.cuttingLength || '-'}</span>
-                                </div>
-                                <div className="bg-slate-50 p-4 rounded-[1.5rem] border border-slate-200">
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Vrijloop</span>
-                                    <span className="text-lg font-bold text-slate-800">{selectedTool.clearance || '-'}</span>
-                                </div>
-                                <div className="bg-slate-50 p-4 rounded-[1.5rem] border border-slate-200">
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Houder</span>
-                                    <span className="text-lg font-bold text-slate-800">{selectedTool.holder || '-'}</span>
-                                </div>
-                                <div className="bg-slate-50 p-4 rounded-[1.5rem] border border-slate-200">
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 flex items-center gap-1"><Thermometer size={10} /> Interne Koeling</span>
-                                    <span className={`text-lg font-black ${selectedTool.internalCooling ? 'text-green-600' : 'text-slate-400'}`}>
-                                        {selectedTool.internalCooling ? 'JA' : 'NEE'}
-                                    </span>
-                                </div>
+                            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                                {setup && buildColumns(setup).filter(c => c.key !== '_order' && c.key !== '_description' && c.key !== '_remark').map(c => {
+                                    const val = cellValue(selectedTool, c.key);
+                                    if (!val || val === '—') return null; // Only show non-empty defined fields per user request
+                                    return (
+                                        <div key={c.key} className="bg-slate-50 p-4 rounded-[1.5rem] border border-slate-200">
+                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">
+                                                {c.label} {('unit' in c && typeof c.unit === 'string') ? `(${c.unit})` : ''}
+                                            </span>
+                                            <span className="text-lg font-bold text-slate-800">{val}</span>
+                                        </div>
+                                    );
+                                })}
                             </div>
-
-                            {selectedTool.toolData && Object.keys(selectedTool.toolData).length > 0 && (
-                                <div className="border-t border-slate-200 pt-6">
-                                    <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                                        <Binary size={14} className="text-purple-500" /> Extra Data
-                                    </h4>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        {Object.entries(selectedTool.toolData).map(([key, value]) => (
-                                            <div key={key} className="bg-slate-50 p-3 rounded-[2rem] border border-slate-200">
-                                                <span className="text-[9px] font-bold text-slate-400 uppercase block mb-1">{key}</span>
-                                                <span className="text-sm font-bold text-slate-700">{String(value)}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
                         </div>
 
                         {/* Modal Footer */}
