@@ -624,10 +624,15 @@ export const SyncService = {
             // 2. ARTICLES LOGIC (Legacy / Partial split metadata vs blobs)
             else if (entry.table === KEYS.ARTICLES) {
                 // files -> filesMeta (JSON) + documents (FormData)
-                if (cleanData.files && Array.isArray(cleanData.files)) {
+                let filesArray = cleanData.files;
+                if (typeof filesArray === 'string') {
+                    try { filesArray = JSON.parse(filesArray); } catch(e) {}
+                }
+
+                if (filesArray && Array.isArray(filesArray)) {
                     const filesMeta: any[] = [];
 
-                    cleanData.files.forEach((fileObj: any) => {
+                    filesArray.forEach((fileObj: any) => {
                         const metaClone = { ...fileObj };
 
                         // Check of er nieuwe Base64 data is (url begint met data:)
