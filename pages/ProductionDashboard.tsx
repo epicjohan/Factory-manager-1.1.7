@@ -10,6 +10,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../contexts/NotificationContext';
 import { usePdfBlobUrl } from '../hooks/usePdfBlobUrl';
 import { FilePreviewModal } from '../components/ui/FilePreviewModal';
+import { NativePdfViewer } from '../components/ui/NativePdfViewer';
 import { SupportRequestModals } from '../components/machine/SupportRequestModals';
 import { resolveFileUrl } from '../utils/fileUtils';
 import {
@@ -506,8 +507,8 @@ export const ProductionDashboard: React.FC = () => {
                         {viewMode === 'DRAWING' ? (
                             activeDrawing ? (
                                 safePdfUrl ? (
-                                    <div key={drawingId} className="absolute inset-0">
-                                        <iframe src={`${safePdfUrl}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`} className="w-full h-full border-none" title="Drawing" />
+                                    <div key={drawingId} className="absolute inset-0 bg-slate-100">
+                                        <NativePdfViewer fileUrl={safePdfUrl} className="absolute inset-0 w-full h-full pb-20" />
                                         <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white/90 to-transparent pointer-events-none"></div>
                                         <button
                                             onClick={() => setPreviewFile(activeDrawing)}

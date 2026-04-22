@@ -3,6 +3,7 @@ import { X, Download, FileText, ZoomIn, ExternalLink } from '../../icons';
 import { ArticleFile } from '../../types';
 import { usePdfBlobUrl } from '../../hooks/usePdfBlobUrl';
 import { resolveFileUrl } from '../../utils/fileUtils';
+import { NativePdfViewer } from './NativePdfViewer';
 
 interface FilePreviewModalProps {
     file: ArticleFile | null;
@@ -96,12 +97,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClos
                         />
                     ) : isPdf ? (
                         safePdfUrl ? (
-                            <iframe
-                                src={safePdfUrl}
-                                className="w-full h-full bg-white rounded-2xl shadow-2xl border-none"
-                                title="PDF Preview"
-                                style={{ minHeight: '80vh' }}
-                            />
+                            <NativePdfViewer fileUrl={safePdfUrl} className="w-full h-full bg-white rounded-[2rem] shadow-2xl relative" />
                         ) : (
                             <div className="w-full h-full flex flex-col items-center justify-center bg-white text-slate-500 rounded-2xl" style={{ minHeight: '80vh' }}>
                                 Laden of bestandstype onbekend...
