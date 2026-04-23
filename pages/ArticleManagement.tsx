@@ -66,7 +66,7 @@ export const ArticleManagement: React.FC = () => {
 
     // Context Panel State
     const [activeFile, setActiveFile] = useState<ArticleFile | null>(null);
-    const [showContextPanel, setShowContextPanel] = useState(true);
+    const [showContextPanel, setShowContextPanel] = useState(false);
     const [fullScreenPreview, setFullScreenPreview] = useState<ArticleFile | null>(null);
 
     // Modals State
