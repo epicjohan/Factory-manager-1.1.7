@@ -182,12 +182,16 @@ export const ToolBlock: React.FC<ToolBlockProps> = ({ articleId, tool, onUpdate,
                 <div className="p-6 border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 animate-in slide-in-from-top-2 duration-200">
 
                     {/* Header Fields */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                        <div className="space-y-1">
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-6">
+                        <div className="space-y-1 md:col-span-2">
+                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">T-Nr</label>
+                            <input disabled={disabled || isReplaced} type="number" min="1" className="w-full p-3 rounded-[2rem] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-sm font-bold text-center outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-60 disabled:border-transparent dark:text-white transition-all" value={tool.order} onChange={e => handleLegacyChange('order', Math.max(1, parseInt(e.target.value) || 1))} />
+                        </div>
+                        <div className="space-y-1 md:col-span-6">
                             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Omschrijving / Type</label>
                             <input disabled={disabled || isReplaced} type="text" className="w-full p-3 rounded-[2rem] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-sm font-bold outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-60 disabled:border-transparent dark:text-white transition-all" value={tool.description} onChange={e => handleLegacyChange('description', e.target.value)} placeholder="Bijv. VHM Frees D10" />
                         </div>
-                        <div className="space-y-1">
+                        <div className="space-y-1 md:col-span-4">
                             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Standtijd (ToolGuard)</label>
                             <input disabled={disabled || isReplaced} type="text" className="w-full p-3 rounded-[2rem] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-sm font-bold text-orange-600 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-60 disabled:border-transparent disabled:text-slate-600" value={tool.lifeTime} onChange={e => handleLegacyChange('lifeTime', e.target.value)} placeholder="Min. / St." />
                         </div>

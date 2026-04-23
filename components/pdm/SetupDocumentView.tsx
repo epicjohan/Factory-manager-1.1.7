@@ -100,16 +100,30 @@ export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
     // Update handler
     const handleUpdateSetupWrapper = (updates: Partial<SetupVariant>, customLog?: string) => onUpdateSetup(activeOpId, setup.id, updates, customLog);
 
+    const [showNewToolModal, setShowNewToolModal] = useState(false);
+    const [newToolOrderInput, setNewToolOrderInput] = useState('');
+
     const handleUpdateTool = (toolId: string, updates: any) => {
         const newTools = (setup.tools || []).map(t => t.id === toolId ? { ...t, ...updates } : t);
         const toolNum = setup.tools?.find(t => t.id === toolId)?.order || '?';
         handleUpdateSetupWrapper({ tools: newTools }, `Gereedschap T${toolNum} gewijzigd in Setup '${setup.name}'.`);
     };
+    
     const handleAddTool = () => {
-        const newOrder = (setup.tools?.length || 0) + 1;
+        setNewToolOrderInput(String((setup.tools?.length || 0) + 1));
+        setShowNewToolModal(true);
+    };
+
+    const confirmAddTool = () => {
+        const newOrder = parseInt(newToolOrderInput, 10);
+        if (isNaN(newOrder) || newOrder < 1) {
+            alert('Ongeldig gereedschapnummer. Vul een getal in groter dan 0.');
+            return;
+        }
         const id = generateId();
         const newTool = { id, order: newOrder, description: '', lifeTime: '', status: 'ACTIVE' as const };
         handleUpdateSetupWrapper({ tools: [...(setup.tools || []), newTool] }, `Nieuw gereedschap (T${newOrder}) toegevoegd aan Setup '${setup.name}'.`);
+        setShowNewToolModal(false);
     };
     const handleDeleteTool = (id: string) => {
         const toolNum = setup.tools?.find(t => t.id === id)?.order || '?';
@@ -322,6 +336,41 @@ export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
                     </CollapsibleSection>
                 )}
             </div>
+
+            {/* New Tool Modal */}
+            {showNewToolModal && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+                    <div className="bg-white dark:bg-slate-800 rounded-[2rem] shadow-2xl w-full max-w-sm overflow-hidden border border-slate-200 dark:border-slate-700 animate-in zoom-in-95 duration-200">
+                        <div className="p-6">
+                            <h3 className="text-xl font-black text-slate-800 dark:text-white mb-2">Nieuw Gereedschap (T-Nr)</h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Voer het gereedschapnummer (T-nummer) in voor dit nieuwe gereedschap. Dit nummer kan later nog steeds worden gewijzigd.</p>
+                            <input
+                                type="number"
+                                min="1"
+                                autoFocus
+                                value={newToolOrderInput}
+                                onChange={e => setNewToolOrderInput(e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && confirmAddTool()}
+                                className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-lg font-black text-slate-800 dark:text-white mb-6 outline-none focus:border-blue-500 dark:focus:border-blue-500 transition-colors"
+                            />
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setShowNewToolModal(false)}
+                                    className="flex-1 py-3 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 rounded-xl font-bold transition-colors"
+                                >
+                                    Annuleren
+                                </button>
+                                <button
+                                    onClick={confirmAddTool}
+                                    className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black transition-colors"
+                                >
+                                    Aanmaken
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
