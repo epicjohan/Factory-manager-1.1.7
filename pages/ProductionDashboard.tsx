@@ -357,12 +357,27 @@ export const ProductionDashboard: React.FC = () => {
                 <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-20">
                     {availableJobs.map((opt, idx) => (
                         <div key={idx} className="bg-white p-6 rounded-[2rem] border border-slate-200 hover:border-blue-500 transition-all group shadow-sm flex flex-col cursor-pointer hover:shadow-md" onClick={(e) => handleStartJob(e, opt)}>
-                            <div className="flex justify-between items-start mb-4">
-                                <div>
-                                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{opt.article.articleCode}</div>
-                                    <h4 className="text-lg font-black text-slate-800 uppercase italic truncate pr-2">{opt.article.name}</h4>
+                            <div className="flex flex-col gap-2 mb-6 pointer-events-none w-full">
+                                <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest shrink-0">Artikelcode</span>
+                                    <span className="text-sm font-black text-slate-800 text-right truncate pl-4">{opt.article.articleCode}</span>
                                 </div>
-                                <span className="bg-green-100 text-green-700 text-[10px] font-black px-2 py-1 rounded border border-green-200 uppercase shrink-0">Rev {opt.article.revision}</span>
+                                <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest shrink-0">Tekening nr</span>
+                                    <span className="text-sm font-bold text-slate-800 text-right truncate pl-4">{opt.article.drawingNumber || '-'}</span>
+                                </div>
+                                <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest shrink-0">Tekening revisie</span>
+                                    <span className="text-sm font-bold text-slate-800 text-right truncate pl-4">{opt.article.drawingRevision || '-'}</span>
+                                </div>
+                                <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest shrink-0">Omschrijving</span>
+                                    <span className="text-sm font-bold text-slate-800 text-right truncate pl-4" title={opt.article.name}>{opt.article.name}</span>
+                                </div>
+                                <div className="flex justify-between items-center pb-2">
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest shrink-0">Asset naam</span>
+                                    <span className="text-sm font-bold text-blue-600 text-right truncate pl-4">{machine.name}</span>
+                                </div>
                             </div>
                             
                             <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold text-slate-500 mb-6 mt-auto">
@@ -371,7 +386,7 @@ export const ProductionDashboard: React.FC = () => {
                                 <span className="bg-blue-50 text-blue-600 px-2 py-1 rounded border border-blue-100 truncate max-w-[120px]">{opt.setup.name}</span>
                             </div>
 
-                            <button className="w-full py-3 bg-slate-100 group-hover:bg-blue-600 text-slate-600 group-hover:text-white rounded-[1.5rem] font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 transition-all">
+                            <button className="w-full mt-auto py-3 bg-slate-100 group-hover:bg-blue-600 text-slate-600 group-hover:text-white rounded-[1.5rem] font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 transition-all shrink-0">
                                 <PlayCircle size={16} /> Start Setup
                             </button>
                         </div>

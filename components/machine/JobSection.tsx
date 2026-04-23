@@ -92,22 +92,37 @@ export const JobSection: React.FC<JobSectionProps> = ({ machine }) => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {availableJobs.map((opt, idx) => (
-                        <div key={idx} className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-500 transition-all group cursor-pointer shadow-sm" onClick={() => handleStartJob(opt)}>
-                            <div className="flex justify-between items-start mb-4">
-                                <div>
-                                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{opt.article.articleCode}</div>
-                                    <h4 className="text-xl font-black text-slate-800 dark:text-white uppercase italic">{opt.article.name}</h4>
+                        <div key={idx} className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-500 transition-all group cursor-pointer shadow-sm flex flex-col" onClick={() => handleStartJob(opt)}>
+                            <div className="flex flex-col gap-2 mb-6 pointer-events-none w-full">
+                                <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-2">
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest shrink-0">Artikelcode</span>
+                                    <span className="text-sm font-black text-slate-800 dark:text-white text-right truncate pl-4">{opt.article.articleCode}</span>
                                 </div>
-                                <span className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-[10px] font-black px-2 py-1 rounded border border-green-200 dark:border-green-800 uppercase">Rev {opt.article.revision}</span>
+                                <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-2">
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest shrink-0">Tekening nr</span>
+                                    <span className="text-sm font-bold text-slate-800 dark:text-white text-right truncate pl-4">{opt.article.drawingNumber || '-'}</span>
+                                </div>
+                                <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-2">
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest shrink-0">Tekening revisie</span>
+                                    <span className="text-sm font-bold text-slate-800 dark:text-white text-right truncate pl-4">{opt.article.drawingRevision || '-'}</span>
+                                </div>
+                                <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-2">
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest shrink-0">Omschrijving</span>
+                                    <span className="text-sm font-bold text-slate-800 dark:text-white text-right truncate pl-4" title={opt.article.name}>{opt.article.name}</span>
+                                </div>
+                                <div className="flex justify-between items-center pb-2">
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest shrink-0">Asset naam</span>
+                                    <span className="text-sm font-bold text-blue-600 dark:text-blue-400 text-right truncate pl-4">{machine.name}</span>
+                                </div>
                             </div>
                             
-                            <div className="flex items-center gap-3 text-xs font-bold text-slate-500 dark:text-slate-400 mb-6">
-                                <span className="bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded">{opt.opDesc}</span>
-                                <ArrowRight size={12} />
-                                <span className="bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-2 py-1 rounded">{opt.setup.name}</span>
+                            <div className="flex items-center gap-3 text-xs font-bold text-slate-500 dark:text-slate-400 mb-6 mt-auto">
+                                <span className="bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded truncate max-w-[120px]">{opt.opDesc}</span>
+                                <ArrowRight size={12} className="shrink-0" />
+                                <span className="bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-2 py-1 rounded truncate max-w-[120px]">{opt.setup.name}</span>
                             </div>
 
-                            <button className="w-full py-3 bg-blue-600 group-hover:bg-blue-500 text-white rounded-[2rem] font-black uppercase text-xs tracking-widest flex items-center justify-center gap-2 transition-all">
+                            <button className="w-full py-3 mt-auto bg-blue-600 group-hover:bg-blue-500 text-white rounded-[2rem] font-black uppercase text-xs tracking-widest flex items-center justify-center gap-2 transition-all shrink-0">
                                 <PlayCircle size={16} /> Start Setup
                             </button>
                         </div>
