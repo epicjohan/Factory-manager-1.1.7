@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP_NAME = 'FactoryManager';
-const VERSION = '1.1.1';
+const VERSION = '1.1.7';
 const BUILD_CMD = 'npm run build';
 const ROOT_DIR = path.join(__dirname, '..');
 const OUTPUT_DIR = path.join(ROOT_DIR, 'release');
