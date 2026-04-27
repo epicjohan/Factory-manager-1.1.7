@@ -63,7 +63,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
         <div className={`relative ${className}`} ref={containerRef}>
             <div
                 onClick={() => !disabled && setIsOpen(!isOpen)}
-                className={`w-full p-2.5 rounded-[2rem] border flex items-center justify-between bg-slate-50 dark:bg-slate-900 transition-all cursor-pointer ${
+                className={`w-full h-[46px] px-4 rounded-[2rem] border flex items-center justify-between bg-slate-50 dark:bg-slate-900 transition-all cursor-pointer ${
                     disabled ? 'opacity-60 cursor-not-allowed border-slate-200 dark:border-slate-700' : 
                     isOpen ? 'border-blue-500 ring-1 ring-blue-500 bg-white dark:bg-slate-800' : 'border-slate-200 dark:border-slate-700 hover:border-blue-400'
                 }`}

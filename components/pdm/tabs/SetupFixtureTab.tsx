@@ -85,27 +85,37 @@ export const SetupFixtureTab: React.FC<SetupFixtureTabProps> = ({
                 <div className="grid grid-cols-12 gap-6">
                     {fields.map(field => {
                         const val = templateData?.[field.key] ?? field.defaultValue ?? '';
+                        const isFilled = val !== '' && val !== null && val !== undefined && val !== false;
+                        const isHighlightActive = field.highlightFilled && isFilled;
                         const spanClass = `col-span-12 md:col-span-${field.colSpan || 6}`;
+
+                        const labelClass = `block text-[10px] font-black uppercase tracking-widest ml-1 ${isHighlightActive ? 'text-amber-600 dark:text-amber-400' : 'text-slate-500'}`;
+                        const requiredBadge = field.required ? <span className="text-red-500 ml-0.5">*</span> : null;
+
+                        // Border-only highlight: thicker orange border when highlighted, normal otherwise
+                        const inputBorderClass = isHighlightActive
+                            ? 'border-[3px] border-amber-400 dark:border-amber-500'
+                            : 'border-2 border-slate-200 dark:border-slate-600';
 
                         if (field.type === 'header') return <h4 key={field.key} className="col-span-12 font-black text-slate-400 uppercase tracking-widest text-xs border-b border-slate-100 dark:border-slate-700 pb-2 mt-4">{field.label}</h4>;
 
                         if (field.type === 'textarea') return (
-                            <div key={field.key} className={spanClass + " space-y-2"}>
-                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">{field.label}</label>
-                                <textarea disabled={isLocked} rows={4} className="w-full p-4 rounded-[2rem] border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 outline-none focus:border-blue-500 transition-all disabled:opacity-60 disabled:border-transparent dark:text-white" value={val} onChange={e => onUpdateTemplateData(field.key, e.target.value)} />
+                            <div key={field.key} className={`${spanClass} space-y-2`}>
+                                <label className={labelClass}>{field.label}{requiredBadge}</label>
+                                <textarea disabled={isLocked} rows={4} className={`w-full p-4 rounded-[2rem] ${inputBorderClass} bg-white dark:bg-slate-900 outline-none focus:border-blue-500 transition-all disabled:opacity-60 disabled:border-transparent text-slate-800 dark:text-white`} value={val} onChange={e => onUpdateTemplateData(field.key, e.target.value)} />
                             </div>
                         );
 
                         if (field.type === 'boolean') return (
-                            <div key={field.key} className={spanClass + " space-y-2"}>
-                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">{field.label}</label>
-                                <button disabled={isLocked} type="button" onClick={() => onUpdateTemplateData(field.key, !val)} className={`w-full p-3 rounded-[2rem] border-2 font-bold text-sm transition-all ${val ? 'bg-blue-600 border-blue-500 text-white' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500'} disabled:opacity-60`}>{val ? 'JA / AAN' : 'NEE / UIT'}</button>
+                            <div key={field.key} className={`${spanClass} space-y-2`}>
+                                <label className={labelClass}>{field.label}{requiredBadge}</label>
+                                <button disabled={isLocked} type="button" onClick={() => onUpdateTemplateData(field.key, !val)} className={`w-full h-[46px] rounded-[2rem] font-bold text-sm transition-all ${isHighlightActive && val ? 'border-[3px] border-amber-400 dark:border-amber-500 bg-blue-600 text-white' : val ? 'border-2 border-blue-500 bg-blue-600 text-white' : 'border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-500'} disabled:opacity-60`}>{val ? 'Ja' : 'Nee'}</button>
                             </div>
                         );
 
                         if (field.type === 'select') return (
-                            <div key={field.key} className={spanClass + " space-y-2"}>
-                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">{field.label}</label>
+                            <div key={field.key} className={`${spanClass} space-y-2`}>
+                                <label className={labelClass}>{field.label}{requiredBadge}</label>
                                 <SearchableSelect
                                     value={val}
                                     options={field.options || []}
@@ -118,11 +128,11 @@ export const SetupFixtureTab: React.FC<SetupFixtureTabProps> = ({
                         );
 
                         return (
-                            <div key={field.key} className={spanClass + " space-y-2"}>
-                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">{field.label}</label>
+                            <div key={field.key} className={`${spanClass} space-y-2`}>
+                                <label className={labelClass}>{field.label}{requiredBadge}</label>
                                 <div className="relative">
-                                    <input disabled={isLocked} type={field.type === 'number' ? 'number' : 'text'} className={`w-full p-3.5 ${field.unit ? 'pr-20' : ''} rounded-[2rem] border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-bold outline-none focus:border-blue-500 transition-all disabled:opacity-60 disabled:border-transparent dark:text-white`} value={val} onChange={e => onUpdateTemplateData(field.key, field.type === 'number' ? parseFloat(e.target.value) : e.target.value)} />
-                                    {field.unit && <span className="absolute right-10 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">{field.unit}</span>}
+                                    <input disabled={isLocked} type={field.type === 'number' ? 'number' : 'text'} className={`w-full h-[46px] px-4 ${field.unit ? 'pr-20' : ''} rounded-[2rem] ${inputBorderClass} bg-white dark:bg-slate-900 font-bold outline-none focus:border-blue-500 transition-all disabled:opacity-60 disabled:border-transparent text-slate-800 dark:text-white`} value={val} onChange={e => onUpdateTemplateData(field.key, field.type === 'number' ? parseFloat(e.target.value) : e.target.value)} />
+                                    {field.unit && <span className={`absolute right-10 top-1/2 -translate-y-1/2 text-sm font-bold ${isHighlightActive ? 'text-amber-500' : 'text-slate-400'}`}>{field.unit}</span>}
                                 </div>
                             </div>
                         );

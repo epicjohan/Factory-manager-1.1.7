@@ -85,6 +85,7 @@ export const formatDateForPB = (date: string | Date): string => {
 export const JSON_FIELDS = [
     'liveStats', 'toolStats', 'checklist', 'permissions',
     'allowedAssetIds', 'allowedModules', 'allowedTabs',
+    'favoriteModules', 'notificationSubscriptions',
     'activeModules', 'notificationEmails', 'actions',
     'usedParts', 'shifts', 'andonConfig', 'mtConnectConfig',
     'fields', 'toolFields', 'templateData', 'operations', 'bomItems', 'files', 'filesMeta', 'auditTrail',

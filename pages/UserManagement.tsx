@@ -65,7 +65,7 @@ export const UserManagement: React.FC = () => {
     const [allowedAssetIds, setAllowedAssetIds] = useState<string[]>([]);
     const [allowedModules, setAllowedModules] = useState<AppModule[]>([]);
     const [allowedTabs, setAllowedTabs] = useState<AssetTab[]>([]);
-    const [defaultPath, setDefaultPath] = useState<string>('/');
+
 
     // --- ROLE EDIT STATE ---
     const [editingRole, setEditingRole] = useState<UserRoleDefinition | null>(null);
@@ -94,7 +94,7 @@ export const UserManagement: React.FC = () => {
         setAllowedAssetIds(user.allowedAssetIds || []);
         setAllowedModules(user.allowedModules || Object.values(AppModule));
         setAllowedTabs(user.allowedTabs || ROLE_DEFAULT_TABS[UserRole.OPERATOR] || Object.values(AssetTab));
-        setDefaultPath(user.defaultPath || '/');
+
         setActiveMainTab('USERS');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -111,7 +111,7 @@ export const UserManagement: React.FC = () => {
         setAllowedAssetIds([]);
         setAllowedModules(Object.values(AppModule));
         setAllowedTabs(ROLE_DEFAULT_TABS[UserRole.OPERATOR]);
-        setDefaultPath('/');
+
     };
 
     const handleSaveUser = async (e: React.FormEvent) => {
@@ -135,7 +135,7 @@ export const UserManagement: React.FC = () => {
             allowedAssetIds,
             allowedModules,
             allowedTabs,
-            defaultPath
+
         };
 
         if (editingUser) {
@@ -298,8 +298,7 @@ export const UserManagement: React.FC = () => {
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
+                                <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Rol (Rechtenprofiel)</label>
                                         <select className="w-full p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold outline-none focus:ring-2 focus:ring-blue-500 dark:text-white" value={userRoleId} onChange={e => setUserRoleId(e.target.value)}>
                                             {roles.map(r => (
@@ -307,16 +306,6 @@ export const UserManagement: React.FC = () => {
                                             ))}
                                         </select>
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest ml-1">Startpagina</label>
-                                        <select className="w-full p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold outline-none focus:ring-2 focus:ring-blue-500 dark:text-white" value={defaultPath} onChange={e => setDefaultPath(e.target.value)}>
-                                            <option value="/">Fabriek Overzicht</option>
-                                            <option value="/machines">Machine Lijst</option>
-                                            <option value="/support">Support Dashboard</option>
-                                            <option value="/planner">Planning</option>
-                                        </select>
-                                    </div>
-                                </div>
 
                                 {/* Detail Permissions Accordion Style */}
                                 <div className="space-y-4 pt-4 border-t dark:border-slate-700">

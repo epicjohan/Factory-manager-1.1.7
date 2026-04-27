@@ -106,6 +106,10 @@ export const COLLECTIONS_BLUEPRINT: CollectionGroup[] = [
                 { name: 'role', type: 'Text', desc: 'ADMIN/TD/OPERATOR' },
                 { name: 'permissions', type: 'JSON', desc: 'Fijnmazige rechten' },
                 { name: 'allowedAssetIds', type: 'JSON', desc: 'Zichtbare machines' },
+                { name: 'email', type: 'Text', desc: 'Persoonlijk e-mailadres' },
+                { name: 'notificationSubscriptions', type: 'JSON', desc: 'Ingeschreven notificatie-feeds' },
+                { name: 'favoriteModules', type: 'JSON', desc: 'Gepinde sidebar items' },
+                { name: 'defaultPath', type: 'Text', desc: 'Startpagina pad' },
                 { name: 'created', type: 'Date', desc: 'Aanmaakdatum' },
                 { name: 'updated', type: 'Date', desc: 'Laatste wijziging' }
             ]}

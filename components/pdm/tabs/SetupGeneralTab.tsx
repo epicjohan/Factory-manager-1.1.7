@@ -1,6 +1,6 @@
 
-import React, { useState, useMemo } from 'react';
-import { Monitor, Box, Clock, RefreshCw, ChevronRight, Search, History, X, FileCode, Wrench, Settings, Info, User, Calendar } from '../../../icons';
+import React, { useState } from 'react';
+import { Monitor, Box, Clock, RefreshCw, ChevronRight, History, X, FileCode, Wrench, Settings, Info, User, Calendar } from '../../../icons';
 import { SetupVariant, Machine, SetupTemplate, SetupChangeEntry } from '../../../types';
 
 interface SetupGeneralTabProps {
@@ -13,43 +13,14 @@ interface SetupGeneralTabProps {
 }
 
 export const SetupGeneralTab: React.FC<SetupGeneralTabProps> = ({ setup, isLocked, machines, templates, isForceProcess, onUpdate }) => {
-    const [showMachinePicker, setShowMachinePicker] = useState(false);
-    const [machineSearchTerm, setMachineSearchTerm] = useState('');
     const [showHistoryModal, setShowHistoryModal] = useState(false);
 
     const isProcessSetup = (setup.setupTemplateId !== undefined && !setup.machineId) || isForceProcess;
-
-    const filteredMachines = useMemo(() => {
-        if (!machineSearchTerm) return machines;
-        const term = machineSearchTerm.toLowerCase();
-        return machines.filter(m => m.name.toLowerCase().includes(term) || m.machineNumber.toLowerCase().includes(term));
-    }, [machines, machineSearchTerm]);
 
     const getMachineLabel = (id?: string) => {
         if (!id) return 'Geen Machine';
         const m = machines.find(mac => mac.id === id);
         return m ? `${m.name} (${m.machineNumber})` : 'Onbekende Machine';
-    };
-
-    const handleMachineSelect = (mId: string) => {
-        const machine = machines.find(m => m.id === mId);
-        const updates: Partial<SetupVariant> = { 
-            machineId: mId,
-            name: machine ? machine.name : setup.name // Auto-update name to asset name
-        };
-        
-        // Auto-link template if machine has default
-        if (machine?.setupTemplateId) {
-            const tpl = templates.find(t => t.id === machine.setupTemplateId);
-            if (tpl) {
-                updates.frozenFields = tpl.fields;
-                updates.frozenToolFields = tpl.toolFields;
-                updates.frozenSheetConfig = tpl.sheetConfig;
-                updates.setupTemplateId = machine.setupTemplateId;
-            }
-        }
-        onUpdate(updates);
-        setShowMachinePicker(false);
     };
 
     const getChangeIcon = (type: string) => {
@@ -117,45 +88,10 @@ export const SetupGeneralTab: React.FC<SetupGeneralTabProps> = ({ setup, isLocke
                     {!isProcessSetup ? (
                         <>
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Toegewezen Machine</label>
-                            <div 
-                                onClick={(e) => { 
-                                    e.stopPropagation(); 
-                                    if(!isLocked) setShowMachinePicker(!showMachinePicker); 
-                                }} 
-                                className={`w-full p-4 rounded-[2rem] border-2 bg-white dark:bg-slate-800 flex items-center justify-between cursor-pointer transition-all ${isLocked ? 'opacity-60 cursor-not-allowed border-slate-200 dark:border-slate-700' : 'border-slate-200 dark:border-slate-700 hover:border-blue-500 shadow-sm'}`}
-                            >
-                                <div className="flex items-center gap-3 font-bold text-slate-800 dark:text-white truncate">
-                                    <Monitor size={18} className="text-blue-500" /> 
-                                    <span className="truncate">{getMachineLabel(setup.machineId)}</span>
-                                </div>
-                                {!isLocked && <ChevronRight size={16} className={`text-slate-400 transition-transform ${showMachinePicker ? 'rotate-90' : ''}`} />}
+                            <div className="w-full p-4 rounded-[2rem] border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 flex items-center gap-3 opacity-80 cursor-not-allowed">
+                                <Monitor size={18} className="text-blue-500" />
+                                <span className="font-bold text-slate-800 dark:text-white truncate">{getMachineLabel(setup.machineId)}</span>
                             </div>
-                            
-                            {/* MACHINE PICKER DROPDOWN */}
-                            {showMachinePicker && (
-                                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl z-[150] p-4 animate-in zoom-in-95 duration-200 ring-4 ring-black/5">
-                                    <div className="relative mb-3">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                                        <input autoFocus type="text" placeholder="Zoek machine..." className="w-full pl-10 pr-4 py-2.5 rounded-[2rem] bg-slate-50 dark:bg-slate-900 border-none outline-none font-bold text-sm" value={machineSearchTerm} onChange={e => setMachineSearchTerm(e.target.value)} />
-                                    </div>
-                                    <div className="max-h-60 overflow-y-auto space-y-1 custom-scrollbar">
-                                        {filteredMachines.map(m => (
-                                            <div 
-                                                key={m.id} 
-                                                onMouseDown={(e) => {
-                                                    e.preventDefault();
-                                                    e.stopPropagation();
-                                                    handleMachineSelect(m.id);
-                                                }} 
-                                                className="p-3 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-[2rem] cursor-pointer flex justify-between items-center transition-colors group"
-                                            >
-                                                <span className="font-bold text-sm text-slate-800 dark:text-white uppercase italic group-hover:text-blue-600 transition-colors">{m.name}</span>
-                                                <span className="font-mono text-[10px] text-slate-400 font-black">{m.machineNumber}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
                             
                             {/* ACTIVE TEMPLATE DISPLAY FOR MACHINE */}
                             {setup.setupTemplateId && (
@@ -186,7 +122,7 @@ export const SetupGeneralTab: React.FC<SetupGeneralTabProps> = ({ setup, isLocke
             <div className="grid grid-cols-2 gap-6">
                 <div>
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Insteltijd</label>
-                    <div className={`w-full p-3 rounded-[2rem] border-2 bg-white dark:bg-slate-800 flex items-center gap-3 transition-all ${isLocked ? 'border-slate-200 dark:border-slate-700 opacity-60' : 'border-slate-200 dark:border-slate-700 hover:border-blue-500 shadow-sm'}`}>
+                    <div className={`w-full p-3 rounded-[2rem] border-2 bg-white dark:bg-slate-900 flex items-center gap-3 transition-all ${isLocked ? 'border-slate-200 dark:border-slate-700 opacity-60' : 'border-slate-200 dark:border-slate-700 hover:border-blue-500 shadow-sm'}`}>
                          <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-2xl text-blue-600 dark:text-blue-400">
                              <Clock size={18} />
                          </div>
@@ -204,7 +140,7 @@ export const SetupGeneralTab: React.FC<SetupGeneralTabProps> = ({ setup, isLocke
 
                 <div>
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Cyclus Tijd</label>
-                    <div className={`w-full p-3 rounded-[2rem] border-2 bg-white dark:bg-slate-800 flex items-center gap-3 transition-all ${isLocked ? 'border-slate-200 dark:border-slate-700 opacity-60' : 'border-slate-200 dark:border-slate-700 hover:border-emerald-500 shadow-sm'}`}>
+                    <div className={`w-full p-3 rounded-[2rem] border-2 bg-white dark:bg-slate-900 flex items-center gap-3 transition-all ${isLocked ? 'border-slate-200 dark:border-slate-700 opacity-60' : 'border-slate-200 dark:border-slate-700 hover:border-emerald-500 shadow-sm'}`}>
                          <div className="p-2 bg-emerald-50 dark:bg-emerald-900/30 rounded-2xl text-emerald-600 dark:text-emerald-400">
                              <RefreshCw size={18} />
                          </div>

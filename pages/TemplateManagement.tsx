@@ -31,6 +31,8 @@ const COL_SPANS = [
     { val: 6, label: 'Half (50%)' },
     { val: 4, label: 'Derde (33%)' },
     { val: 3, label: 'Kwart (25%)' },
+    { val: 2, label: 'Zesde (16%)' },
+    { val: 0, label: 'Variabel...' },
 ];
 
 /** Standaard legacy tool-velden als preset voor nieuwe templates */
@@ -75,6 +77,7 @@ export const TemplateManagement: React.FC = () => {
     const [showFieldModal, setShowFieldModal] = useState(false);
     const [editingFieldIndex, setEditingFieldIndex] = useState<number | null>(null);
     const [fieldData, setFieldData] = useState<SetupFieldDefinition>({ key: '', label: '', type: 'text', colSpan: 6 });
+    const [isCustomWidth, setIsCustomWidth] = useState(false);
 
     // Enhanced Option Builder State
     const [currentOptions, setCurrentOptions] = useState<string[]>([]);
@@ -253,9 +256,13 @@ export const TemplateManagement: React.FC = () => {
             const field = currentFields[index];
             setFieldData({ ...field });
             setCurrentOptions(field.options || []);
+            // Check if existing field has a non-preset width
+            const isPreset = COL_SPANS.some(opt => opt.val === (field.colSpan || 6) && opt.val !== 0);
+            setIsCustomWidth(!isPreset);
         } else {
             setFieldData({ key: '', label: '', type: 'text', colSpan: 6 });
             setCurrentOptions([]);
+            setIsCustomWidth(false);
         }
         setShowFieldModal(true);
     };
@@ -711,13 +718,48 @@ export const TemplateManagement: React.FC = () => {
                                     <label className="block text-xs font-bold text-slate-500 uppercase mb-2 flex items-center gap-2"><LayoutGrid size={14} /> Veld Breedte (Plaatsing)</label>
                                     <select
                                         className="w-full p-3 rounded-2xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 font-bold"
-                                        value={fieldData.colSpan || 6}
-                                        onChange={e => setFieldData({ ...fieldData, colSpan: parseInt(e.target.value) })}
+                                        value={isCustomWidth ? 0 : (fieldData.colSpan || 6)}
+                                        onChange={e => {
+                                            const v = parseInt(e.target.value);
+                                            if (v === 0) {
+                                                setIsCustomWidth(true);
+                                            } else {
+                                                setIsCustomWidth(false);
+                                                setFieldData({ ...fieldData, colSpan: v });
+                                            }
+                                        }}
                                     >
                                         {COL_SPANS.map(opt => (
                                             <option key={opt.val} value={opt.val}>{opt.label}</option>
                                         ))}
                                     </select>
+
+                                    {/* Custom slider — visible when 'Variabel' is selected */}
+                                    {isCustomWidth && (
+                                        <div className="mt-3 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-700 animate-in slide-in-from-top-2 duration-200">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Breedte instellen</span>
+                                                <span className="text-sm font-black text-indigo-600 dark:text-indigo-400 tabular-nums">
+                                                    {Math.round(((fieldData.colSpan || 6) / 12) * 100)}%
+                                                    <span className="text-[10px] text-slate-400 ml-1">({fieldData.colSpan}/12)</span>
+                                                </span>
+                                            </div>
+                                            <input
+                                                type="range"
+                                                min={1}
+                                                max={12}
+                                                step={1}
+                                                value={fieldData.colSpan || 6}
+                                                onChange={e => setFieldData({ ...fieldData, colSpan: parseInt(e.target.value) })}
+                                                className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full appearance-none cursor-pointer accent-indigo-600"
+                                            />
+                                            <div className="flex justify-between mt-1 px-0.5">
+                                                {Array.from({ length: 12 }, (_, i) => (
+                                                    <span key={i} className={`text-[8px] font-mono ${(fieldData.colSpan || 6) === i + 1 ? 'text-indigo-600 font-bold' : 'text-slate-300 dark:text-slate-600'}`}>{i + 1}</span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 

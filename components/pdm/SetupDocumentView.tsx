@@ -153,6 +153,9 @@ export const SetupDocumentView: React.FC<SetupDocumentViewProps> = ({
             <SetupStatusBar
                 setup={setup}
                 canManage={canManage}
+                fields={effectiveFields}
+                templateData={setup.templateData || {}}
+                toolFields={effectiveToolFields}
                 onChangeStatus={changeStatus}
                 onRevision={() => onRevision(activeOpId, setup)}
             />

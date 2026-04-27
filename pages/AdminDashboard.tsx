@@ -115,21 +115,7 @@ export const AdminDashboard: React.FC = () => {
                 </Link>
             )}
 
-            {canAccessModule(AppModule.INVENTORY) && (
-                <Link to="/admin/inventory" className="group relative bg-white dark:bg-slate-800 rounded-[2rem] p-8 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all duration-300">
-                    <div className="bg-orange-100 dark:bg-orange-900/30 w-14 h-14 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                        <Box size={24} className="text-orange-600 dark:text-orange-400" />
-                    </div>
-                    <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">Materieel & Voorraad</h3>
-                    <p className="text-slate-500 dark:text-slate-400 text-xs mb-4 min-h-[2.5em]">
-                        Beheer reserveonderdelen en algemene magazijnartikelen.
-                    </p>
-                    <div className="flex items-center text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-wide">
-                        <span>Voorraad</span>
-                        <ArrowRight size={14} className="ml-2 group-hover:translate-x-1 transition-transform" />
-                    </div>
-                </Link>
-            )}
+
         </div>
 
         {archivedMachines.length > 0 && (

@@ -66,24 +66,19 @@ export interface ModuleGroupConfig {
 
 export const MODULE_GROUPS: ModuleGroupConfig[] = [
     {
-        id: 'DASHBOARDS',
-        title: 'Dashboards',
+        id: 'MONITORING',
+        title: 'Monitoring',
         icon: LayoutDashboard,
         items: [
             { id: AppModule.DASHBOARD_MAIN, label: 'Fabriek Overzicht', path: '/', icon: Factory },
             { id: AppModule.EFFICIENCY, label: 'Efficiency', path: '/efficiency', icon: TrendingUp },
-            // Updated to EFFICIENCY to allow disabling via "Smart Factory" module
             { id: AppModule.EFFICIENCY, label: 'TV / Andon Bord', path: '/andon', icon: Tv },
-            { id: AppModule.SUPPORT, label: 'Support & Oproepen', path: '/support', icon: Megaphone, badgeKey: 'support' },
             { id: AppModule.SUPPORT, label: 'Logistiek Monitor', path: '/logistics-andon', icon: Truck },
-            { id: AppModule.QUESTIONS, label: 'Vragen & Berichten', path: '/questions', icon: MessageSquare, badgeKey: 'questions' },
-            { id: AppModule.ENERGY, label: 'Energy Management', path: '/energy', icon: Zap },
-            { id: AppModule.FINANCE, label: 'Financieel Rapport', path: '/admin/cost-report', icon: BarChart2 },
         ]
     },
     {
         id: 'ASSETS',
-        title: 'Assets & Machines',
+        title: 'Assets',
         icon: Monitor,
         items: [
             { id: AppModule.MACHINES, label: 'CNC Machines', path: '/machines', icon: Monitor },
@@ -94,14 +89,25 @@ export const MODULE_GROUPS: ModuleGroupConfig[] = [
     },
     {
         id: 'TOOLS',
-        title: 'Productie & Beheer',
+        title: 'Productie',
         icon: Briefcase,
         items: [
             { id: AppModule.ARTICLES, label: 'Artikelen (PDM)', path: '/articles', icon: FileText },
-            { id: AppModule.TOOL_PREP, label: 'Gereedschapsvoorbereiding', path: '/tool-prep', icon: Wrench },
+            { id: AppModule.TOOL_PREP, label: 'Tooling', path: '/tool-prep', icon: Wrench },
             { id: AppModule.COMPLIANCE, label: 'Kwaliteit & Audits', path: '/compliance', icon: ShieldCheck },
             { id: AppModule.PLANNER, label: 'Onderhoudsplanner', path: '/planner', icon: Calendar },
             { id: AppModule.INVENTORY, label: 'Materieel & Voorraad', path: '/admin/inventory', icon: Package },
+        ]
+    },
+    {
+        id: 'COMMS',
+        title: 'Communicatie',
+        icon: MessageSquare,
+        items: [
+            { id: AppModule.SUPPORT, label: 'Support & Oproepen', path: '/support', icon: Megaphone, badgeKey: 'support' },
+            { id: AppModule.QUESTIONS, label: 'Vragen & Berichten', path: '/questions', icon: MessageSquare, badgeKey: 'questions' },
+            { id: AppModule.ENERGY, label: 'Energy Management', path: '/energy', icon: Zap },
+            { id: AppModule.FINANCE, label: 'Financieel Rapport', path: '/admin/cost-report', icon: BarChart2 },
         ]
     }
 ];

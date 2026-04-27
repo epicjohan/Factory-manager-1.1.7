@@ -115,6 +115,20 @@ const BackgroundSimulator: React.FC = () => {
     return null;
 };
 
+const DefaultPageRedirect: React.FC = () => {
+    const { user } = useAuth();
+    // Ghost user: lees default page uit localStorage
+    const ghostDefault = localStorage.getItem('fm_ghost_default_page');
+    const defaultPath = user?.id === 'super-admin-ghost'
+        ? (ghostDefault || '/')
+        : (user?.defaultPath || '/');
+    
+    if (defaultPath && defaultPath !== '/') {
+        return <Navigate to={defaultPath} replace />;
+    }
+    return <Dashboard />;
+};
+
 const App: React.FC = () => {
     useEffect(() => {
         // PWA: Request persistent storage so the browser doesn't evict IndexedDB on quota limits.
@@ -160,7 +174,7 @@ const App: React.FC = () => {
                             <PwaUpdatePrompt />
                             <HashRouter>
                                 <Routes>
-                                    <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                                    <Route path="/" element={<ProtectedRoute><DefaultPageRedirect /></ProtectedRoute>} />
                                     <Route path="/machines" element={<ProtectedRoute><Dashboard typeFilter={AssetType.CNC} title="CNC Machines" subtitle="Overzicht van het machinepark." /></ProtectedRoute>} />
                                     <Route path="/robots" element={<ProtectedRoute><Dashboard typeFilter={AssetType.ROBOT} title="Robotica" subtitle="Status van robots en cobots." /></ProtectedRoute>} />
                                     <Route path="/cmm" element={<ProtectedRoute><Dashboard typeFilter={AssetType.CMM} title="Meetkamer" subtitle="Beschikbaarheid meetgereedschap." /></ProtectedRoute>} />

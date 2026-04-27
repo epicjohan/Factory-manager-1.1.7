@@ -350,3 +350,4 @@ import { X as _phX5 } from "@phosphor-icons/react"; export const ScanEye = _phX5
 import { Binary as _phBinary } from "@phosphor-icons/react"; export const Binary = _phBinary;
 import { LockKeyOpen as _LockKeyOpen } from "@phosphor-icons/react"; export { _LockKeyOpen as LockOpen };
 import { DotsSixVertical as _DotsSixVertical } from "@phosphor-icons/react"; export const GripVertical = _DotsSixVertical;
+import { House as _House } from "@phosphor-icons/react"; export const Home = _House;

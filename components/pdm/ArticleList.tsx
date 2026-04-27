@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
-import { Layers, BookOpen, Plus, Search, Filter, FileText, X, ChevronDown, ChevronUp, FileUp, Trash2, CheckSquare, Square, Lock } from '../../icons';
-import { Article, ArticleStatus, Machine, AssetType } from '../../types';
+import { Layers, BookOpen, Plus, Search, Filter, FileText, X, ChevronDown, ChevronUp, FileUp, Trash2, CheckSquare, Square, Lock, Clock } from '../../icons';
+import { Article, ArticleStatus, Machine, AssetType, SetupStatus } from '../../types';
 import { usePdmFilters } from '../../hooks/usePdmFilters';
 import { ArticleListRow } from './ui/ArticleListRow';
 import { articleService } from '../../services/db/articleService';
@@ -56,6 +56,7 @@ export const ArticleList: React.FC<ArticleListProps> = ({
         clearFilters, clearAll,
     } = usePdmFilters();
     const [filterOpen, setFilterOpen] = useState(false);
+    const [reviewFilter, setReviewFilter] = useState(false);
     const [assetExpanded, setAssetExpanded] = useState(false);
     const [page, setPage] = useState(0);
     const filterRef = useRef<HTMLDivElement>(null);
@@ -93,6 +94,13 @@ export const ArticleList: React.FC<ArticleListProps> = ({
         if (!selectionMode) setSelectedIds(new Set());
     }, [selectionMode]);
 
+    // Count articles with setups awaiting review
+    const reviewCount = useMemo(() => articles.filter(a =>
+        (a.operations || []).some(op =>
+            (op.setups || []).some(s => s.status === SetupStatus.REVIEW)
+        )
+    ).length, [articles]);
+
     const filteredArticles = useMemo(() => {
         const q = searchTerm.toLowerCase().trim();
         return articles
@@ -109,7 +117,11 @@ export const ArticleList: React.FC<ArticleListProps> = ({
                     (a.operations || []).some(op =>
                         (op.setups || []).some(s => activeMachineIds.includes(s.machineId || ''))
                     );
-                return matchesSearch && matchesStatus && matchesMachine;
+                const matchesReview = !reviewFilter ||
+                    (a.operations || []).some(op =>
+                        (op.setups || []).some(s => s.status === SetupStatus.REVIEW)
+                    );
+                return matchesSearch && matchesStatus && matchesMachine && matchesReview;
             })
             .sort((a, b) => {
                 let cmp = 0;
@@ -120,11 +132,11 @@ export const ArticleList: React.FC<ArticleListProps> = ({
                 else if (sortBy === 'revision') cmp = (a.revision || '').localeCompare(b.revision || '');
                 return sortDir === 'desc' ? -cmp : cmp;
             });
-    }, [articles, searchTerm, activeStatuses, sortBy, sortDir, activeMachineIds]);
+    }, [articles, searchTerm, activeStatuses, sortBy, sortDir, activeMachineIds, reviewFilter]);
 
     const totalPages = Math.ceil(filteredArticles.length / PAGE_SIZE);
     const pageArticles = filteredArticles.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
-    const activeFilterCount = activeStatuses.length + activeMachineIds.length + (sortBy !== 'updated' ? 1 : 0);
+    const activeFilterCount = activeStatuses.length + activeMachineIds.length + (sortBy !== 'updated' ? 1 : 0) + (reviewFilter ? 1 : 0);
 
     // D-11: Bulk selection handlers
     const toggleSelection = useCallback((id: string) => {
@@ -242,6 +254,24 @@ export const ArticleList: React.FC<ArticleListProps> = ({
                             </button>
                         )}
                     </div>
+
+                    {/* Review filter quick-button */}
+                    {reviewCount > 0 && (
+                        <button
+                            onClick={() => setReviewFilter(f => !f)}
+                            className={`flex items-center gap-2 px-4 py-3 rounded-2xl border font-bold text-sm transition-all shadow-sm whitespace-nowrap ${reviewFilter
+                                ? 'bg-yellow-500 border-yellow-500 text-white shadow-yellow-500/20'
+                                : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-yellow-400'
+                                }`}
+                            title="Toon alleen artikelen met setups die wachten op goedkeuring"
+                        >
+                            <Clock size={16} />
+                            Review
+                            <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full min-w-[20px] text-center ${reviewFilter ? 'bg-white/25 text-white' : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'}`}>
+                                {reviewCount}
+                            </span>
+                        </button>
+                    )}
 
                     {/* D-11: Selectie mode toggle */}
                     {canCreate && (
@@ -375,8 +405,13 @@ export const ArticleList: React.FC<ArticleListProps> = ({
                         </button>
                     ) : null;
                 })}
-                {(searchTerm || activeStatuses.length > 0 || activeMachineIds.length > 0) && filteredArticles.length < articles.length && (
-                    <button onClick={clearAll} className="text-xs text-blue-500 hover:text-blue-700 font-medium ml-1">Wis alles</button>
+                {reviewFilter && (
+                    <button onClick={() => setReviewFilter(false)} className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wide border bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800">
+                        Wacht op Review <X size={10} />
+                    </button>
+                )}
+                {(searchTerm || activeStatuses.length > 0 || activeMachineIds.length > 0 || reviewFilter) && filteredArticles.length < articles.length && (
+                    <button onClick={() => { clearAll(); setReviewFilter(false); }} className="text-xs text-blue-500 hover:text-blue-700 font-medium ml-1">Wis alles</button>
                 )}
             </div>
 

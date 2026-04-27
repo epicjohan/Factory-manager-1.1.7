@@ -187,6 +187,69 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     }).filter(group => group.items.length > 0);
   }, [user, allMachines, canAccessModule]);
 
+  // Favorieten state — opgeslagen per user (Ghost user: localStorage, overige: database)
+  const [ghostFavorites, setGhostFavorites] = useState<string[]>(() => {
+      try { return JSON.parse(localStorage.getItem('fm_ghost_favorites') || '[]'); } catch { return []; }
+  });
+  const [ghostDefaultPage, setGhostDefaultPage] = useState<string>(() => {
+      return localStorage.getItem('fm_ghost_default_page') || '/';
+  });
+
+  const favoriteModulePaths = useMemo(() => {
+      if (user?.id === 'super-admin-ghost') return ghostFavorites;
+      return user?.favoriteModules || [];
+  }, [user, ghostFavorites]);
+
+  const defaultPagePath = useMemo(() => {
+      if (user?.id === 'super-admin-ghost') return ghostDefaultPage;
+      return user?.defaultPath || '/';
+  }, [user, ghostDefaultPage]);
+
+  const handleToggleFavorite = async (path: string) => {
+      if (!user) return;
+      
+      const current = user.id === 'super-admin-ghost' ? ghostFavorites : (user.favoriteModules || []);
+      let updated: string[];
+      
+      if (current.includes(path)) {
+          updated = current.filter(p => p !== path);
+      } else {
+          if (current.length >= 5) return; // Max 5 favorieten
+          updated = [...current, path];
+      }
+      
+      if (user.id === 'super-admin-ghost') {
+          setGhostFavorites(updated);
+          localStorage.setItem('fm_ghost_favorites', JSON.stringify(updated));
+      } else {
+          const updatedUser = { ...user, favoriteModules: updated };
+          try {
+              await db.updateUser(updatedUser);
+          } catch (e) {
+              console.error('Kon favorieten niet opslaan', e);
+          }
+      }
+  };
+
+  const handleSetDefaultPage = async (path: string) => {
+      if (!user) return;
+      
+      // Toggle: als het al de default is, reset naar '/'
+      const newDefault = (user.id === 'super-admin-ghost' ? ghostDefaultPage : user.defaultPath) === path ? '/' : path;
+      
+      if (user.id === 'super-admin-ghost') {
+          setGhostDefaultPage(newDefault);
+          localStorage.setItem('fm_ghost_default_page', newDefault);
+      } else {
+          const updatedUser = { ...user, defaultPath: newDefault };
+          try {
+              await db.updateUser(updatedUser);
+          } catch (e) {
+              console.error('Kon default pagina niet opslaan', e);
+          }
+      }
+  };
+
   return (
     <div className="flex h-screen bg-slate-50 dark:bg-slate-900 overflow-hidden transition-colors duration-300">
       
@@ -211,6 +274,10 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           connectionStatus={connectionStatus}
           isDemo={isDemo}
           outboxCount={outboxCount}
+          favoriteModulePaths={favoriteModulePaths}
+          onToggleFavorite={handleToggleFavorite}
+          defaultPagePath={defaultPagePath}
+          onSetDefaultPage={handleSetDefaultPage}
       />
 
       <main className="flex-1 overflow-auto relative w-full">
