@@ -195,20 +195,30 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       return localStorage.getItem('fm_ghost_default_page') || '/';
   });
 
+  // Lokale override state voor reguliere users — zorgt voor onmiddellijke UI-update
+  const [userFavorites, setUserFavorites] = useState<string[]>(user?.favoriteModules || []);
+
+  // Sync lokale state als de user wisselt of als AuthContext refresht
+  useEffect(() => {
+      if (user && user.id !== 'super-admin-ghost') {
+          setUserFavorites(user.favoriteModules || []);
+      }
+  }, [user]);
+
   const favoriteModulePaths = useMemo(() => {
       if (user?.id === 'super-admin-ghost') return ghostFavorites;
-      return user?.favoriteModules || [];
-  }, [user, ghostFavorites]);
+      return userFavorites;
+  }, [user, ghostFavorites, userFavorites]);
 
   const defaultPagePath = useMemo(() => {
-      if (user?.id === 'super-admin-ghost') return ghostDefaultPage;
+      if (user?.id === 'super-admin-ghost') return ghostDefaultPage || '/';
       return user?.defaultPath || '/';
   }, [user, ghostDefaultPage]);
 
   const handleToggleFavorite = async (path: string) => {
       if (!user) return;
       
-      const current = user.id === 'super-admin-ghost' ? ghostFavorites : (user.favoriteModules || []);
+      const current = user.id === 'super-admin-ghost' ? ghostFavorites : userFavorites;
       let updated: string[];
       
       if (current.includes(path)) {
@@ -222,11 +232,16 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           setGhostFavorites(updated);
           localStorage.setItem('fm_ghost_favorites', JSON.stringify(updated));
       } else {
+          // Onmiddellijke UI update
+          setUserFavorites(updated);
           const updatedUser = { ...user, favoriteModules: updated };
+          localStorage.setItem('cnc_active_user_full', JSON.stringify(updatedUser));
           try {
               await db.updateUser(updatedUser);
           } catch (e) {
               console.error('Kon favorieten niet opslaan', e);
+              // Rollback bij fout
+              setUserFavorites(current);
           }
       }
   };
