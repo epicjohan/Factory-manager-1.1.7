@@ -143,6 +143,11 @@ export const TicketRow: React.FC<TicketRowProps> = ({
                     <div>
                         <div className="flex flex-col md:flex-row md:items-center gap-2 mb-1">
                             <h3 className={`text-lg font-black uppercase tracking-tight italic flex items-center gap-2 ${isExpanded ? 'text-slate-900 dark:text-white' : 'text-slate-800 dark:text-slate-100'}`}>
+                                {ticket.ticketNumber && (
+                                    <span className="text-[10px] not-italic font-black tracking-widest px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 font-mono">
+                                        {ticket.ticketNumber}
+                                    </span>
+                                )}
                                 {ticket.title}
                                 {ticket.impact === TicketImpact.CRITICAL && <AlertTriangle size={16} className="text-red-500 shrink-0" />}
                                 {(ticket as any).isPending && <CloudCog size={16} className="text-orange-500 animate-spin-slow shrink-0" />}

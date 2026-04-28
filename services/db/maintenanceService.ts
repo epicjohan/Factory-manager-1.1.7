@@ -15,13 +15,36 @@ export const maintenanceService = {
         t.updatedAt = Date.now();
         (t as any).updated = now;
         (t as any).created = now;
-        const items = await maintenanceService.getAllTickets();
-        items.push(t);
-        await saveTable(KEYS.TICKETS, items);
+
+        // Genereer ticketnummer: {machineNumber}-{jaar}-{volgnummer}
+        if (!t.ticketNumber) {
+            const machines = await loadTable<Machine[]>(KEYS.MACHINES, []);
+            const machine = machines.find(m => m.id === t.machineId);
+            const machineNr = machine?.machineNumber || 'UNKNOWN';
+            const year = new Date().getFullYear();
+            const items = await maintenanceService.getAllTickets();
+            
+            // Tel bestaande tickets voor deze machine in dit jaar
+            const machineTicketsThisYear = items.filter(ticket => 
+                ticket.machineId === t.machineId && 
+                ticket.ticketNumber?.includes(`-${year}-`)
+            ).length;
+            
+            const seq = String(machineTicketsThisYear + 1).padStart(3, '0');
+            t.ticketNumber = `${machineNr}-${year}-${seq}`;
+            
+            items.push(t);
+            await saveTable(KEYS.TICKETS, items);
+        } else {
+            const items = await maintenanceService.getAllTickets();
+            items.push(t);
+            await saveTable(KEYS.TICKETS, items);
+        }
+
         await outboxUtils.addToOutbox(KEYS.TICKETS, 'INSERT', t);
         
         const mName = await getMachineName(t.machineId);
-        await outboxUtils.logAudit('NEW_TICKET', t.reportedBy, `Nieuw ticket gemeld voor ${mName}: ${t.title}`);
+        await outboxUtils.logAudit('NEW_TICKET', t.reportedBy, `Nieuw ticket ${t.ticketNumber} gemeld voor ${mName}: ${t.title}`);
     },
     updateMaintenanceTicket: async (t: MaintenanceTicket) => { 
         const now = getNowISO();

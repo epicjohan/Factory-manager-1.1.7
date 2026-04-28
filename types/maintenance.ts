@@ -30,6 +30,7 @@ export interface UsedPart {
 
 export interface MaintenanceTicket {
   id: string;
+  ticketNumber?: string;
   machineId: string;
   title: string;
   description: string;

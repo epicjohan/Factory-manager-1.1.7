@@ -194,7 +194,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
               return (
                 <div key={ticket.id} className={`bg-white dark:bg-slate-800 p-6 rounded-2xl border-l-4 ${borderClass} shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col md:flex-row justify-between md:items-center gap-4 group`}>
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-3">
+                    <div className="flex items-center gap-2 mb-3 flex-wrap">
+                      {ticket.ticketNumber && (
+                        <span className="px-2.5 py-0.5 rounded bg-red-50 dark:bg-red-900/30 text-xs font-black text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 font-mono tracking-wide">
+                          {ticket.ticketNumber}
+                        </span>
+                      )}
                       <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600">
                         {getMachineType(ticket.machineId)}
                       </span>
