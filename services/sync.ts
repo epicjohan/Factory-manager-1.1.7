@@ -283,8 +283,26 @@ export const SyncService = {
         if (!meta.isDemoMode) {
             const machines = await db.getMachines(true);
             if (machines.length === 0) {
-                await SyncService.downloadState().catch(console.error);
-                isBootstrapped = true;
+                // FIX: Op een nieuw device is cachedToken nog null.
+                // Authenticeer EERST voordat downloadState wordt aangeroepen,
+                // anders falen alle API calls stil met 401.
+                if (!cachedToken) {
+                    const serverConfig = await db.getServerSettings();
+                    if (serverConfig.url && serverConfig.email && serverConfig.password) {
+                        const authRes = await SyncService.authenticate(serverConfig.url, serverConfig.email, serverConfig.password);
+                        if (!authRes.success) {
+                            console.error('[SyncService] Initiële auth mislukt op nieuw device:', authRes.message);
+                        }
+                    }
+                }
+                // Alleen isBootstrapped=true als download slaagt
+                const result = await SyncService.downloadState().catch(e => {
+                    console.error('[SyncService] Initiële download mislukt:', e);
+                    return { success: false, message: String(e) };
+                });
+                if (result?.success) {
+                    isBootstrapped = true;
+                }
             }
         }
 
