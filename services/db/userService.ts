@@ -85,12 +85,11 @@ export const userService = {
     getRoles: async () => {
         let roles = await loadTable<UserRoleDefinition[]>(KEYS.ROLES, []);
         if (roles.length === 0) {
-            // First run migration: Populate DB with default roles
-            roles = DEFAULT_ROLES;
-            await saveTable(KEYS.ROLES, roles);
-            for (const r of roles) {
-                await outboxUtils.addToOutbox(KEYS.ROLES, 'INSERT', r);
-            }
+            // FIX: Op een nieuw device worden rollen NIET meer automatisch aangemaakt
+            // en naar PocketBase gestuurd. De admin is verantwoordelijk voor het aanmaken
+            // van rollen. We retourneren DEFAULT_ROLES als lokale fallback zodat de UI
+            // functioneel blijft, maar zonder ze op te slaan of te syncen.
+            return DEFAULT_ROLES;
         } else {
             // Migrate legacy roles
             let migrated = false;
