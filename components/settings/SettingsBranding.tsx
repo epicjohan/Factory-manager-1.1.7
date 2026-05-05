@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Building2, ImageIcon, HelpCircle, Save, CheckCircle } from '../../icons';
+import { Building2, ImageIcon, HelpCircle, Save, CheckCircle, Timer, Lock } from '../../icons';
 import { db } from '../../services/storage';
 import { SystemSettings } from '../../types';
 
@@ -21,7 +21,7 @@ export const SettingsBranding: React.FC = () => {
         setSaveStatus('saving');
         // Fetch fresh to avoid overwriting other fields
         const current = await db.getSystemSettings();
-        await db.setSystemSettings({ ...current, companyName: settings.companyName, licenseHolder: settings.licenseHolder, logoUrl: settings.logoUrl, darkModeStyle: settings.darkModeStyle, lightModeStyle: settings.lightModeStyle });
+        await db.setSystemSettings({ ...current, companyName: settings.companyName, licenseHolder: settings.licenseHolder, logoUrl: settings.logoUrl, darkModeStyle: settings.darkModeStyle, lightModeStyle: settings.lightModeStyle, autoLogoutMinutes: settings.autoLogoutMinutes });
 
         setSaveStatus('saved');
         setTimeout(() => setSaveStatus('idle'), 3000);
@@ -139,6 +139,35 @@ export const SettingsBranding: React.FC = () => {
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            {/* BEVEILIGING */}
+            <div className="bg-white dark:bg-slate-800 rounded-[2rem] border border-slate-200 dark:border-slate-700 p-8 shadow-sm">
+                <h4 className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+                    <Lock size={14} className="text-slate-400" />
+                    Beveiliging
+                </h4>
+                <div className="space-y-2">
+                    <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2 ml-1">Auto-Logout na Inactiviteit</label>
+                    <div className="relative">
+                        <Timer className="absolute left-4 top-4 text-slate-400" size={20} />
+                        <select
+                            className="w-full pl-12 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 dark:text-white font-bold text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all appearance-none cursor-pointer"
+                            value={settings.autoLogoutMinutes ?? 15}
+                            onChange={e => setSettings({ ...settings, autoLogoutMinutes: parseInt(e.target.value) })}
+                        >
+                            <option value={0}>Uitgeschakeld</option>
+                            <option value={5}>5 minuten</option>
+                            <option value={10}>10 minuten</option>
+                            <option value={15}>15 minuten (standaard)</option>
+                            <option value={30}>30 minuten</option>
+                            <option value={60}>60 minuten</option>
+                        </select>
+                    </div>
+                    <p className="text-[10px] font-medium text-slate-400 ml-1 mt-2">
+                        Gebruikers worden automatisch uitgelogd na de ingestelde tijd zonder activiteit. Ghost Admin is hiervan uitgesloten.
+                    </p>
                 </div>
             </div>
 

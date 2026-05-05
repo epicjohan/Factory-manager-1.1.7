@@ -133,15 +133,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // De timeout is configureerbaar via system_config.autoLogoutMinutes (standaard 15 min).
     // Ghost admin is uitgesloten van auto-logout.
     const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const AUTO_LOGOUT_MS = (cachedSettings as any).autoLogoutMinutes
-        ? (cachedSettings as any).autoLogoutMinutes * 60 * 1000
+    const AUTO_LOGOUT_MS = cachedSettings.autoLogoutMinutes
+        ? cachedSettings.autoLogoutMinutes * 60 * 1000
         : 15 * 60 * 1000; // Standaard 15 minuten
 
     useEffect(() => {
         // Niet actief als niemand is ingelogd of als Ghost admin
         if (!user || user.id === GHOST_USER.id) return;
         // Niet actief als autoLogoutMinutes op 0 staat (uitgeschakeld)
-        if ((cachedSettings as any).autoLogoutMinutes === 0) return;
+        if (cachedSettings.autoLogoutMinutes === 0) return;
 
         const resetTimer = () => {
             if (idleTimerRef.current) clearTimeout(idleTimerRef.current);

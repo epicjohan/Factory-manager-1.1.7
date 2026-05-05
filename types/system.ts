@@ -54,6 +54,7 @@ export interface SystemSettings {
   ncServerPath?: string; // PAD naar de NC server map voor mirroring
   darkModeStyle?: 'OLED' | 'CLASSIC' | 'MIDNIGHT';
   lightModeStyle?: 'CLEAN' | 'SOFT' | 'COOL';
+  autoLogoutMinutes?: number; // 0 = uitgeschakeld, standaard 15
 }
 
 export interface DataSnapshot {
