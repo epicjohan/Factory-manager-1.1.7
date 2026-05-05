@@ -65,6 +65,7 @@ export const UserManagement: React.FC = () => {
     const [allowedAssetIds, setAllowedAssetIds] = useState<string[]>([]);
     const [allowedModules, setAllowedModules] = useState<AppModule[]>([]);
     const [allowedTabs, setAllowedTabs] = useState<AssetTab[]>([]);
+    const [kioskMode, setKioskMode] = useState(false);
 
 
     // --- ROLE EDIT STATE ---
@@ -94,6 +95,7 @@ export const UserManagement: React.FC = () => {
         setAllowedAssetIds(user.allowedAssetIds || []);
         setAllowedModules(user.allowedModules || Object.values(AppModule));
         setAllowedTabs(user.allowedTabs || ROLE_DEFAULT_TABS[UserRole.OPERATOR] || Object.values(AssetTab));
+        setKioskMode(user.kioskMode || false);
 
         setActiveMainTab('USERS');
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -111,6 +113,7 @@ export const UserManagement: React.FC = () => {
         setAllowedAssetIds([]);
         setAllowedModules(Object.values(AppModule));
         setAllowedTabs(ROLE_DEFAULT_TABS[UserRole.OPERATOR]);
+        setKioskMode(false);
 
     };
 
@@ -135,6 +138,7 @@ export const UserManagement: React.FC = () => {
             allowedAssetIds,
             allowedModules,
             allowedTabs,
+            kioskMode,
 
         };
 
@@ -357,6 +361,17 @@ export const UserManagement: React.FC = () => {
                                             ))}
                                         </div>
                                     )}
+                                </div>
+
+                                {/* KIOSK MODUS */}
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-center">
+                                        <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><Monitor size={14} /> Kiosk Modus</h4>
+                                        <button type="button" onClick={() => setKioskMode(!kioskMode)} className={`text-[10px] px-3 py-1 rounded-full font-black uppercase transition-all ${kioskMode ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400'}`}>
+                                            {kioskMode ? '24/7 Actief' : 'Uit'}
+                                        </button>
+                                    </div>
+                                    <p className="text-[10px] text-slate-400 ml-1">Ingeschakeld: gebruiker wordt niet automatisch uitgelogd. Ideaal voor vaste terminals bij machines.</p>
                                 </div>
 
                                 <div className="pt-6 flex gap-4">

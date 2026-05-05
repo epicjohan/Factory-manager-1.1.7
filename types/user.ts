@@ -29,4 +29,5 @@ export interface User {
   favoriteModules?: string[];  // Array van nav-item paths, bijv. ['/machines', '/articles']
   email?: string;              // Persoonlijk e-mailadres voor notificaties
   notificationSubscriptions?: string[];  // Ingeschreven notificatie-feeds (NotificationTrigger values)
+  kioskMode?: boolean;         // 24/7 ingelogd — uitgesloten van auto-logout (bijv. werkorder dashboard)
 }

@@ -138,8 +138,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         : 15 * 60 * 1000; // Standaard 15 minuten
 
     useEffect(() => {
-        // Niet actief als niemand is ingelogd of als Ghost admin
-        if (!user || user.id === GHOST_USER.id) return;
+        // Niet actief als niemand is ingelogd, Ghost admin, of kiosk-modus
+        if (!user || user.id === GHOST_USER.id || user.kioskMode) return;
         // Niet actief als autoLogoutMinutes op 0 staat (uitgeschakeld)
         if (cachedSettings.autoLogoutMinutes === 0) return;
 
