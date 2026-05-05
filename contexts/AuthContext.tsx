@@ -129,6 +129,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const userRef = useRef(user);
     useEffect(() => { userRef.current = user; }, [user]);
 
+    // AUTO-LOGOUT: Log de gebruiker automatisch uit na inactiviteit.
+    // De timeout is configureerbaar via system_config.autoLogoutMinutes (standaard 15 min).
+    // Ghost admin is uitgesloten van auto-logout.
+    const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const AUTO_LOGOUT_MS = (cachedSettings as any).autoLogoutMinutes
+        ? (cachedSettings as any).autoLogoutMinutes * 60 * 1000
+        : 15 * 60 * 1000; // Standaard 15 minuten
+
+    useEffect(() => {
+        // Niet actief als niemand is ingelogd of als Ghost admin
+        if (!user || user.id === GHOST_USER.id) return;
+        // Niet actief als autoLogoutMinutes op 0 staat (uitgeschakeld)
+        if ((cachedSettings as any).autoLogoutMinutes === 0) return;
+
+        const resetTimer = () => {
+            if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+            idleTimerRef.current = setTimeout(() => {
+                console.log('[AuthContext] Auto-logout na inactiviteit');
+                handleSetUser(null);
+            }, AUTO_LOGOUT_MS);
+        };
+
+        // Track gebruikersactiviteit
+        const events = ['mousedown', 'keydown', 'touchstart', 'scroll'];
+        events.forEach(e => window.addEventListener(e, resetTimer, { passive: true }));
+
+        // Start de timer
+        resetTimer();
+
+        return () => {
+            if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+            events.forEach(e => window.removeEventListener(e, resetTimer));
+        };
+    }, [user, AUTO_LOGOUT_MS]);
+
     const login = async (userId: string) => {
         if (userId === GHOST_USER.id) {
             handleSetUser(GHOST_USER);
