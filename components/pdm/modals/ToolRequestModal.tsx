@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Wrench, Calendar, FileText, Send, CheckCircle2 } from '../../../icons';
+import { X, Wrench, Calendar, FileText, Send, CheckCircle2, Sparkles } from '../../../icons';
 import { Article, SetupVariant, ArticleTool, ToolPreparationRequest, ToolRequestStatus } from '../../../types';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useNotifications } from '../../../contexts/NotificationContext';
@@ -17,6 +17,7 @@ export const ToolRequestModal: React.FC<ToolRequestModalProps> = ({ article, set
     const { user } = useAuth();
     const [dueDate, setDueDate] = useState<string>('');
     const [existingToolIds, setExistingToolIds] = useState<string[]>([]);
+    const [newToolIds, setNewToolIds] = useState<string[]>([]);
     const [notes, setNotes] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { addNotification } = useNotifications();
@@ -30,17 +31,31 @@ export const ToolRequestModal: React.FC<ToolRequestModalProps> = ({ article, set
 
     const activeTools = tools.filter(t => t.status !== 'REPLACED').sort((a,b) => a.order - b.order);
 
-    const toggleTool = (id: string) => {
-        setExistingToolIds(prev => 
+    const toggleExisting = (id: string) => {
+        setExistingToolIds(prev => {
+            const next = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id];
+            // Als je een tool als "aanwezig" markeert, kan deze niet ook "nieuw" zijn
+            if (next.includes(id)) {
+                setNewToolIds(p => p.filter(x => x !== id));
+            }
+            return next;
+        });
+    };
+
+    const toggleNew = (id: string) => {
+        // Alleen togglen als de tool NIET aanwezig is
+        if (existingToolIds.includes(id)) return;
+        setNewToolIds(prev =>
             prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
         );
     };
 
-    const toggleAll = () => {
+    const toggleAllExisting = () => {
         if (existingToolIds.length === activeTools.length) {
             setExistingToolIds([]); // deselect all
         } else {
             setExistingToolIds(activeTools.map(t => t.id)); // select all
+            setNewToolIds([]); // clear new flags
         }
     };
 
@@ -64,6 +79,7 @@ export const ToolRequestModal: React.FC<ToolRequestModalProps> = ({ article, set
                 requestDate: new Date().toISOString(),
                 dueDate: dueDate,
                 existingToolIds,
+                newToolIds: newToolIds.length > 0 ? newToolIds : undefined,
                 notes,
                 status: ToolRequestStatus.PENDING
             };
@@ -129,30 +145,47 @@ export const ToolRequestModal: React.FC<ToolRequestModalProps> = ({ article, set
                         </div>
                     </div>
 
-                    {/* Vrijstellen/Aanwezige Gereedschappen */}
+                    {/* Gereedschappen Lijst */}
                     <div className="bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-3xl p-6">
                         <div className="flex justify-between items-start mb-4">
                             <div>
-                                <h4 className="font-black text-slate-800 dark:text-white uppercase tracking-widest text-xs">Aanwezige Gereedschappen Vrijstellen</h4>
-                                <p className="text-xs text-slate-500 mt-1 mr-4">Vink de gereedschappen aan die al <b>aanwezig</b> zijn en dus <b>NIET</b> gebouwd hoeven te worden door de Tool Manager.</p>
+                                <h4 className="font-black text-slate-800 dark:text-white uppercase tracking-widest text-xs">Gereedschapsstatus per Tool</h4>
+                                <p className="text-xs text-slate-500 mt-1 mr-4">Geef per gereedschap aan of het <b>aanwezig</b> is (vrijgesteld) of dat er een <b>nieuw</b> gereedschap gebouwd moet worden.</p>
                             </div>
-                            <button onClick={toggleAll} className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-[10px] font-bold uppercase tracking-widest rounded-xl transition-colors shrink-0">
-                                {existingToolIds.length === activeTools.length ? 'Alles Uitvinken' : 'Alles Aanvinken'}
+                            <button onClick={toggleAllExisting} className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-[10px] font-bold uppercase tracking-widest rounded-xl transition-colors shrink-0">
+                                {existingToolIds.length === activeTools.length ? 'Alles Uitvinken' : 'Alles Aanwezig'}
                             </button>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                        {/* Legenda */}
+                        <div className="flex flex-wrap gap-4 mb-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                            <span className="flex items-center gap-1.5">
+                                <div className="w-3 h-3 rounded bg-green-500"></div> Aanwezig — vrijgesteld
+                            </span>
+                            <span className="flex items-center gap-1.5">
+                                <div className="w-3 h-3 rounded bg-amber-500"></div> Nieuw bouwen — niet hergebruiken
+                            </span>
+                            <span className="flex items-center gap-1.5">
+                                <div className="w-3 h-3 rounded bg-slate-300 dark:bg-slate-600"></div> Klaarzetten — uit voorraad
+                            </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-2 max-h-72 overflow-y-auto pr-2 custom-scrollbar">
                             {activeTools.map(tool => {
-                                const isChecked = existingToolIds.includes(tool.id);
+                                const isExisting = existingToolIds.includes(tool.id);
+                                const isNew = newToolIds.includes(tool.id);
                                 return (
                                     <div 
                                         key={tool.id} 
-                                        onClick={() => toggleTool(tool.id)}
-                                        className={`flex items-center gap-3 p-3 rounded-2xl border-2 cursor-pointer transition-all ${isChecked ? 'border-green-500 bg-green-50/50 dark:bg-green-900/20' : 'border-slate-100 hover:border-slate-300 dark:border-slate-700 dark:hover:border-slate-600'}`}
+                                        className={`flex items-center gap-3 p-3 rounded-2xl border-2 transition-all ${
+                                            isExisting 
+                                                ? 'border-green-500 bg-green-50/50 dark:bg-green-900/20' 
+                                                : isNew 
+                                                    ? 'border-amber-500 bg-amber-50/50 dark:bg-amber-900/20' 
+                                                    : 'border-slate-100 dark:border-slate-700'
+                                        }`}
                                     >
-                                        <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 ${isChecked ? 'bg-green-500 border-green-500 text-white' : 'border-slate-300 bg-white'}`}>
-                                            {isChecked && <CheckCircle2 size={14} />}
-                                        </div>
+                                        {/* Tool Info */}
                                         <div className="flex-1 min-w-0">
                                             <div className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">
                                                 T{String(tool.order).padStart(2, '0')} — {tool.description}
@@ -161,6 +194,37 @@ export const ToolRequestModal: React.FC<ToolRequestModalProps> = ({ article, set
                                                 <div className="text-[10px] font-mono text-slate-400 mt-0.5">{tool.matrixCode}</div>
                                             )}
                                         </div>
+
+                                        {/* Aanwezig Toggle */}
+                                        <button 
+                                            onClick={() => toggleExisting(tool.id)}
+                                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shrink-0 ${
+                                                isExisting 
+                                                    ? 'bg-green-500 text-white shadow-md shadow-green-500/20' 
+                                                    : 'bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-600'
+                                            }`}
+                                            title="Gereedschap is al aanwezig — hoeft niet gebouwd te worden"
+                                        >
+                                            <CheckCircle2 size={12} />
+                                            Aanwezig
+                                        </button>
+
+                                        {/* Nieuw Toggle */}
+                                        <button 
+                                            onClick={() => toggleNew(tool.id)}
+                                            disabled={isExisting}
+                                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shrink-0 ${
+                                                isExisting
+                                                    ? 'bg-slate-50 dark:bg-slate-800 text-slate-300 dark:text-slate-700 cursor-not-allowed'
+                                                    : isNew 
+                                                        ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20' 
+                                                        : 'bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-600'
+                                            }`}
+                                            title="Nieuw gereedschap vereist — niet hergebruiken"
+                                        >
+                                            <Sparkles size={12} />
+                                            Nieuw
+                                        </button>
                                     </div>
                                 );
                             })}

@@ -21,7 +21,8 @@ export const COMMERCIAL_MODULES: CommercialModuleDefinition[] = [
             AppModule.MACHINES,
             AppModule.ROBOTS,
             AppModule.CMM,
-            AppModule.CLIMATE
+            AppModule.CLIMATE,
+            AppModule.TICKET_DASHBOARD
         ]
     },
     {

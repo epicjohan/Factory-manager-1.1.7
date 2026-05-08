@@ -555,7 +555,7 @@ export const SyncService = {
             const localTS = local.updatedAt || 0;
             if (remoteTS >= localTS) {
                 updatedItems = [...items];
-                updatedItems[existingIdx] = { ...parsedData, lastRemoteUpdate: Date.now() };
+                updatedItems[existingIdx] = { ...local, ...parsedData, lastRemoteUpdate: Date.now() };
                 hasChanges = true;
             } else {
                 updatedItems = items;

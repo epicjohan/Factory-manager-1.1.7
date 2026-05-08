@@ -282,6 +282,7 @@ export interface ToolPreparationRequest {
   dueDate: string;     // Wanneer moet het op de kar liggen?
   
   existingToolIds: string[]; 
+  newToolIds?: string[];     // Tool IDs waarvoor expliciet een NIEUW gereedschap gevraagd wordt
   preparedToolIds?: string[];
   
   notes?: string;

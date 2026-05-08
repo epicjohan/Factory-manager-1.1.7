@@ -14,6 +14,7 @@ import {
     Paperclip, FileText, Download, Upload, Send
 } from '../../../icons';
 import { ResolveTicketForm } from './ResolveTicketForm';
+import { documentService } from '../../../services/db/documentService';
 
 interface TicketRowProps {
     ticket: MaintenanceTicket;
@@ -114,8 +115,11 @@ export const TicketRow: React.FC<TicketRowProps> = ({
         const file = e.target.files?.[0];
         if (file) {
             const reader = new FileReader();
-            reader.onloadend = () => {
-                const newDoc: UploadedDocument = { name: file.name, type: file.type, url: reader.result as string, category: 'Factuur' };
+            reader.onloadend = async () => {
+                const base64 = reader.result as string;
+                // Registreer in DMS
+                const dmsDoc = await documentService.addDocumentFromBase64(file.name, file.type, base64, file.size);
+                const newDoc: UploadedDocument = { name: file.name, type: file.type, url: '', documentId: dmsDoc.id, category: 'Factuur' };
                 db.updateMaintenanceTicket({ ...ticket, invoice: newDoc });
             };
             reader.readAsDataURL(file);

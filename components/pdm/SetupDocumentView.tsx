@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { SetupVariant, Machine, PredefinedOperation, SetupTemplate, Article, ArticleFile, SetupStatus, UserRole } from '../../types';
-import { ChevronDown, ChevronRight, LayoutTemplate, Wrench, Hammer, ClipboardList, FileCode } from '../../icons';
+import { ChevronDown, LayoutTemplate, Wrench, Hammer, ClipboardList, FileCode } from '../../icons';
 import { SetupGeneralTab } from './tabs/SetupGeneralTab';
 import { SetupFixtureTab } from './tabs/SetupFixtureTab';
 import { SetupToolsTab } from './tabs/SetupToolsTab';
@@ -42,20 +42,32 @@ const CollapsibleSection = ({
 }) => {
     const [isOpen, setIsOpen] = useState(defaultOpen);
     return (
-        <div className="border-b border-slate-100 dark:border-slate-700 last:border-0">
+        <div className={`border-b border-slate-200 dark:border-slate-700 last:border-0 ${isOpen ? 'border-l-[3px] border-l-blue-500' : 'border-l-[3px] border-l-transparent'}`}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full flex items-center justify-between py-4 px-6 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors group"
+                className={`w-full flex items-center justify-between py-4 px-6 transition-all group ${
+                    isOpen 
+                        ? 'bg-blue-50/80 dark:bg-blue-950/30' 
+                        : 'bg-slate-50/50 dark:bg-slate-800/30 hover:bg-slate-100 dark:hover:bg-slate-700/40'
+                }`}
             >
                 <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-2xl ${isOpen ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20' : 'bg-slate-100 text-slate-500 dark:bg-slate-800'}`}>
+                    <div className={`p-2 rounded-2xl transition-colors ${
+                        isOpen 
+                            ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400 shadow-sm shadow-blue-500/10' 
+                            : 'bg-slate-200/80 text-slate-500 dark:bg-slate-700 dark:text-slate-400'
+                    }`}>
                         <Icon size={18} />
                     </div>
-                    <span className="font-bold text-slate-800 dark:text-white uppercase tracking-wider text-xs">{title}</span>
+                    <span className={`font-black uppercase tracking-widest text-xs transition-colors ${
+                        isOpen 
+                            ? 'text-blue-700 dark:text-blue-300' 
+                            : 'text-slate-600 dark:text-slate-400'
+                    }`}>{title}</span>
                     {badge}
                 </div>
-                <div className="text-slate-400 group-hover:text-blue-500 transition-colors">
-                    {isOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                <div className={`transition-all ${isOpen ? 'text-blue-500 dark:text-blue-400 rotate-0' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300 -rotate-90'}`}>
+                    <ChevronDown size={18} />
                 </div>
             </button>
             {isOpen && (

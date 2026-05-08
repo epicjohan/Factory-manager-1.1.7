@@ -62,6 +62,7 @@ export const userService = {
         const now = getNowISO();
         (user as any).updated = now;
         (user as any).created = now;
+        (user as any).updatedAt = Date.now();
         const items = await userService.getUsers(); 
         items.push(user); 
         await saveTable(KEYS.USERS, items); 
@@ -70,6 +71,7 @@ export const userService = {
     updateUser: async (user: User) => { 
         const now = getNowISO();
         (user as any).updated = now;
+        (user as any).updatedAt = Date.now();
         const items = (await userService.getUsers()).map(u => u.id === user.id ? user : u); 
         await saveTable(KEYS.USERS, items); 
         await outboxUtils.addToOutbox(KEYS.USERS, 'UPDATE', user);

@@ -20,7 +20,8 @@ import {
     Tv,
     Truck,
     FileText,
-    ShieldCheck
+    ShieldCheck,
+    AlertTriangle
 } from '../icons';
 import { AppModule } from '../types';
 
@@ -71,6 +72,7 @@ export const MODULE_GROUPS: ModuleGroupConfig[] = [
         icon: LayoutDashboard,
         items: [
             { id: AppModule.DASHBOARD_MAIN, label: 'Fabriek Overzicht', path: '/', icon: Factory },
+            { id: AppModule.TICKET_DASHBOARD, label: 'Storingen', path: '/tickets', icon: AlertTriangle },
             { id: AppModule.EFFICIENCY, label: 'Efficiency', path: '/efficiency', icon: TrendingUp },
             { id: AppModule.EFFICIENCY, label: 'TV / Andon Bord', path: '/andon', icon: Tv },
             { id: AppModule.SUPPORT, label: 'Logistiek Monitor', path: '/logistics-andon', icon: Truck },

@@ -97,24 +97,43 @@ export const documentService = {
         );
     },
 
-    // D-04: Vind documenten die niet (meer) gekoppeld zijn aan een ArticleFile.
+    // D-04: Vind documenten die niet (meer) gekoppeld zijn aan een ArticleFile, ticket of machine.
     // Dit zijn potentiële wees-documenten die opslagruimte innemen zonder referentie.
     getOrphanedDocuments: async (): Promise<DMSDocument[]> => {
-        const [documents, articles] = await Promise.all([
+        const [documents, articles, tickets, machines] = await Promise.all([
             loadTable<DMSDocument[]>(KEYS.DOCUMENTS, []),
-            loadTable<Article[]>(KEYS.ARTICLES, [])
+            loadTable<Article[]>(KEYS.ARTICLES, []),
+            loadTable<any[]>(KEYS.TICKETS, []),
+            loadTable<any[]>(KEYS.MACHINES, [])
         ]);
 
         // Verzamel alle documentIds die nog ergens gekoppeld zijn
         const referencedIds = new Set<string>();
+
+        // Artikel-documenten
         for (const article of articles) {
             for (const file of (article.files || [])) {
                 if (file.documentId) {
                     referencedIds.add(file.documentId);
                 }
-                // Ook previousVersions meerekenen — die zijn nog geldig
                 for (const prevId of (file.previousVersions || [])) {
                     referencedIds.add(prevId);
+                }
+            }
+        }
+
+        // Ticket facturen/bijlagen
+        for (const ticket of tickets) {
+            if (ticket.invoice?.documentId) {
+                referencedIds.add(ticket.invoice.documentId);
+            }
+        }
+
+        // Machine documenten
+        for (const machine of machines) {
+            for (const doc of (machine.documents || [])) {
+                if (doc.documentId) {
+                    referencedIds.add(doc.documentId);
                 }
             }
         }

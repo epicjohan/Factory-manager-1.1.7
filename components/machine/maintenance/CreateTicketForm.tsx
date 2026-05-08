@@ -60,6 +60,7 @@ export const CreateTicketForm: React.FC<CreateTicketFormProps> = ({ machineId, o
                 <div>
                     <label className="block text-[10px] font-black text-slate-500 uppercase mb-1 text-left tracking-widest">Impact</label>
                     <div className="flex gap-2">
+                        <button type="button" onClick={() => setImpact(TicketImpact.LOW)} className={`flex-1 py-2 rounded-[2rem] text-xs font-black uppercase tracking-widest border transition-all ${impact === TicketImpact.LOW ? 'bg-slate-600 border-slate-500 text-white shadow-lg' : 'bg-white dark:bg-slate-800 border-slate-200 text-slate-500'}`}>Laag</button>
                         <button type="button" onClick={() => setImpact(TicketImpact.NORMAL)} className={`flex-1 py-2 rounded-[2rem] text-xs font-black uppercase tracking-widest border transition-all ${impact === TicketImpact.NORMAL ? 'bg-blue-600 border-blue-500 text-white shadow-lg' : 'bg-white dark:bg-slate-800 border-slate-200 text-slate-500'}`}>Normaal</button>
                         <button type="button" onClick={() => setImpact(TicketImpact.CRITICAL)} className={`flex-1 py-2 rounded-[2rem] text-xs font-black uppercase tracking-widest border transition-all ${impact === TicketImpact.CRITICAL ? 'bg-red-600 border-red-500 text-white shadow-lg animate-pulse' : 'bg-white dark:bg-slate-800 border-slate-200 text-slate-500'}`}>Kritiek</button>
                     </div>

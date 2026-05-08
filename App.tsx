@@ -45,6 +45,7 @@ import { ArticleManagement } from './pages/ArticleManagement';
 import { TemplateManagement } from './pages/TemplateManagement';
 import { ProductionDashboard } from './pages/ProductionDashboard';
 import { ToolPreparation } from './pages/ToolPreparation';
+import { TicketDashboard } from './pages/TicketDashboard';
 import { UserRole, AssetType, AppModule, FocasLiveStats } from './types';
 
 const ModuleGuard: React.FC<{ module: AppModule, children: React.ReactNode }> = ({ module, children }) => {
@@ -188,6 +189,7 @@ const App: React.FC = () => {
                                     <Route path="/efficiency" element={<ProtectedRoute><EfficiencyDashboard /></ProtectedRoute>} />
                                     <Route path="/energy" element={<ProtectedRoute><EnergyDashboard /></ProtectedRoute>} />
                                     <Route path="/andon" element={<ProtectedRoute><AndonDashboard /></ProtectedRoute>} />
+                                    <Route path="/tickets" element={<ProtectedRoute><ModuleGuard module={AppModule.TICKET_DASHBOARD}><TicketDashboard /></ModuleGuard></ProtectedRoute>} />
                                     <Route path="/logistics-andon" element={<ProtectedRoute><LogisticsAndon /></ProtectedRoute>} />
                                     <Route path="/planner" element={<ProtectedRoute><MaintenancePlanner /></ProtectedRoute>} />
                                     <Route path="/support" element={<ProtectedRoute><SupportDashboard /></ProtectedRoute>} />

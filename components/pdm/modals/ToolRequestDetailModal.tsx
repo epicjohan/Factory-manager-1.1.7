@@ -121,6 +121,7 @@ export const ToolRequestDetailModal: React.FC<ToolRequestDetailModalProps> = ({
                                     ) : (
                                         tools.map(tool => {
                                             const isExisting = request.existingToolIds?.includes(tool.id) || false;
+                                            const isNew = request.newToolIds?.includes(tool.id) || false;
                                             const isPrepared = request.preparedToolIds?.includes(tool.id) || false;
                                             const isDisabled = isExisting || isUpdating === tool.id;
                                             
@@ -134,13 +135,20 @@ export const ToolRequestDetailModal: React.FC<ToolRequestDetailModalProps> = ({
                                                                 </span>
                                                             </div>
                                                         ) : (
-                                                            <button 
-                                                                onClick={() => handleToggle(tool.id)}
-                                                                disabled={isDisabled}
-                                                                className={`w-8 h-8 mx-auto rounded-xl flex items-center justify-center transition-all ${isPrepared ? 'bg-green-500 text-white shadow-md shadow-green-500/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-300 dark:text-slate-600 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
-                                                            >
-                                                                {isPrepared ? <CheckSquare size={18} /> : <div className="w-4 h-4 rounded-md border-2 border-slate-300 dark:border-slate-600" />}
-                                                            </button>
+                                                            <div className="flex flex-col items-center gap-1.5">
+                                                                {isNew && (
+                                                                    <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-[9px] font-black tracking-widest uppercase rounded border border-amber-200 dark:border-amber-800">
+                                                                        Nieuw
+                                                                    </span>
+                                                                )}
+                                                                <button 
+                                                                    onClick={() => handleToggle(tool.id)}
+                                                                    disabled={isDisabled}
+                                                                    className={`w-8 h-8 mx-auto rounded-xl flex items-center justify-center transition-all ${isPrepared ? 'bg-green-500 text-white shadow-md shadow-green-500/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-300 dark:text-slate-600 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+                                                                >
+                                                                    {isPrepared ? <CheckSquare size={18} /> : <div className="w-4 h-4 rounded-md border-2 border-slate-300 dark:border-slate-600" />}
+                                                                </button>
+                                                            </div>
                                                         )}
                                                     </td>
                                                     {columns.map(col => {
