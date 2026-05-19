@@ -1,43 +1,940 @@
 [
-  {"id":"pbc_3142635823","name":"_superusers","type":"auth","system":true},
-  {"id":"pbc_4275539003","name":"_authOrigins","type":"base","system":true},
-  {"id":"pbc_2281828961","name":"_externalAuths","type":"base","system":true},
-  {"id":"pbc_2279338944","name":"_mfas","type":"base","system":true},
-  {"id":"pbc_1638494021","name":"_otps","type":"base","system":true},
-  {"id":"c_app_users_001","name":"app_users","type":"base","system":false,"fields":["name","pinCode","role","permissions","allowedTabs","allowedModules","allowedAssetIds","restrictedAccess","defaultPath","theme","preferredDarkStyle","preferredLightStyle","email","notificationSubscriptions","favoriteModules","kioskMode"]},
-  {"id":"pbc_4287850865","name":"articles","type":"base","system":false,"fields":["articleCode","revision","name","description","drawingNumber","drawingRevision","posNumber","status","isLocked","operations","bomItems","files","auditTrail","changeReason","previousRevisionId","updatedBy","customer","material","createdBy","filesMeta","description2"]},
-  {"id":"pbc_806119912","name":"asset_energy_configs","type":"base","system":false,"fields":["machineId","sensorType","ipAddress","apiPort","pollInterval","manualPowerW"]},
-  {"id":"c_checklist_l_01","name":"checklist_logs","type":"base","system":false,"fields":["machineId","checklistItemId","status","checkedBy","date"]},
-  {"id":"pbc_3682978740","name":"document_categories","type":"base","system":false,"fields":["name","description","parentId","color","icon","isSystem","applicableTo","order","code"]},
-  {"id":"pbc_3332084752","name":"documents","type":"base","system":false,"fields":["name","filename","categoryId","tags","fileData","description","size","type","uploadedBy","version","status","documentNumber","file","uploadDate"]},
-  {"id":"c_efficiency_001","name":"efficiency_logs","type":"base","system":false,"fields":["machineId","date","oee","availability","performance","quality","operatingMinutes","cuttingMinutes","partsProduced","status_snapshot","program_snapshot"]},
-  {"id":"pbc_3620949622","name":"energy_historical","type":"base","system":false,"fields":["timestamp","consumption_wh","production_wh","avg_consumption_w","peak_w","avg_production_w"]},
-  {"id":"c_energy_live_01","name":"energy_live","type":"base","system":false,"fields":["active_power_w","total_kwh","l1_amp","l2_amp","l3_amp","production_w","net_power_w","total_production_kwh"]},
-  {"id":"pbc_183657840","name":"energy_settings","type":"base","system":false,"fields":["kwhPrice","maxPowerLimit","co2Factor","consumptionFactor","productionFactor"]},
-  {"id":"c_g_parts_000001","name":"general_parts","type":"base","system":false,"fields":["description","articleCode","stock","minStock","price","location","supplier"]},
-  {"id":"pbc_1987499595","name":"logs_energy_assets","type":"base","system":false,"fields":["machineId","timestamp","avgPower","kwhDelta"]},
-  {"id":"pbc_2871107753","name":"logs_energy_quarterly","type":"base","system":false,"fields":["timestamp","consumption_wh","production_wh"]},
-  {"id":"c_m_parts_000001","name":"machine_parts","type":"base","system":false,"fields":["machineId","description","articleCode","stock","minStock","price","location","supplier"]},
-  {"id":"c_machines_00001","name":"machines","type":"base","system":false,"fields":["machineNumber","name","type","status","image","focasIp","focasPort","protocol","mtConnectUrl","mtConnectConfig","liveStats","toolStats","tankCapacity","coolantTarget","coolantMinLimit","coolantMaxLimit","showInDashboard","showInAndon","andonConfig","schedule","documents","isArchived","lastMaintenanceDate","maintenanceInterval","customMaintenanceInterval","checklist","targetPartsPerHour","sessionPartsCount","fanucType","activeJob","setupTemplateId","lastRemoteUpdate"]},
-  {"id":"c_m_events_00001","name":"maintenance_events","type":"base","system":false,"fields":["machineId","title","date","status","assignedTo"]},
-  {"id":"pbc_3665042560","name":"material_categories","type":"base","system":false,"fields":["name","code","color","order"]},
-  {"id":"pbc_1344584067","name":"material_profiles","type":"base","system":false,"fields":["name","code","hasDiameter","hasWidth","hasHeight","hasLength","hasThickness","icon","notes"]},
-  {"id":"pbc_675041513","name":"material_types","type":"base","system":false,"fields":["name","category","density","notes"]},
-  {"id":"c_mist_logs_0001","name":"mist_logs","type":"base","system":false,"fields":["machineId","stage","replacedBy","remark","partId","cost","date"]},
-  {"id":"c_mixing_logs_01","name":"mixing_logs","type":"base","system":false,"fields":["machineId","percentage","type","performedBy","date","notes","actionTaken"]},
-  {"id":"pbc_1482621316","name":"mkg_operations","type":"base","system":false,"fields":["code","name","category","operationType","defaultMachineId","setupTemplateId","defaultMachineType"]},
-  {"id":"pbc_3713556561","name":"qms_audits","type":"base","system":false,"fields":["frameworkId","date","type","auditorName","result","notes","reportDocumentId"]},
-  {"id":"pbc_2796585568","name":"qms_folders","type":"base","system":false,"fields":["frameworkId","year","name","documents","notes","todos","order"]},
-  {"id":"pbc_3960465270","name":"qms_frameworks","type":"base","system":false,"fields":["name","type","description","status","certifier"]},
-  {"id":"pbc_1829178101","name":"raw_materials","type":"base","system":false,"fields":["description","articleCode","batchNumber","materialType","materialTypeName","profileId","profileName","dimensions","stock","weight","location","source","sourceOrderNr","productionOrderNr","purchaseOrderNr","supplier","pricePerKg","addedBy","addedDate","notes","certificateDocIds","transactions"]},
-  {"id":"c_schedules_0001","name":"schedules","type":"base","system":false,"fields":["name","shifts"]},
-  {"id":"pbc_1601747204","name":"setup_templates","type":"base","system":false,"fields":["name","assetType","description","fields","toolFields","isDefault"]},
-  {"id":"c_snapshots_0001","name":"snapshots","type":"base","system":false,"fields":["name","timestamp","data","type"]},
-  {"id":"pbc_1647398308","name":"storage_locations","type":"base","system":false,"fields":["code","name","zone"]},
-  {"id":"c_requests_00001","name":"support_requests","type":"base","system":false,"fields":["type","status","machineId","message","urgency","requestDate","requester","acceptedBy","completedBy","completedDate","location","answer","contentMaterial","desiredTime","targetManager"]},
-  {"id":"c_audit_logs_001","name":"system_audit_logs","type":"base","system":false,"fields":["action","userId","details"]},
-  {"id":"c_sysconfig_0001","name":"system_config","type":"base","system":false,"fields":["systemVersion","lastUpdated","companyName","activeModules","teamsWebhook","notificationEmails","maintenanceMode","ncServerPath","logoUrl","licenseStatus","licenseHolder","licenseKey","licenseExpiry","darkModeStyle","lightModeStyle","autoLogoutMinutes"]},
-  {"id":"c_sys_status_001","name":"system_status","type":"base","system":false,"fields":["bridge_name","status","last_seen"]},
-  {"id":"c_tickets_000001","name":"tickets","type":"base","system":false,"fields":["machineId","title","description","status","impact","reportedBy","reportedDate","actions","usedParts","repairCost","downtimeMinutes","resolvedBy","resolvedDate","resolvedCompany","invoice","ticketNumber"]},
-  {"id":"pbc_2857166095","name":"user_roles","type":"base","system":false,"fields":["name","description","permissions","isSystem","color"]}
+  {
+    "id": "pbc_3142635823",
+    "name": "_superusers",
+    "type": "auth",
+    "system": true
+  },
+  {
+    "id": "pbc_4275539003",
+    "name": "_authOrigins",
+    "type": "base",
+    "system": true
+  },
+  {
+    "id": "pbc_2281828961",
+    "name": "_externalAuths",
+    "type": "base",
+    "system": true
+  },
+  {
+    "id": "pbc_2279338944",
+    "name": "_mfas",
+    "type": "base",
+    "system": true
+  },
+  {
+    "id": "pbc_1638494021",
+    "name": "_otps",
+    "type": "base",
+    "system": true
+  },
+  {
+    "id": "c_app_users_001",
+    "name": "app_users",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "name",
+      "pinCode",
+      "role",
+      "permissions",
+      "allowedTabs",
+      "allowedModules",
+      "allowedAssetIds",
+      "restrictedAccess",
+      "defaultPath",
+      "theme",
+      "preferredDarkStyle",
+      "preferredLightStyle",
+      "email",
+      "notificationSubscriptions",
+      "favoriteModules",
+      "kioskMode"
+    ]
+  },
+  {
+    "id": "pbc_4287850865",
+    "name": "articles",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "articleCode",
+      "revision",
+      "name",
+      "description",
+      "drawingNumber",
+      "drawingRevision",
+      "posNumber",
+      "status",
+      "isLocked",
+      "operations",
+      "bomItems",
+      "files",
+      "auditTrail",
+      "changeReason",
+      "previousRevisionId",
+      "updatedBy",
+      "customer",
+      "material",
+      "createdBy",
+      "filesMeta",
+      "description2"
+    ]
+  },
+  {
+    "id": "pbc_806119912",
+    "name": "asset_energy_configs",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "machineId",
+      "sensorType",
+      "ipAddress",
+      "apiPort",
+      "pollInterval",
+      "manualPowerW"
+    ]
+  },
+  {
+    "id": "c_checklist_l_01",
+    "name": "checklist_logs",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "machineId",
+      "checklistItemId",
+      "status",
+      "checkedBy",
+      "date"
+    ]
+  },
+  {
+    "id": "pbc_3682978740",
+    "name": "document_categories",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "name",
+      "description",
+      "parentId",
+      "color",
+      "icon",
+      "isSystem",
+      "applicableTo",
+      "order",
+      "code"
+    ]
+  },
+  {
+    "id": "pbc_3332084752",
+    "name": "documents",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "name",
+      "filename",
+      "categoryId",
+      "tags",
+      "fileData",
+      "description",
+      "size",
+      "type",
+      "uploadedBy",
+      "version",
+      "status",
+      "documentNumber",
+      "file",
+      "uploadDate"
+    ]
+  },
+  {
+    "id": "c_efficiency_001",
+    "name": "efficiency_logs",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "machineId",
+      "date",
+      "oee",
+      "availability",
+      "performance",
+      "quality",
+      "operatingMinutes",
+      "cuttingMinutes",
+      "partsProduced",
+      "status_snapshot",
+      "program_snapshot"
+    ]
+  },
+  {
+    "id": "pbc_3620949622",
+    "name": "energy_historical",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "timestamp",
+      "consumption_wh",
+      "production_wh",
+      "avg_consumption_w",
+      "peak_w",
+      "avg_production_w"
+    ]
+  },
+  {
+    "id": "c_energy_live_01",
+    "name": "energy_live",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "active_power_w",
+      "total_kwh",
+      "l1_amp",
+      "l2_amp",
+      "l3_amp",
+      "production_w",
+      "net_power_w",
+      "total_production_kwh"
+    ]
+  },
+  {
+    "id": "pbc_183657840",
+    "name": "energy_settings",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "kwhPrice",
+      "maxPowerLimit",
+      "co2Factor",
+      "consumptionFactor",
+      "productionFactor"
+    ]
+  },
+  {
+    "id": "c_g_parts_000001",
+    "name": "general_parts",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "description",
+      "articleCode",
+      "stock",
+      "minStock",
+      "price",
+      "location",
+      "supplier"
+    ]
+  },
+  {
+    "id": "pbc_1987499595",
+    "name": "logs_energy_assets",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "machineId",
+      "timestamp",
+      "avgPower",
+      "kwhDelta"
+    ]
+  },
+  {
+    "id": "pbc_2871107753",
+    "name": "logs_energy_quarterly",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "timestamp",
+      "consumption_wh",
+      "production_wh"
+    ]
+  },
+  {
+    "id": "c_m_parts_000001",
+    "name": "machine_parts",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "machineId",
+      "description",
+      "articleCode",
+      "stock",
+      "minStock",
+      "price",
+      "location",
+      "supplier"
+    ]
+  },
+  {
+    "id": "c_machines_00001",
+    "name": "machines",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "machineNumber",
+      "name",
+      "type",
+      "status",
+      "image",
+      "focasIp",
+      "focasPort",
+      "protocol",
+      "mtConnectUrl",
+      "mtConnectConfig",
+      "liveStats",
+      "toolStats",
+      "tankCapacity",
+      "coolantTarget",
+      "coolantMinLimit",
+      "coolantMaxLimit",
+      "showInDashboard",
+      "showInAndon",
+      "andonConfig",
+      "schedule",
+      "documents",
+      "isArchived",
+      "lastMaintenanceDate",
+      "maintenanceInterval",
+      "customMaintenanceInterval",
+      "checklist",
+      "targetPartsPerHour",
+      "sessionPartsCount",
+      "fanucType",
+      "activeJob",
+      "setupTemplateId",
+      "lastRemoteUpdate"
+    ]
+  },
+  {
+    "id": "c_m_events_00001",
+    "name": "maintenance_events",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "machineId",
+      "title",
+      "date",
+      "status",
+      "assignedTo"
+    ]
+  },
+  {
+    "id": "pbc_3665042560",
+    "name": "material_categories",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "name",
+      "code",
+      "color",
+      "order"
+    ]
+  },
+  {
+    "id": "pbc_1344584067",
+    "name": "material_profiles",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "name",
+      "code",
+      "hasDiameter",
+      "hasWidth",
+      "hasHeight",
+      "hasLength",
+      "hasThickness",
+      "icon",
+      "notes"
+    ]
+  },
+  {
+    "id": "pbc_675041513",
+    "name": "material_types",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "name",
+      "category",
+      "density",
+      "notes"
+    ]
+  },
+  {
+    "id": "c_mist_logs_0001",
+    "name": "mist_logs",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "machineId",
+      "stage",
+      "replacedBy",
+      "remark",
+      "partId",
+      "cost",
+      "date"
+    ]
+  },
+  {
+    "id": "c_mixing_logs_01",
+    "name": "mixing_logs",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "machineId",
+      "percentage",
+      "type",
+      "performedBy",
+      "date",
+      "notes",
+      "actionTaken"
+    ]
+  },
+  {
+    "id": "pbc_1482621316",
+    "name": "mkg_operations",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "code",
+      "name",
+      "category",
+      "operationType",
+      "defaultMachineId",
+      "setupTemplateId",
+      "defaultMachineType"
+    ]
+  },
+  {
+    "id": "pbc_3713556561",
+    "name": "qms_audits",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "frameworkId",
+      "date",
+      "type",
+      "auditorName",
+      "result",
+      "notes",
+      "reportDocumentId"
+    ]
+  },
+  {
+    "id": "pbc_2796585568",
+    "name": "qms_folders",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "frameworkId",
+      "year",
+      "name",
+      "documents",
+      "notes",
+      "todos",
+      "order"
+    ]
+  },
+  {
+    "id": "pbc_3960465270",
+    "name": "qms_frameworks",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "name",
+      "type",
+      "description",
+      "status",
+      "certifier"
+    ]
+  },
+  {
+    "id": "pbc_1829178101",
+    "listRule": "",
+    "viewRule": "",
+    "createRule": "",
+    "updateRule": "",
+    "deleteRule": "",
+    "name": "raw_materials",
+    "type": "base",
+    "fields": [
+      {
+        "autogeneratePattern": "[a-z0-9]{15}",
+        "hidden": false,
+        "id": "text3208210256",
+        "max": 15,
+        "min": 15,
+        "name": "id",
+        "pattern": "^[a-z0-9]+$",
+        "presentable": false,
+        "primaryKey": true,
+        "required": true,
+        "system": true,
+        "type": "text"
+      },
+      {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text1843675174",
+        "max": 0,
+        "min": 0,
+        "name": "description",
+        "pattern": "",
+        "presentable": false,
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text139699494",
+        "max": 0,
+        "min": 0,
+        "name": "articleCode",
+        "pattern": "",
+        "presentable": false,
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text915832217",
+        "max": 0,
+        "min": 0,
+        "name": "batchNumber",
+        "pattern": "",
+        "presentable": false,
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text3619552539",
+        "max": 0,
+        "min": 0,
+        "name": "materialTypeId",
+        "pattern": "",
+        "presentable": false,
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text2378790567",
+        "max": 0,
+        "min": 0,
+        "name": "materialTypeName",
+        "pattern": "",
+        "presentable": false,
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text2602996892",
+        "max": 0,
+        "min": 0,
+        "name": "profileId",
+        "pattern": "",
+        "presentable": false,
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text500720125",
+        "max": 0,
+        "min": 0,
+        "name": "profileName",
+        "pattern": "",
+        "presentable": false,
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "hidden": false,
+        "id": "json3799878565",
+        "maxSize": 0,
+        "name": "dimensions",
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "json"
+      },
+      {
+        "hidden": false,
+        "id": "number1261852256",
+        "max": null,
+        "min": null,
+        "name": "stock",
+        "onlyInt": false,
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "number"
+      },
+      {
+        "hidden": false,
+        "id": "number130897217",
+        "max": null,
+        "min": null,
+        "name": "weight",
+        "onlyInt": false,
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "number"
+      },
+      {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text1587448267",
+        "max": 0,
+        "min": 0,
+        "name": "location",
+        "pattern": "",
+        "presentable": false,
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text1602912115",
+        "max": 0,
+        "min": 0,
+        "name": "source",
+        "pattern": "",
+        "presentable": false,
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text3251088472",
+        "max": 0,
+        "min": 0,
+        "name": "sourceOrderNr",
+        "pattern": "",
+        "presentable": false,
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text3096976867",
+        "max": 0,
+        "min": 0,
+        "name": "productionOrderNr",
+        "pattern": "",
+        "presentable": false,
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text2891418603",
+        "max": 0,
+        "min": 0,
+        "name": "purchaseOrderNr",
+        "pattern": "",
+        "presentable": false,
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text2603248766",
+        "max": 0,
+        "min": 0,
+        "name": "supplier",
+        "pattern": "",
+        "presentable": false,
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "hidden": false,
+        "id": "number1167090509",
+        "max": null,
+        "min": null,
+        "name": "pricePerKg",
+        "onlyInt": false,
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "number"
+      },
+      {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text3888809020",
+        "max": 0,
+        "min": 0,
+        "name": "addedBy",
+        "pattern": "",
+        "presentable": false,
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text2569686978",
+        "max": 0,
+        "min": 0,
+        "name": "addedDate",
+        "pattern": "",
+        "presentable": false,
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "autogeneratePattern": "",
+        "hidden": false,
+        "id": "text18589324",
+        "max": 0,
+        "min": 0,
+        "name": "notes",
+        "pattern": "",
+        "presentable": false,
+        "primaryKey": false,
+        "required": false,
+        "system": false,
+        "type": "text"
+      },
+      {
+        "hidden": false,
+        "id": "json62084603",
+        "maxSize": 0,
+        "name": "certificateDocIds",
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "json"
+      },
+      {
+        "hidden": false,
+        "id": "json3936885324",
+        "maxSize": 0,
+        "name": "transactions",
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "json"
+      },
+      {
+        "hidden": false,
+        "id": "autodate2990389176",
+        "name": "created",
+        "onCreate": true,
+        "onUpdate": false,
+        "presentable": false,
+        "system": false,
+        "type": "autodate"
+      },
+      {
+        "hidden": false,
+        "id": "autodate3332085495",
+        "name": "updated",
+        "onCreate": true,
+        "onUpdate": true,
+        "presentable": false,
+        "system": false,
+        "type": "autodate"
+      }
+    ],
+    "indexes": [],
+    "system": false
+  },
+  {
+    "id": "c_schedules_0001",
+    "name": "schedules",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "name",
+      "shifts"
+    ]
+  },
+  {
+    "id": "pbc_1601747204",
+    "name": "setup_templates",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "name",
+      "assetType",
+      "description",
+      "fields",
+      "toolFields",
+      "isDefault"
+    ]
+  },
+  {
+    "id": "c_snapshots_0001",
+    "name": "snapshots",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "name",
+      "timestamp",
+      "data",
+      "type"
+    ]
+  },
+  {
+    "id": "pbc_1647398308",
+    "name": "storage_locations",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "code",
+      "name",
+      "zone"
+    ]
+  },
+  {
+    "id": "c_requests_00001",
+    "name": "support_requests",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "type",
+      "status",
+      "machineId",
+      "message",
+      "urgency",
+      "requestDate",
+      "requester",
+      "acceptedBy",
+      "completedBy",
+      "completedDate",
+      "location",
+      "answer",
+      "contentMaterial",
+      "desiredTime",
+      "targetManager"
+    ]
+  },
+  {
+    "id": "c_audit_logs_001",
+    "name": "system_audit_logs",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "action",
+      "userId",
+      "details"
+    ]
+  },
+  {
+    "id": "c_sysconfig_0001",
+    "name": "system_config",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "systemVersion",
+      "lastUpdated",
+      "companyName",
+      "activeModules",
+      "teamsWebhook",
+      "notificationEmails",
+      "maintenanceMode",
+      "ncServerPath",
+      "logoUrl",
+      "licenseStatus",
+      "licenseHolder",
+      "licenseKey",
+      "licenseExpiry",
+      "darkModeStyle",
+      "lightModeStyle",
+      "autoLogoutMinutes"
+    ]
+  },
+  {
+    "id": "c_sys_status_001",
+    "name": "system_status",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "bridge_name",
+      "status",
+      "last_seen"
+    ]
+  },
+  {
+    "id": "c_tickets_000001",
+    "name": "tickets",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "machineId",
+      "title",
+      "description",
+      "status",
+      "impact",
+      "reportedBy",
+      "reportedDate",
+      "actions",
+      "usedParts",
+      "repairCost",
+      "downtimeMinutes",
+      "resolvedBy",
+      "resolvedDate",
+      "resolvedCompany",
+      "invoice",
+      "ticketNumber"
+    ]
+  },
+  {
+    "id": "pbc_2857166095",
+    "name": "user_roles",
+    "type": "base",
+    "system": false,
+    "fields": [
+      "name",
+      "description",
+      "permissions",
+      "isSystem",
+      "color"
+    ]
+  }
 ]
