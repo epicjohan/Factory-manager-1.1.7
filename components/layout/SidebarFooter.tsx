@@ -82,7 +82,7 @@ export const SidebarFooter: React.FC<SidebarFooterProps> = ({
                     </div>
                     <div className="px-3 pt-2 border-t border-slate-200 dark:border-slate-800 flex flex-col items-center gap-0.5">
                         <div className="text-[9px] text-slate-500 font-bold uppercase tracking-widest leading-none">v{APP_INFO.VERSION}</div>
-                        <div className="text-[7px] text-slate-400 dark:text-slate-600 font-mono tracking-tighter uppercase leading-none opacity-60">Build: {APP_INFO.BUILD}</div>
+                        <div className="text-[7px] text-slate-400 dark:text-slate-600 font-mono tracking-tighter uppercase leading-none opacity-60" title={APP_INFO.BUILD_TIMESTAMP}>Build #{APP_INFO.BUILD}</div>
                     </div>
                 </div>
             )}
