@@ -10,7 +10,8 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives",
     "preview": "vite preview",
     "release": "node scripts/build_release.js",
-    "test": "vitest run"
+    "test": "vitest run",
+    "prebuild": "node scripts/bump-build.js"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

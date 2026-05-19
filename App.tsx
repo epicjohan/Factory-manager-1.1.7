@@ -9,7 +9,7 @@ import { Layout } from './components/Layout';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { SyncService } from './services/sync';
 import { ConnectionOverlay } from './components/ConnectionOverlay';
-import { PwaUpdatePrompt } from './components/PwaUpdatePrompt'; // Added import
+import { UpdateBanner } from './components/UpdateBanner';
 import { db } from './services/storage';
 import { Dashboard } from './pages/Dashboard';
 import { AndonDashboard } from './pages/AndonDashboard';
@@ -173,7 +173,7 @@ const App: React.FC = () => {
                         <ConfirmProvider>
                             <BackgroundSimulator />
                             <ConnectionOverlay />
-                            <PwaUpdatePrompt />
+                            <UpdateBanner />
                             <HashRouter>
                                 <Routes>
                                     <Route path="/" element={<ProtectedRoute><DefaultPageRedirect /></ProtectedRoute>} />
