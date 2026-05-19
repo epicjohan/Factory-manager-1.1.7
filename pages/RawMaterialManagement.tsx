@@ -3,7 +3,7 @@ import { db } from '../services/storage';
 import { KEYS, generateId } from '../services/db/core';
 import { RawMaterial, RawMaterialTransaction, MaterialType, MaterialProfile, MaterialCategory, RawMaterialDimensions, DMSDocument, StorageLocation, UserRole } from '../types';
 import {
-    Plus, Search, Package, Trash2, Edit, MapPin, AlertTriangle, X, Layers, Save, Upload, FileText, Eye, History, LayoutGrid, List, Download, RefreshCw
+    Plus, Search, Package, Trash2, Edit, MapPin, AlertTriangle, X, Layers, Save, Upload, FileText, Eye, History, LayoutGrid, List, Download, RefreshCw, Info, Building2, ShoppingCart, ClipboardList, StickyNote
 } from '../icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useTable } from '../hooks/useTable';
@@ -36,6 +36,7 @@ export const RawMaterialManagement: React.FC = () => {
     const [withdrawNote, setWithdrawNote] = useState('');
     const [historyModal, setHistoryModal] = useState<RawMaterial | false>(false);
     const [batchDetail, setBatchDetail] = useState<RawMaterialTransaction | null>(null);
+    const [infoModal, setInfoModal] = useState<RawMaterial | false>(false);
 
     // Restock modal state
     const [restockModal, setRestockModal] = useState<RawMaterial | false>(false);
@@ -552,6 +553,9 @@ export const RawMaterialManagement: React.FC = () => {
                                         </span>
                                     </div>
                                     <div className="flex gap-2 pt-3 mt-3 border-t border-slate-100 dark:border-slate-700">
+                                        <button onClick={() => setInfoModal(rm)} className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 dark:text-indigo-400 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors" title="Materiaalinformatie">
+                                            <Info size={14} /> Info
+                                        </button>
                                         <button onClick={() => { setWithdrawModal(rm); setWithdrawQty(1); setWithdrawPO(''); setWithdrawNote(''); }} disabled={rm.stock === 0} className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors disabled:opacity-30 disabled:cursor-not-allowed" title="Materiaal afnemen">
                                             <Package size={14} /> Afname
                                         </button>
@@ -630,6 +634,9 @@ export const RawMaterialManagement: React.FC = () => {
                                                 </td>
                                                 <td className="px-4 py-3">
                                                     <div className="flex items-center justify-end gap-1">
+                                                        <button onClick={() => setInfoModal(rm)} className="p-1.5 rounded-lg text-indigo-500 hover:text-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all" title="Materiaalinformatie">
+                                                            <Info size={16} />
+                                                        </button>
                                                         <button onClick={() => { setWithdrawModal(rm); setWithdrawQty(1); setWithdrawPO(''); setWithdrawNote(''); }} disabled={rm.stock === 0} className="p-1.5 rounded-lg text-blue-500 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed" title="Materiaal afnemen">
                                                             <Package size={16} />
                                                         </button>
@@ -903,6 +910,197 @@ export const RawMaterialManagement: React.FC = () => {
                                     <button type="button" onClick={() => setWithdrawModal(false)} className="flex-1 py-3 rounded-2xl font-bold uppercase tracking-widest text-xs text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Annuleren</button>
                                     <button type="button" onClick={handleWithdraw} disabled={!withdrawPO.trim() || withdrawQty < 1} className="flex-[2] py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-blue-500/20 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"><Package size={16} /> Afnemen</button>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
+
+            {/* ── Info Modal (read-only, voor alle gebruikers) ── */}
+            {infoModal && (() => {
+                const rm = infoModal;
+                const txs = [...(rm.transactions || [])].reverse();
+                const txTypeConfig: Record<string, { label: string; color: string; bg: string; dot: string }> = {
+                    CREATED:     { label: 'Aangemaakt',  color: 'text-green-700',  bg: 'bg-green-50 dark:bg-green-900/20',   dot: 'bg-green-500' },
+                    RESTOCK:     { label: 'Opboeking',   color: 'text-teal-700',   bg: 'bg-teal-50 dark:bg-teal-900/20',     dot: 'bg-teal-500' },
+                    WITHDRAWAL:  { label: 'Afname',      color: 'text-blue-700',   bg: 'bg-blue-50 dark:bg-blue-900/20',     dot: 'bg-blue-500' },
+                    TRANSFER:    { label: 'Verplaatst',  color: 'text-amber-700',  bg: 'bg-amber-50 dark:bg-amber-900/20',   dot: 'bg-amber-500' },
+                    EDIT:        { label: 'Bewerkt',     color: 'text-slate-600',  bg: 'bg-slate-50 dark:bg-slate-700/50',   dot: 'bg-slate-400' },
+                    STOCK_ADJUST:{ label: 'Aanpassing',  color: 'text-purple-700', bg: 'bg-purple-50 dark:bg-purple-900/20', dot: 'bg-purple-500' },
+                };
+                const dims = formatDimensions(rm.dimensions);
+                return (
+                    <div className="fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+                        <div className="bg-white dark:bg-slate-900 w-full max-w-xl rounded-[2rem] shadow-2xl border border-slate-200 dark:border-slate-800 animate-in zoom-in-95 duration-300 max-h-[90vh] flex flex-col">
+
+                            {/* Header */}
+                            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-start shrink-0">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-2xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center shrink-0">
+                                        <Info size={20} className="text-indigo-600 dark:text-indigo-400" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-base font-black uppercase tracking-tight text-slate-900 dark:text-white leading-tight">{rm.description}</h3>
+                                        <p className="text-[10px] text-slate-400 mt-0.5 uppercase tracking-widest">Materiaalinformatie · Alleen lezen</p>
+                                    </div>
+                                </div>
+                                <button onClick={() => setInfoModal(false)} className="p-2 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0"><X size={20} /></button>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto">
+
+                                {/* Materiaal details */}
+                                <div className="p-6 border-b border-slate-100 dark:border-slate-800">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Materiaalgegevens</p>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {[
+                                            { label: 'Materiaalsoort', value: rm.materialTypeName },
+                                            { label: 'Profielvorm',    value: rm.profileName },
+                                            { label: 'Afmetingen',     value: dims || '—' },
+                                            { label: 'Locatie',        value: rm.location || '—' },
+                                            { label: 'Herkomst',       value: rm.source === 'RESTMATERIAAL' ? 'Restmateriaal' : 'Nieuw' },
+                                            { label: 'Voorraad',       value: `${rm.stock} st.` },
+                                        ].map(item => (
+                                            <div key={item.label} className="bg-slate-50 dark:bg-slate-800 rounded-2xl p-3.5">
+                                                <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{item.label}</div>
+                                                <div className="text-sm font-black text-slate-800 dark:text-white">{item.value}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Orders & Leverancier */}
+                                {(rm.productionOrderNr || rm.purchaseOrderNr || rm.supplier) && (
+                                    <div className="p-6 border-b border-slate-100 dark:border-slate-800">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Orders & Leverancier</p>
+                                        <div className="space-y-2.5">
+                                            {rm.productionOrderNr && (
+                                                <div className="flex items-center gap-3 bg-blue-50 dark:bg-blue-900/10 rounded-2xl px-4 py-3">
+                                                    <ClipboardList size={16} className="text-blue-500 shrink-0" />
+                                                    <div>
+                                                        <div className="text-[9px] font-black text-blue-400 uppercase tracking-widest">Productie Order</div>
+                                                        <div className="text-sm font-black text-blue-800 dark:text-blue-300">{rm.productionOrderNr}</div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {rm.purchaseOrderNr && (
+                                                <div className="flex items-center gap-3 bg-purple-50 dark:bg-purple-900/10 rounded-2xl px-4 py-3">
+                                                    <ShoppingCart size={16} className="text-purple-500 shrink-0" />
+                                                    <div>
+                                                        <div className="text-[9px] font-black text-purple-400 uppercase tracking-widest">Inkoop Order</div>
+                                                        <div className="text-sm font-black text-purple-800 dark:text-purple-300">{rm.purchaseOrderNr}</div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {rm.supplier && (
+                                                <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800 rounded-2xl px-4 py-3">
+                                                    <Building2 size={16} className="text-slate-500 shrink-0" />
+                                                    <div>
+                                                        <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Leverancier</div>
+                                                        <div className="text-sm font-black text-slate-800 dark:text-white">{rm.supplier}</div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Notities */}
+                                {rm.notes && (
+                                    <div className="p-6 border-b border-slate-100 dark:border-slate-800">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
+                                            <StickyNote size={12} /> Notities
+                                        </p>
+                                        <div className="bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800/30 rounded-2xl p-4">
+                                            <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{rm.notes}</p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Batch / transactie overzicht */}
+                                <div className="p-6">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                        <History size={12} /> Batches & Transacties
+                                        <span className="ml-auto bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 text-[10px] font-black px-2 py-0.5 rounded-full">{txs.length}</span>
+                                    </p>
+                                    {txs.length > 0 ? (
+                                        <div className="space-y-2.5">
+                                            {txs.map(tx => {
+                                                const cfg = txTypeConfig[tx.type] || txTypeConfig.EDIT;
+                                                return (
+                                                    <div key={tx.id} className={`rounded-2xl border border-slate-100 dark:border-slate-700 ${cfg.bg} p-4`}>
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className={`w-2 h-2 rounded-full shrink-0 ${cfg.dot}`} />
+                                                                <span className={`text-[10px] font-black uppercase tracking-widest ${cfg.color}`}>{cfg.label}</span>
+                                                                {tx.batchNr && <span className="text-[9px] font-black font-mono text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/40 px-2 py-0.5 rounded-lg">{tx.batchNr}</span>}
+                                                            </div>
+                                                            <span className="text-[9px] font-mono text-slate-400 shrink-0">
+                                                                {new Date(tx.performedAt).toLocaleString('nl-NL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex flex-wrap gap-2 items-center">
+                                                            <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{tx.performedBy}</span>
+                                                            {tx.quantity != null && (
+                                                                <span className="text-xs font-black bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 px-2 py-0.5 rounded-lg text-slate-800 dark:text-white">
+                                                                    {tx.type === 'RESTOCK' ? '+' : tx.type === 'TRANSFER' ? '' : tx.type === 'CREATED' ? '' : '-'}{tx.quantity} st.
+                                                                </span>
+                                                            )}
+                                                            {tx.type === 'TRANSFER' && tx.fromLocation && tx.toLocation && (
+                                                                <span className="text-[10px] font-bold text-amber-700 bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 rounded-lg">
+                                                                    {tx.fromLocation} → {tx.toLocation}
+                                                                </span>
+                                                            )}
+                                                            {tx.type !== 'TRANSFER' && tx.previousStock != null && tx.newStock != null && (
+                                                                <span className="text-[10px] font-mono text-slate-400">{tx.previousStock} → {tx.newStock} st.</span>
+                                                            )}
+                                                        </div>
+                                                        {/* PO / IO per transactie */}
+                                                        {(tx.productionOrderNr || tx.purchaseOrderNr) && (
+                                                            <div className="flex flex-wrap gap-1.5 mt-2">
+                                                                {tx.productionOrderNr && (
+                                                                    <span className="text-[10px] font-bold text-blue-600 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 px-2 py-0.5 rounded-lg flex items-center gap-1">
+                                                                        <ClipboardList size={10} /> PO: {tx.productionOrderNr}
+                                                                    </span>
+                                                                )}
+                                                                {tx.purchaseOrderNr && (
+                                                                    <span className="text-[10px] font-bold text-purple-600 bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800/30 px-2 py-0.5 rounded-lg flex items-center gap-1">
+                                                                        <ShoppingCart size={10} /> IO: {tx.purchaseOrderNr}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                        {/* Certificaten */}
+                                                        {tx.certificateDocIds && tx.certificateDocIds.length > 0 && (
+                                                            <div className="flex flex-wrap gap-1.5 mt-2">
+                                                                {tx.certificateDocIds.map(cId => {
+                                                                    const doc = allDocs.find(d => d.id === cId);
+                                                                    return doc ? (
+                                                                        <span key={cId} className="inline-flex items-center gap-1 text-[9px] font-bold text-green-700 bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded-lg">
+                                                                            <FileText size={9} /> {doc.name}
+                                                                            {doc.url && <button onClick={() => window.open(doc.url, '_blank')} className="text-green-500 hover:text-green-700"><Eye size={9} /></button>}
+                                                                        </span>
+                                                                    ) : null;
+                                                                })}
+                                                            </div>
+                                                        )}
+                                                        {tx.note && <p className="text-[10px] text-slate-400 mt-1.5 italic">{tx.note}</p>}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    ) : (
+                                        <div className="py-10 text-center text-slate-400">
+                                            <History size={36} className="mx-auto opacity-10 mb-3" />
+                                            <p className="text-xs font-bold">Nog geen transacties</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Footer */}
+                            <div className="p-4 border-t border-slate-100 dark:border-slate-700 shrink-0">
+                                <button onClick={() => setInfoModal(false)} className="w-full py-3 rounded-2xl font-bold uppercase tracking-widest text-xs text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Sluiten</button>
                             </div>
                         </div>
                     </div>
