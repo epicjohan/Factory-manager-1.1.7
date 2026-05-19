@@ -285,7 +285,7 @@ export interface RawMaterial {
 
 export interface RawMaterialTransaction {
   id: string;
-  type: 'CREATED' | 'WITHDRAWAL' | 'EDIT' | 'STOCK_ADJUST' | 'RESTOCK';
+  type: 'CREATED' | 'WITHDRAWAL' | 'EDIT' | 'STOCK_ADJUST' | 'RESTOCK' | 'TRANSFER';
   batchNr?: string;              // uniek batch nummer bij afname (BATCH-YYYYMMDD-XXXX)
   quantity?: number;             // afgenomen / toegevoegde hoeveelheid
   previousStock?: number;
@@ -294,6 +294,8 @@ export interface RawMaterialTransaction {
   purchaseOrderNr?: string;
   certificateDocIds?: string[];
   note?: string;
+  fromLocation?: string;         // bij TRANSFER: oorspronkelijke locatie
+  toLocation?: string;           // bij TRANSFER: nieuwe locatie
   performedBy: string;
   performedAt: string;           // ISO date
 }

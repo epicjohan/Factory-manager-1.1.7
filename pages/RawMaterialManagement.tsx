@@ -3,7 +3,7 @@ import { db } from '../services/storage';
 import { KEYS, generateId } from '../services/db/core';
 import { RawMaterial, RawMaterialTransaction, MaterialType, MaterialProfile, MaterialCategory, RawMaterialDimensions, DMSDocument, StorageLocation, UserRole } from '../types';
 import {
-    Plus, Search, Package, Trash2, Edit, MapPin, AlertTriangle, X, Layers, Save, Upload, FileText, Eye, History, LayoutGrid, List, Download
+    Plus, Search, Package, Trash2, Edit, MapPin, AlertTriangle, X, Layers, Save, Upload, FileText, Eye, History, LayoutGrid, List, Download, RefreshCw
 } from '../icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useTable } from '../hooks/useTable';
@@ -47,6 +47,15 @@ export const RawMaterialManagement: React.FC = () => {
     const [showRestockCertLibrary, setShowRestockCertLibrary] = useState(false);
     const restockCertInputRef = useRef<HTMLInputElement>(null);
     const [isUploadingRestockCert, setIsUploadingRestockCert] = useState(false);
+
+    // ── Transfer state ──
+    const [transferModal, setTransferModal] = useState<RawMaterial | false>(false);
+    const [transferAll, setTransferAll] = useState(true);
+    const [transferQty, setTransferQty] = useState(1);
+    const [transferToLocation, setTransferToLocation] = useState('');
+    const [transferNote, setTransferNote] = useState('');
+    const [transferLocSearch, setTransferLocSearch] = useState('');
+    const [transferLocDropOpen, setTransferLocDropOpen] = useState(false);
 
     const [search, setSearch] = useState('');
     const [filterCategory, setFilterCategory] = useState<string>('');
@@ -278,6 +287,101 @@ export const RawMaterialManagement: React.FC = () => {
         }
     };
 
+    // ── Verplaatsen handler ──
+    const handleTransfer = async () => {
+        if (!transferModal || !transferToLocation.trim()) return;
+        const rm = transferModal;
+        const now = new Date().toISOString();
+        const userName = user?.name || 'Onbekend';
+        const qty = transferAll ? rm.stock : Math.min(transferQty, rm.stock);
+        if (qty < 1) return;
+        const fromLocation = rm.location;
+        const toLocation = transferToLocation.trim();
+        if (fromLocation === toLocation) return;
+
+        const tx: RawMaterialTransaction = {
+            id: generateId(),
+            type: 'TRANSFER',
+            quantity: qty,
+            previousStock: rm.stock,
+            newStock: rm.stock - qty,
+            fromLocation,
+            toLocation,
+            note: transferNote.trim() || undefined,
+            performedBy: userName,
+            performedAt: now
+        };
+
+        if (transferAll || qty === rm.stock) {
+            // Volledige verplaatsing: update locatie op hetzelfde record
+            const updated: RawMaterial = {
+                ...rm,
+                location: toLocation,
+                transactions: [...(rm.transactions || []), tx]
+            };
+            await db.updateRawMaterial(updated);
+        } else {
+            // Gedeeltelijke verplaatsing: verlaag voorraad origineel, maak nieuw record aan
+            const updatedOriginal: RawMaterial = {
+                ...rm,
+                stock: rm.stock - qty,
+                transactions: [...(rm.transactions || []), { ...tx, newStock: rm.stock - qty }]
+            };
+            await db.updateRawMaterial(updatedOriginal);
+
+            const newRecord: RawMaterial = {
+                ...rm,
+                id: generateId(),
+                location: toLocation,
+                stock: qty,
+                addedDate: now,
+                addedBy: userName,
+                transactions: [{
+                    id: generateId(),
+                    type: 'TRANSFER',
+                    quantity: qty,
+                    previousStock: 0,
+                    newStock: qty,
+                    fromLocation,
+                    toLocation,
+                    note: `Verplaatst van ${fromLocation}`,
+                    performedBy: userName,
+                    performedAt: now
+                }]
+            };
+            await db.addRawMaterial(newRecord);
+        }
+
+        const savedQty = qty;
+        const savedFrom = fromLocation;
+        const savedTo = toLocation;
+        setTransferModal(false);
+        setTransferToLocation('');
+        setTransferNote('');
+        setTransferAll(true);
+
+        const wantPrint = await confirm({
+            title: 'Label Printen',
+            message: `${savedQty} st. verplaatst van ${savedFrom} naar ${savedTo}. Wilt u een sticker label printen?`
+        });
+        if (wantPrint) {
+            printRawMaterialLabel({
+                description: rm.description,
+                materialTypeName: rm.materialTypeName,
+                profileName: rm.profileName,
+                dimensions: formatDimensions(rm.dimensions),
+                stock: qty,
+                location: savedTo,
+                source: rm.source,
+                addedBy: userName,
+                date: new Date().toLocaleDateString('nl-NL'),
+                transactionType: 'TRANSFER',
+                fromLocation: savedFrom,
+                transferQty: savedQty
+            });
+        }
+    };
+
     const exportToExcel = () => {
         const rows = filteredRaw.map(rm => {
             const dims = rm.dimensions || {};
@@ -454,6 +558,9 @@ export const RawMaterialManagement: React.FC = () => {
                                         <button onClick={() => openRestockModal(rm)} className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold text-teal-600 bg-teal-50 dark:bg-teal-900/20 dark:text-teal-400 rounded-xl hover:bg-teal-100 dark:hover:bg-teal-900/40 transition-colors" title="Voorraad opboeken">
                                             <Plus size={14} /> Opboeken
                                         </button>
+                                        <button onClick={() => { setTransferModal(rm); setTransferAll(true); setTransferQty(1); setTransferToLocation(''); setTransferNote(''); }} disabled={rm.stock === 0} className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400 rounded-xl hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors disabled:opacity-30 disabled:cursor-not-allowed" title="Voorraad verplaatsen">
+                                            <RefreshCw size={14} /> Verplaatsen
+                                        </button>
                                         <button onClick={() => setHistoryModal(rm)} className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold text-slate-500 bg-slate-50 dark:bg-slate-700/50 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" title="Transactiegeschiedenis">
                                             <History size={14} /> Historie
                                             {(rm.transactions || []).length > 0 && <span className="text-[9px] bg-slate-200 dark:bg-slate-600 px-1.5 py-0.5 rounded-full font-black">{(rm.transactions || []).length}</span>}
@@ -528,6 +635,9 @@ export const RawMaterialManagement: React.FC = () => {
                                                         </button>
                                                         <button onClick={() => openRestockModal(rm)} className="p-1.5 rounded-lg text-teal-500 hover:text-teal-700 hover:bg-teal-50 dark:hover:bg-teal-900/30 transition-all" title="Voorraad opboeken">
                                                             <Plus size={16} />
+                                                        </button>
+                                                        <button onClick={() => { setTransferModal(rm); setTransferAll(true); setTransferQty(1); setTransferToLocation(''); setTransferNote(''); }} disabled={rm.stock === 0} className="p-1.5 rounded-lg text-amber-500 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed" title="Voorraad verplaatsen">
+                                                            <RefreshCw size={16} />
                                                         </button>
                                                         <button onClick={() => setHistoryModal(rm)} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all relative" title="Transactiegeschiedenis">
                                                             <History size={16} />
@@ -808,7 +918,8 @@ export const RawMaterialManagement: React.FC = () => {
                     WITHDRAWAL: { label: 'Afname', color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
                     RESTOCK: { label: 'Opgeboekt', color: 'text-teal-600', bg: 'bg-teal-50 dark:bg-teal-900/20' },
                     EDIT: { label: 'Bewerkt', color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/20' },
-                    STOCK_ADJUST: { label: 'Voorraad', color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/20' }
+                    STOCK_ADJUST: { label: 'Voorraad', color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/20' },
+                    TRANSFER: { label: 'Verplaatst', color: 'text-orange-600', bg: 'bg-orange-50 dark:bg-orange-900/20' }
                 };
                 return (
                     <div className="fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
@@ -839,8 +950,13 @@ export const RawMaterialManagement: React.FC = () => {
                                                     </div>
                                                     <div className="flex flex-wrap items-center gap-2">
                                                         <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{tx.performedBy}</span>
-                                                        {tx.quantity != null && <span className={`text-xs font-black text-slate-800 dark:text-white bg-white dark:bg-slate-800 px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-600`}>{tx.type === 'RESTOCK' ? '+' : '-'}{tx.quantity} st.</span>}
-                                                        {tx.previousStock != null && tx.newStock != null && <span className="text-[10px] font-mono text-slate-400">{tx.previousStock} → {tx.newStock}</span>}
+                                                        {tx.quantity != null && <span className={`text-xs font-black text-slate-800 dark:text-white bg-white dark:bg-slate-800 px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-600`}>{tx.type === 'RESTOCK' ? '+' : tx.type === 'TRANSFER' ? '' : '-'}{tx.quantity} st.</span>}
+                                                        {tx.type === 'TRANSFER' && tx.fromLocation && tx.toLocation && (
+                                                            <span className="text-[10px] font-bold text-orange-600 bg-orange-50 dark:bg-orange-900/30 px-2 py-0.5 rounded-lg flex items-center gap-1">
+                                                                <RefreshCw size={10} /> {tx.fromLocation} → {tx.toLocation}
+                                                            </span>
+                                                        )}
+                                                        {tx.type !== 'TRANSFER' && tx.previousStock != null && tx.newStock != null && <span className="text-[10px] font-mono text-slate-400">{tx.previousStock} → {tx.newStock}</span>}
                                                         {tx.productionOrderNr && <span className="text-[10px] font-bold text-blue-500 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-lg">PO: {tx.productionOrderNr}</span>}
                                                         {tx.purchaseOrderNr && <span className="text-[10px] font-bold text-purple-500 bg-purple-50 dark:bg-purple-900/30 px-2 py-0.5 rounded-lg">IO: {tx.purchaseOrderNr}</span>}
                                                     </div>
@@ -872,6 +988,132 @@ export const RawMaterialManagement: React.FC = () => {
                             </div>
                             <div className="p-4 border-t border-slate-100 dark:border-slate-700 shrink-0">
                                 <button onClick={() => setHistoryModal(false)} className="w-full py-3 rounded-2xl font-bold uppercase tracking-widest text-xs text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Sluiten</button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
+
+            {/* ── Transfer Modal ── */}
+            {transferModal && (() => {
+                const rm = transferModal;
+                const effQty = transferAll ? rm.stock : Math.min(transferQty, rm.stock);
+                const filteredTransferLocs = (storageLocations || []).filter(l =>
+                    l.code !== rm.location &&
+                    (transferLocSearch === '' || l.code.toLowerCase().includes(transferLocSearch.toLowerCase()) || (l.name || '').toLowerCase().includes(transferLocSearch.toLowerCase()))
+                );
+                return (
+                    <div className="fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+                        <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-[2rem] shadow-2xl border border-slate-200 dark:border-slate-800 animate-in zoom-in-95 duration-300">
+                            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                                <h3 className="text-lg font-black uppercase tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+                                    <RefreshCw size={20} className="text-amber-500" /> Voorraad Verplaatsen
+                                </h3>
+                                <button onClick={() => setTransferModal(false)} className="p-2 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><X size={20} /></button>
+                            </div>
+                            <div className="px-6 py-3 bg-amber-50 dark:bg-amber-900/10 border-b border-amber-100 dark:border-amber-800/30">
+                                <p className="font-black text-sm text-slate-800 dark:text-white uppercase tracking-tight">{rm.description}</p>
+                                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1.5">
+                                    <MapPin size={10} /> Huidige locatie: <span className="font-black text-amber-600">{rm.location || 'Onbekend'}</span>
+                                    <span className="text-slate-300 dark:text-slate-600">·</span> Voorraad: <span className="font-black text-slate-700 dark:text-slate-200">{rm.stock} st.</span>
+                                </p>
+                            </div>
+                            <div className="p-6 space-y-5">
+                                {/* Hoeveelheid */}
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3">Hoeveelheid</label>
+                                    <div className="flex gap-3 mb-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => setTransferAll(true)}
+                                            className={`flex-1 py-2.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border-2 ${transferAll ? 'bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-500/20' : 'border-slate-200 dark:border-slate-700 text-slate-500 hover:border-amber-300'}`}
+                                        >
+                                            Alles ({rm.stock} st.)
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setTransferAll(false)}
+                                            className={`flex-1 py-2.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border-2 ${!transferAll ? 'bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-500/20' : 'border-slate-200 dark:border-slate-700 text-slate-500 hover:border-amber-300'}`}
+                                        >
+                                            Deelhoeveelheid
+                                        </button>
+                                    </div>
+                                    {!transferAll && (
+                                        <div className="flex items-center gap-3">
+                                            <input
+                                                type="number"
+                                                min={1}
+                                                max={rm.stock}
+                                                value={transferQty}
+                                                onChange={e => setTransferQty(Math.max(1, Math.min(rm.stock, parseInt(e.target.value) || 1)))}
+                                                className="w-28 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 dark:text-white font-black text-lg text-center outline-none focus:ring-2 focus:ring-amber-500"
+                                            />
+                                            <span className="text-sm font-bold text-slate-400">st. van {rm.stock}</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Nieuwe locatie */}
+                                <div className="relative">
+                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">Nieuwe locatie <span className="text-red-500">*</span></label>
+                                    <input
+                                        type="text"
+                                        className="w-full p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 dark:text-white font-bold outline-none focus:ring-2 focus:ring-amber-500"
+                                        placeholder="Zoek of typ een locatie..."
+                                        value={transferLocDropOpen ? transferLocSearch : transferToLocation}
+                                        onFocus={() => { setTransferLocDropOpen(true); setTransferLocSearch(transferToLocation); }}
+                                        onChange={e => { setTransferLocSearch(e.target.value); setTransferToLocation(e.target.value); setTransferLocDropOpen(true); }}
+                                        onBlur={() => setTimeout(() => setTransferLocDropOpen(false), 150)}
+                                    />
+                                    {transferLocDropOpen && filteredTransferLocs.length > 0 && (
+                                        <div className="absolute z-10 left-0 right-0 mt-1 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 max-h-44 overflow-y-auto">
+                                            {filteredTransferLocs.map(loc => (
+                                                <button key={loc.id} type="button" onMouseDown={e => e.preventDefault()} onClick={() => { setTransferToLocation(loc.code); setTransferLocDropOpen(false); }}
+                                                    className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-3 border-b border-slate-100 dark:border-slate-700 last:border-0">
+                                                    <MapPin size={14} className="text-amber-400 shrink-0" />
+                                                    <div>
+                                                        <span className="text-sm font-black text-slate-800 dark:text-white">{loc.code}</span>
+                                                        {loc.name && <span className="text-[10px] text-slate-400 ml-2">{loc.name}</span>}
+                                                    </div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Notitie */}
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">Notitie (optioneel)</label>
+                                    <input type="text" className="w-full p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 dark:text-white font-bold outline-none focus:ring-2 focus:ring-amber-500"
+                                        value={transferNote} onChange={e => setTransferNote(e.target.value)} placeholder="Reden van verplaatsing..." />
+                                </div>
+
+                                {/* Preview */}
+                                {transferToLocation && (
+                                    <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/30 rounded-2xl p-4 flex items-center gap-3">
+                                        <div className="text-center">
+                                            <div className="text-[10px] font-black text-slate-400 uppercase">Van</div>
+                                            <div className="text-lg font-black text-slate-700 dark:text-white">{rm.location || '?'}</div>
+                                        </div>
+                                        <RefreshCw size={20} className="text-amber-400 shrink-0" />
+                                        <div className="text-center">
+                                            <div className="text-[10px] font-black text-slate-400 uppercase">Naar</div>
+                                            <div className="text-lg font-black text-amber-600">{transferToLocation}</div>
+                                        </div>
+                                        <div className="ml-auto text-center">
+                                            <div className="text-[10px] font-black text-slate-400 uppercase">Aantal</div>
+                                            <div className="text-lg font-black text-slate-700 dark:text-white">{effQty} st.</div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="flex gap-3 pt-2">
+                                    <button type="button" onClick={() => setTransferModal(false)} className="flex-1 py-3 rounded-2xl font-bold uppercase tracking-widest text-xs text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Annuleren</button>
+                                    <button type="button" onClick={handleTransfer} disabled={!transferToLocation.trim() || transferToLocation === rm.location || effQty < 1}
+                                        className="flex-[2] py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-amber-500/20 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2">
+                                        <RefreshCw size={16} /> Verplaatsen
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>

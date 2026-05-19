@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>Label Preview — Factory Manager</title>
+<style>
+  body {
+    margin: 0;
+    background: #0f172a;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    min-height: 100vh;
+    color: #f1f5f9;
+  }
+  h1 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #f1f5f9;
+    letter-spacing: -0.3px;
+  }
+  .subtitle {
+    font-size: 13px;
+    color: #64748b;
+    margin-bottom: 40px;
+  }
+  .compare-row {
+    display: flex;
+    gap: 60px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .label-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+  .label-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .label-title.new { color: #6366f1; }
+  .badge {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+  }
+  .badge-old { background: #374151; color: #9ca3af; }
+  .badge-new { background: #312e81; color: #a5b4fc; }
+
+  /* Label wrapper - schaal naar ~3x voor zichtbaarheid op scherm */
+  .label-wrapper {
+    box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  /* ===== OUD LABEL ===== */
+  .label-old {
+    width: 336px; /* 89mm * ~3.78 px/mm */
+    height: 193px; /* 51mm * ~3.78 px/mm */
+    background: white;
+    font-family: 'Arial', 'Helvetica Neue', sans-serif;
+    font-size: 22.7px; /* 6pt * 3.78 */
+    color: #111;
+    padding: 7.5px 9.5px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+  .label-old .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #000;
+    padding-bottom: 3.8px;
+    margin-bottom: 3.8px;
+  }
+  .label-old .tx-type {
+    font-size: 20.8px;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    background: #000;
+    color: #fff;
+    padding: 1px 5.7px;
+    border-radius: 2px;
+  }
+  .label-old .batch-nr {
+    font-size: 18.9px;
+    font-weight: 900;
+    font-family: 'Courier New', monospace;
+  }
+  .label-old .date-lbl {
+    font-size: 18.9px;
+    color: #555;
+  }
+  .label-old .desc {
+    font-size: 30.2px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -0.7px;
+    line-height: 1.15;
+    margin-bottom: 3.8px;
+    max-height: 26.5px;
+    overflow: hidden;
+  }
+  .label-old .row {
+    display: flex;
+    gap: 5.7px;
+    margin-bottom: 3px;
+  }
+  .label-old .field { flex: 1; min-width: 0; }
+  .label-old .fl {
+    font-size: 15.1px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    color: #888;
+    margin-bottom: 0.7px;
+  }
+  .label-old .fv {
+    font-size: 22.7px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .label-old .fv.lg {
+    font-size: 34px;
+    font-weight: 900;
+  }
+  .label-old .div-sep { border-top: 0.5px dashed #ccc; margin: 2.3px 0; }
+  .label-old .foot {
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    font-size: 17px;
+    color: #999;
+    border-top: 0.5px solid #ccc;
+    padding-top: 1.9px;
+  }
+
+  /* ===== NIEUW LABEL ===== */
+  .label-new {
+    width: 336px;
+    height: 193px;
+    background: white;
+    font-family: 'Arial', 'Helvetica Neue', sans-serif;
+    font-size: 30.2px; /* 8pt * 3.78 */
+    color: #111;
+    padding: 7.5px 9.5px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+  .label-new .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1.5px solid #000;
+    padding-bottom: 3.8px;
+    margin-bottom: 3.8px;
+  }
+  .label-new .tx-type {
+    font-size: 30.2px;
+    font-weight: 900;
+    letter-spacing: 1.9px;
+    text-transform: uppercase;
+    background: #000;
+    color: #fff;
+    padding: 1.9px 7.5px;
+    border-radius: 2px;
+  }
+  .label-new .batch-nr {
+    font-size: 26.4px;
+    font-weight: 900;
+    font-family: 'Courier New', monospace;
+  }
+  .label-new .date-lbl {
+    font-size: 26.4px;
+    color: #444;
+    font-weight: 600;
+  }
+  .label-new .desc {
+    font-size: 37.8px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -0.7px;
+    line-height: 1.2;
+    margin-bottom: 3.8px;
+    max-height: 30.2px;
+    overflow: hidden;
+  }
+  .label-new .row {
+    display: flex;
+    gap: 5.7px;
+    margin-bottom: 3px;
+  }
+  .label-new .field { flex: 1; min-width: 0; }
+  .label-new .fl {
+    font-size: 22.7px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1.1px;
+    color: #777;
+    margin-bottom: 0.7px;
+  }
+  .label-new .fv {
+    font-size: 32.1px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .label-new .fv.lg {
+    font-size: 49.1px;
+    font-weight: 900;
+    line-height: 1.1;
+  }
+  .label-new .div-sep { border-top: 0.7px dashed #bbb; margin: 2.3px 0; }
+  .label-new .foot {
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    font-size: 22.7px;
+    font-weight: 600;
+    color: #888;
+    border-top: 0.7px solid #ccc;
+    padding-top: 1.9px;
+  }
+</style>
+</head>
+<body>
+  <h1>Label Preview — Factory Manager</h1>
+  <p class="subtitle">Dymo S0929100 — 89 × 51 mm — schaal 3.78×</p>
+
+  <div class="compare-row">
+
+    <!-- OUD LABEL -->
+    <div class="label-card">
+      <div class="label-title">Oud</div>
+      <span class="badge badge-old">Kleine tekst</span>
+      <div class="label-wrapper">
+        <div class="label-old">
+          <div class="header">
+            <span class="tx-type">Nieuw Materiaal</span>
+            <span class="batch-nr">BT-240519-001</span>
+            <span class="date-lbl">19-05-2026</span>
+          </div>
+          <div class="desc">ALUMINIUM VIERKANT STAAF</div>
+          <div class="row">
+            <div class="field">
+              <div class="fl">Materiaal</div>
+              <div class="fv">Aluminium</div>
+            </div>
+            <div class="field">
+              <div class="fl">Profiel</div>
+              <div class="fv">Vierkant</div>
+            </div>
+            <div class="field">
+              <div class="fl">Afm.</div>
+              <div class="fv">B50×H50×L2000</div>
+            </div>
+          </div>
+          <div class="div-sep"></div>
+          <div class="row">
+            <div class="field">
+              <div class="fl">Aantal</div>
+              <div class="fv lg">15 st.</div>
+            </div>
+            <div class="field">
+              <div class="fl">Locatie</div>
+              <div class="fv lg">A-01</div>
+            </div>
+            <div class="field">
+              <div class="fl">Herkomst</div>
+              <div class="fv">Nieuw</div>
+            </div>
+          </div>
+          <div class="div-sep"></div>
+          <div class="row">
+            <div class="field">
+              <div class="fl">PO</div>
+              <div class="fv">PO-2024-0892</div>
+            </div>
+            <div class="field">
+              <div class="fl">Leverancier</div>
+              <div class="fv">Metaalunie BV</div>
+            </div>
+          </div>
+          <div class="foot">
+            <span>J. Houben</span>
+            <span>Factory Manager</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NIEUW LABEL -->
+    <div class="label-card">
+      <div class="label-title new">Nieuw ✦</div>
+      <span class="badge badge-new">Grotere tekst</span>
+      <div class="label-wrapper">
+        <div class="label-new">
+          <div class="header">
+            <span class="tx-type">Nieuw Materiaal</span>
+            <span class="batch-nr">BT-240519-001</span>
+            <span class="date-lbl">19-05-2026</span>
+          </div>
+          <div class="desc">ALUMINIUM VIERKANT STAAF</div>
+          <div class="row">
+            <div class="field">
+              <div class="fl">Materiaal</div>
+              <div class="fv">Aluminium</div>
+            </div>
+            <div class="field">
+              <div class="fl">Profiel</div>
+              <div class="fv">Vierkant</div>
+            </div>
+            <div class="field">
+              <div class="fl">Afm.</div>
+              <div class="fv">B50×H50×L2000</div>
+            </div>
+          </div>
+          <div class="div-sep"></div>
+          <div class="row">
+            <div class="field">
+              <div class="fl">Aantal</div>
+              <div class="fv lg">15</div>
+            </div>
+            <div class="field">
+              <div class="fl">Locatie</div>
+              <div class="fv lg">A-01</div>
+            </div>
+            <div class="field">
+              <div class="fl">Herkomst</div>
+              <div class="fv">Nieuw</div>
+            </div>
+          </div>
+          <div class="div-sep"></div>
+          <div class="row">
+            <div class="field">
+              <div class="fl">PO</div>
+              <div class="fv">PO-2024-0892</div>
+            </div>
+            <div class="field">
+              <div class="fl">Leverancier</div>
+              <div class="fv">Metaalunie BV</div>
+            </div>
+          </div>
+          <div class="foot">
+            <span>J. Houben</span>
+            <span>Factory Manager</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

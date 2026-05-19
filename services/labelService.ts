@@ -19,10 +19,12 @@ export interface RawMaterialLabelData {
     supplier?: string;
     addedBy: string;
     date: string;                // formatted date string
-    transactionType: 'NEW' | 'RESTOCK' | 'WITHDRAWAL';
+    transactionType: 'NEW' | 'RESTOCK' | 'WITHDRAWAL' | 'TRANSFER';
     restockQty?: number;         // only for RESTOCK — quantity added
     withdrawQty?: number;        // only for WITHDRAWAL — quantity removed
     batchNr?: string;            // only for WITHDRAWAL — unique batch number
+    fromLocation?: string;       // only for TRANSFER — original location
+    transferQty?: number;        // only for TRANSFER — quantity moved
 }
 
 const LABEL_WIDTH = '89mm';
@@ -32,11 +34,14 @@ function buildLabelHTML(data: RawMaterialLabelData): string {
     const sourceLabel = data.source === 'RESTMATERIAAL' ? 'Rest' : 'Nieuw';
     const txLabel = data.transactionType === 'RESTOCK' ? 'OPBOEKING'
         : data.transactionType === 'WITHDRAWAL' ? 'AFNAME'
+        : data.transactionType === 'TRANSFER' ? 'VERPLAATST'
         : 'NIEUW MATERIAAL';
     const qtyLabel = data.transactionType === 'RESTOCK'
         ? `+${data.restockQty} (tot: ${data.stock})`
         : data.transactionType === 'WITHDRAWAL'
         ? `-${data.withdrawQty} (rest: ${data.stock})`
+        : data.transactionType === 'TRANSFER'
+        ? `${data.transferQty} st.`
         : `${data.stock} st.`;
 
     return `<!DOCTYPE html>
@@ -89,13 +94,13 @@ function buildLabelHTML(data: RawMaterialLabelData): string {
         color: #555;
     }
     .desc {
-        font-size: 8pt;
+        font-size: 10pt;
         font-weight: 900;
         text-transform: uppercase;
         letter-spacing: -0.2pt;
         line-height: 1.15;
         margin-bottom: 1mm;
-        max-height: 7mm;
+        max-height: 8mm;
         overflow: hidden;
     }
     .row {
@@ -113,14 +118,14 @@ function buildLabelHTML(data: RawMaterialLabelData): string {
         margin-bottom: 0.2mm;
     }
     .fv {
-        font-size: 6pt;
+        font-size: 8pt;
         font-weight: 700;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
     .fv.lg {
-        font-size: 9pt;
+        font-size: 11pt;
         font-weight: 900;
     }
     .div { border-top: 0.15mm dashed #ccc; margin: 0.6mm 0; }
@@ -134,6 +139,7 @@ function buildLabelHTML(data: RawMaterialLabelData): string {
         border-top: 0.15mm solid #ccc;
         padding-top: 0.5mm;
     }
+
 </style>
 </head>
 <body>
@@ -183,6 +189,14 @@ function buildLabelHTML(data: RawMaterialLabelData): string {
         ${data.productionOrderNr ? `<div class="field"><div class="fl">PO</div><div class="fv">${escapeHtml(data.productionOrderNr)}</div></div>` : ''}
         ${data.purchaseOrderNr ? `<div class="field"><div class="fl">IO</div><div class="fv">${escapeHtml(data.purchaseOrderNr)}</div></div>` : ''}
         ${data.supplier ? `<div class="field"><div class="fl">Leverancier</div><div class="fv">${escapeHtml(data.supplier)}</div></div>` : ''}
+    </div>` : ''}
+
+    ${data.transactionType === 'TRANSFER' && data.fromLocation ? `
+    <div class="div"></div>
+    <div class="row">
+        <div class="field"><div class="fl">Van</div><div class="fv lg">${escapeHtml(data.fromLocation)}</div></div>
+        <div class="field" style="display:flex;align-items:flex-end;padding-bottom:0.5mm;font-size:10pt;font-weight:900;color:#555;">→</div>
+        <div class="field"><div class="fl">Naar</div><div class="fv lg">${escapeHtml(data.location)}</div></div>
     </div>` : ''}
 
     <div class="foot">
