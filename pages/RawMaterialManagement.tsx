@@ -3,7 +3,7 @@ import { db } from '../services/storage';
 import { KEYS, generateId } from '../services/db/core';
 import { RawMaterial, RawMaterialTransaction, MaterialType, MaterialProfile, MaterialCategory, RawMaterialDimensions, DMSDocument, StorageLocation, UserRole } from '../types';
 import {
-    Plus, Search, Package, Trash2, Edit, MapPin, AlertTriangle, X, Layers, Save, Upload, FileText, Eye, History, LayoutGrid, List, Download, RefreshCw, Info, Building2, ShoppingCart, ClipboardList, StickyNote, Scissors, Ruler
+    Plus, Search, Package, Trash2, Edit, MapPin, AlertTriangle, X, Layers, Save, Upload, FileText, Eye, History, LayoutGrid, List, Download, RefreshCw, Info, Building2, ShoppingCart, ClipboardList, StickyNote, Scissors, Ruler, Lock, LockOpen
 } from '../icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useTable } from '../hooks/useTable';
@@ -67,6 +67,8 @@ export const RawMaterialManagement: React.FC = () => {
     const [zaagNote, setZaagNote] = useState('');
     const [zaagLocSearch, setZaagLocSearch] = useState('');
     const [zaagLocDropOpen, setZaagLocDropOpen] = useState(false);
+    const [zaagQtyLocked, setZaagQtyLocked] = useState(false);   // qty vergrendeld door lengte
+    const [zaagLenLocked, setZaagLenLocked] = useState(false);   // lengte vergrendeld door qty
 
     const [search, setSearch] = useState('');
     const [filterCategory, setFilterCategory] = useState<string>('');
@@ -688,7 +690,7 @@ export const RawMaterialManagement: React.FC = () => {
                                         <button onClick={() => { setTransferModal(rm); setTransferAll(true); setTransferQty(1); setTransferToLocation(''); setTransferNote(''); }} disabled={rm.stock === 0} className="flex-1 flex items-center justify-center py-2.5 text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400 rounded-xl hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors disabled:opacity-30 disabled:cursor-not-allowed" title="Voorraad verplaatsen">
                                             <RefreshCw size={15} />
                                         </button>
-                                        <button onClick={() => { setZaagModal(rm); setZaagSourceQty(1); setZaagTargetLength(rm.dimensions?.length ? Math.floor(rm.dimensions.length / 2) : 1000); setZaagTargetQty(1); setZaagLocation(''); setZaagNote(''); }} disabled={rm.stock === 0} className="flex-1 flex items-center justify-center py-2.5 text-rose-600 bg-rose-50 dark:bg-rose-900/20 dark:text-rose-400 rounded-xl hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors disabled:opacity-30 disabled:cursor-not-allowed" title="Materiaal zagen">
+                                        <button onClick={() => { setZaagModal(rm); setZaagSourceQty(1); setZaagTargetLength(rm.dimensions?.length ? Math.floor(rm.dimensions.length / 2) : 1000); setZaagTargetQty(1); setZaagLocation(''); setZaagNote(''); setZaagQtyLocked(false); setZaagLenLocked(false); }} disabled={rm.stock === 0} className="flex-1 flex items-center justify-center py-2.5 text-rose-600 bg-rose-50 dark:bg-rose-900/20 dark:text-rose-400 rounded-xl hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors disabled:opacity-30 disabled:cursor-not-allowed" title="Materiaal zagen">
                                             <Scissors size={15} />
                                         </button>
                                         <button onClick={() => setHistoryModal(rm)} className="flex-1 flex items-center justify-center py-2.5 text-slate-500 bg-slate-50 dark:bg-slate-700/50 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors relative" title="Transactiegeschiedenis">
@@ -772,7 +774,7 @@ export const RawMaterialManagement: React.FC = () => {
                                                         <button onClick={() => { setTransferModal(rm); setTransferAll(true); setTransferQty(1); setTransferToLocation(''); setTransferNote(''); }} disabled={rm.stock === 0} className="p-1.5 rounded-lg text-amber-500 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed" title="Voorraad verplaatsen">
                                                             <RefreshCw size={16} />
                                                         </button>
-                                                        <button onClick={() => { setZaagModal(rm); setZaagSourceQty(1); setZaagTargetLength(rm.dimensions?.length ? Math.floor(rm.dimensions.length / 2) : 1000); setZaagTargetQty(1); setZaagLocation(''); setZaagNote(''); }} disabled={rm.stock === 0} className="p-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-900/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed" title="Materiaal zagen">
+                                                        <button onClick={() => { setZaagModal(rm); setZaagSourceQty(1); setZaagTargetLength(rm.dimensions?.length ? Math.floor(rm.dimensions.length / 2) : 1000); setZaagTargetQty(1); setZaagLocation(''); setZaagNote(''); setZaagQtyLocked(false); setZaagLenLocked(false); }} disabled={rm.stock === 0} className="p-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-900/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed" title="Materiaal zagen">
                                                             <Scissors size={16} />
                                                         </button>
                                                         <button onClick={() => setHistoryModal(rm)} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all relative" title="Transactiegeschiedenis">
@@ -1371,36 +1373,98 @@ export const RawMaterialManagement: React.FC = () => {
 
                                 {/* Zaaglengte */}
                                 <div>
-                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">
-                                        Gewenste zaaglengte <span className="text-rose-500">*</span>
-                                    </label>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+                                            Gewenste zaaglengte <span className="text-rose-500">*</span>
+                                        </label>
+                                        {zaagLenLocked && (
+                                            <button type="button" onClick={() => setZaagLenLocked(false)}
+                                                className="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-lg hover:bg-amber-100 transition-colors">
+                                                <Lock size={10} /> Vergrendeld — klik om te ontgrendelen
+                                            </button>
+                                        )}
+                                    </div>
                                     <div className="flex items-center gap-3">
-                                        <input type="number" min={1} value={zaagTargetLength}
-                                            onChange={e => setZaagTargetLength(Math.max(1, parseInt(e.target.value) || 1))}
-                                            className="w-32 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 dark:text-white font-black text-lg text-center outline-none focus:ring-2 focus:ring-rose-500" />
+                                        <div className="relative">
+                                            <input type="number" min={1} value={zaagTargetLength}
+                                                disabled={zaagLenLocked}
+                                                onChange={e => {
+                                                    const newLen = Math.max(1, parseInt(e.target.value) || 1);
+                                                    setZaagTargetLength(newLen);
+                                                    // Auto-bereken qty en vergrendel dat veld
+                                                    if (rm.dimensions?.length) {
+                                                        const perBar = Math.floor(rm.dimensions.length / newLen);
+                                                        setZaagTargetQty(perBar * Math.min(zaagSourceQty, rm.stock));
+                                                        setZaagQtyLocked(true);
+                                                    }
+                                                    setZaagLenLocked(false);
+                                                }}
+                                                className={`w-32 p-3.5 rounded-2xl border font-black text-lg text-center outline-none focus:ring-2 focus:ring-rose-500 transition-all ${
+                                                    zaagLenLocked
+                                                        ? 'border-amber-300 bg-amber-50 dark:bg-amber-900/10 dark:border-amber-700 text-amber-600 dark:text-amber-400 cursor-not-allowed'
+                                                        : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 dark:text-white'
+                                                }`} />
+                                            {zaagLenLocked && <Lock size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-500 pointer-events-none" />}
+                                        </div>
                                         <span className="text-sm font-bold text-slate-400">mm</span>
-                                        {piecesPerBar !== null && (
+                                        {piecesPerBar !== null && !zaagLenLocked && (
                                             <span className="text-[10px] font-bold text-rose-600 bg-rose-50 dark:bg-rose-900/20 px-3 py-1.5 rounded-xl flex items-center gap-1">
                                                 <Ruler size={11} /> {piecesPerBar} st. per bron
                                             </span>
+                                        )}
+                                        {!zaagLenLocked && !zaagQtyLocked && (
+                                            <button type="button" onClick={() => { setZaagLenLocked(true); setZaagQtyLocked(false); }}
+                                                title="Vergrendel lengte"
+                                                className="p-2 rounded-xl text-slate-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors">
+                                                <LockOpen size={14} />
+                                            </button>
                                         )}
                                     </div>
                                 </div>
 
                                 {/* Aantal zaagstukken */}
                                 <div>
-                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">
-                                        Aantal zaagstukken aan te maken <span className="text-rose-500">*</span>
-                                    </label>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+                                            Aantal zaagstukken aan te maken <span className="text-rose-500">*</span>
+                                        </label>
+                                        {zaagQtyLocked && (
+                                            <button type="button" onClick={() => setZaagQtyLocked(false)}
+                                                className="flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-lg hover:bg-amber-100 transition-colors">
+                                                <Lock size={10} /> Vergrendeld — klik om te ontgrendelen
+                                            </button>
+                                        )}
+                                    </div>
                                     <div className="flex items-center gap-3">
-                                        <input type="number" min={1} value={zaagTargetQty}
-                                            onChange={e => setZaagTargetQty(Math.max(1, parseInt(e.target.value) || 1))}
-                                            className="w-24 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 dark:text-white font-black text-lg text-center outline-none focus:ring-2 focus:ring-rose-500" />
+                                        <div className="relative">
+                                            <input type="number" min={1} value={zaagTargetQty}
+                                                disabled={zaagQtyLocked}
+                                                onChange={e => {
+                                                    const newQty = Math.max(1, parseInt(e.target.value) || 1);
+                                                    setZaagTargetQty(newQty);
+                                                    // Vergrendel lengte, ontgrendel qty
+                                                    setZaagLenLocked(true);
+                                                    setZaagQtyLocked(false);
+                                                }}
+                                                className={`w-24 p-3.5 rounded-2xl border font-black text-lg text-center outline-none focus:ring-2 focus:ring-rose-500 transition-all ${
+                                                    zaagQtyLocked
+                                                        ? 'border-amber-300 bg-amber-50 dark:bg-amber-900/10 dark:border-amber-700 text-amber-600 dark:text-amber-400 cursor-not-allowed'
+                                                        : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 dark:text-white'
+                                                }`} />
+                                            {zaagQtyLocked && <Lock size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-500 pointer-events-none" />}
+                                        </div>
                                         <span className="text-sm font-bold text-slate-400">st.</span>
-                                        {totalPieces !== null && (
-                                            <button type="button" onClick={() => setZaagTargetQty(totalPieces)}
+                                        {!zaagQtyLocked && !zaagLenLocked && totalPieces !== null && (
+                                            <button type="button" onClick={() => { setZaagTargetQty(totalPieces); setZaagQtyLocked(true); }}
                                                 className="text-[10px] font-bold text-slate-500 bg-slate-100 dark:bg-slate-700 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-900/20 px-3 py-1.5 rounded-xl transition-colors">
                                                 Max: {totalPieces} st. invullen
+                                            </button>
+                                        )}
+                                        {!zaagQtyLocked && !zaagLenLocked && (
+                                            <button type="button" onClick={() => { setZaagLenLocked(true); setZaagQtyLocked(false); }}
+                                                title="Vergrendel aantal"
+                                                className="p-2 rounded-xl text-slate-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors">
+                                                <LockOpen size={14} />
                                             </button>
                                         )}
                                     </div>
