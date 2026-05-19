@@ -285,7 +285,7 @@ export interface RawMaterial {
 
 export interface RawMaterialTransaction {
   id: string;
-  type: 'CREATED' | 'WITHDRAWAL' | 'EDIT' | 'STOCK_ADJUST' | 'RESTOCK' | 'TRANSFER';
+  type: 'CREATED' | 'WITHDRAWAL' | 'EDIT' | 'STOCK_ADJUST' | 'RESTOCK' | 'TRANSFER' | 'ZAAG';
   batchNr?: string;              // uniek batch nummer bij afname (BATCH-YYYYMMDD-XXXX)
   quantity?: number;             // afgenomen / toegevoegde hoeveelheid
   previousStock?: number;
@@ -296,6 +296,8 @@ export interface RawMaterialTransaction {
   note?: string;
   fromLocation?: string;         // bij TRANSFER: oorspronkelijke locatie
   toLocation?: string;           // bij TRANSFER: nieuwe locatie
+  targetLength?: number;         // bij ZAAG: gewenste zaaglengte in mm
+  sawQty?: number;               // bij ZAAG: aantal zaagstukken aangemaakt
   performedBy: string;
   performedAt: string;           // ISO date
 }

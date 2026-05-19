@@ -351,3 +351,4 @@ import { Binary as _phBinary } from "@phosphor-icons/react"; export const Binary
 import { LockKeyOpen as _LockKeyOpen } from "@phosphor-icons/react"; export { _LockKeyOpen as LockOpen };
 import { DotsSixVertical as _DotsSixVertical } from "@phosphor-icons/react"; export const GripVertical = _DotsSixVertical;
 import { House as _House } from "@phosphor-icons/react"; export const Home = _House;
+import { Scissors as _Scissors } from "@phosphor-icons/react"; export const Scissors = _Scissors;

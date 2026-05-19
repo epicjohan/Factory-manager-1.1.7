@@ -3,7 +3,7 @@ import { db } from '../services/storage';
 import { KEYS, generateId } from '../services/db/core';
 import { RawMaterial, RawMaterialTransaction, MaterialType, MaterialProfile, MaterialCategory, RawMaterialDimensions, DMSDocument, StorageLocation, UserRole } from '../types';
 import {
-    Plus, Search, Package, Trash2, Edit, MapPin, AlertTriangle, X, Layers, Save, Upload, FileText, Eye, History, LayoutGrid, List, Download, RefreshCw, Info, Building2, ShoppingCart, ClipboardList, StickyNote
+    Plus, Search, Package, Trash2, Edit, MapPin, AlertTriangle, X, Layers, Save, Upload, FileText, Eye, History, LayoutGrid, List, Download, RefreshCw, Info, Building2, ShoppingCart, ClipboardList, StickyNote, Scissors, Ruler
 } from '../icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useTable } from '../hooks/useTable';
@@ -57,6 +57,16 @@ export const RawMaterialManagement: React.FC = () => {
     const [transferNote, setTransferNote] = useState('');
     const [transferLocSearch, setTransferLocSearch] = useState('');
     const [transferLocDropOpen, setTransferLocDropOpen] = useState(false);
+
+    // ── Zaag state ──
+    const [zaagModal, setZaagModal] = useState<RawMaterial | false>(false);
+    const [zaagSourceQty, setZaagSourceQty] = useState(1);
+    const [zaagTargetLength, setZaagTargetLength] = useState<number>(1000);
+    const [zaagTargetQty, setZaagTargetQty] = useState<number>(1);
+    const [zaagLocation, setZaagLocation] = useState('');
+    const [zaagNote, setZaagNote] = useState('');
+    const [zaagLocSearch, setZaagLocSearch] = useState('');
+    const [zaagLocDropOpen, setZaagLocDropOpen] = useState(false);
 
     const [search, setSearch] = useState('');
     const [filterCategory, setFilterCategory] = useState<string>('');
@@ -383,6 +393,99 @@ export const RawMaterialManagement: React.FC = () => {
         }
     };
 
+    // ── Zagen handler ──
+    const handleZaag = async () => {
+        if (!zaagModal || !zaagLocation.trim() || zaagTargetLength < 1 || zaagTargetQty < 1) return;
+        const rm = zaagModal;
+        const now = new Date().toISOString();
+        const userName = user?.name || 'Onbekend';
+        const consumeQty = Math.min(zaagSourceQty, rm.stock);
+
+        // 1. Verlaag bronmateriaal
+        const zaagTx: RawMaterialTransaction = {
+            id: generateId(),
+            type: 'ZAAG',
+            quantity: consumeQty,
+            previousStock: rm.stock,
+            newStock: rm.stock - consumeQty,
+            targetLength: zaagTargetLength,
+            sawQty: zaagTargetQty,
+            toLocation: zaagLocation.trim(),
+            note: zaagNote.trim() || undefined,
+            performedBy: userName,
+            performedAt: now,
+        };
+        const updatedSource: RawMaterial = {
+            ...rm,
+            stock: rm.stock - consumeQty,
+            transactions: [...(rm.transactions || []), zaagTx],
+        };
+        await db.updateRawMaterial(updatedSource);
+
+        // 2. Maak zaagstukken-record aan
+        const newDims: RawMaterialDimensions = { ...rm.dimensions, length: zaagTargetLength };
+        const newDesc = [
+            rm.materialTypeName,
+            rm.profileName,
+            newDims.diameter ? `Ø${newDims.diameter}` : '',
+            newDims.width ? `${newDims.width}${newDims.height ? `×${newDims.height}` : ''}` : '',
+            newDims.length ? `L${newDims.length}` : '',
+            newDims.thickness ? `D${newDims.thickness}` : '',
+        ].filter(Boolean).join(' ');
+
+        const newRecord: RawMaterial = {
+            ...rm,
+            id: generateId(),
+            description: newDesc,
+            dimensions: newDims,
+            stock: zaagTargetQty,
+            location: zaagLocation.trim(),
+            source: 'RESTMATERIAAL',
+            addedDate: now,
+            addedBy: userName,
+            transactions: [{
+                id: generateId(),
+                type: 'CREATED',
+                quantity: zaagTargetQty,
+                previousStock: 0,
+                newStock: zaagTargetQty,
+                note: `Gezaagd van ${rm.description} (${consumeQty} st.)`,
+                performedBy: userName,
+                performedAt: now,
+            }],
+        };
+        await db.addRawMaterial(newRecord);
+
+        const savedQty = zaagTargetQty;
+        const savedLen = zaagTargetLength;
+        const savedLoc = zaagLocation.trim();
+        setZaagModal(false);
+        setZaagLocation('');
+        setZaagNote('');
+        setZaagSourceQty(1);
+        setZaagTargetQty(1);
+        setZaagTargetLength(1000);
+
+        const wantPrint = await confirm({
+            title: 'Label Printen',
+            message: `${savedQty} zaagstukken van ${savedLen}mm aangemaakt op ${savedLoc}. Wilt u een sticker label printen?`,
+        });
+        if (wantPrint) {
+            printRawMaterialLabel({
+                description: newDesc,
+                materialTypeName: rm.materialTypeName,
+                profileName: rm.profileName,
+                dimensions: formatDimensions(newDims),
+                stock: savedQty,
+                location: savedLoc,
+                source: 'RESTMATERIAAL',
+                addedBy: userName,
+                date: new Date().toLocaleDateString('nl-NL'),
+                transactionType: 'NEW',
+            });
+        }
+    };
+
     const exportToExcel = () => {
         const rows = filteredRaw.map(rm => {
             const dims = rm.dimensions || {};
@@ -521,6 +624,7 @@ export const RawMaterialManagement: React.FC = () => {
                         { icon: <Package size={13} />,    color: 'text-blue-600 bg-blue-50 dark:bg-blue-900/20',        label: 'Afname — neem materiaal af voor een productie order' },
                         { icon: <Plus size={13} />,       color: 'text-teal-600 bg-teal-50 dark:bg-teal-900/20',        label: 'Opboeken — voeg voorraad toe aan het materiaal' },
                         { icon: <RefreshCw size={13} />,  color: 'text-amber-600 bg-amber-50 dark:bg-amber-900/20',     label: 'Verplaatsen — verplaats (deel van) de voorraad naar een nieuwe locatie' },
+                        { icon: <Scissors size={13} />,   color: 'text-rose-600 bg-rose-50 dark:bg-rose-900/20',        label: 'Zagen — zaag stukken naar gewenste lengte en leg op nieuwe locatie' },
                         { icon: <History size={13} />,    color: 'text-slate-500 bg-slate-100 dark:bg-slate-700/50',    label: 'Historie — bekijk alle transacties van dit materiaal' },
                     ].map((item, i) => (
                         <div key={i} className="flex items-center gap-2">
@@ -583,6 +687,9 @@ export const RawMaterialManagement: React.FC = () => {
                                         </button>
                                         <button onClick={() => { setTransferModal(rm); setTransferAll(true); setTransferQty(1); setTransferToLocation(''); setTransferNote(''); }} disabled={rm.stock === 0} className="flex-1 flex items-center justify-center py-2.5 text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400 rounded-xl hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors disabled:opacity-30 disabled:cursor-not-allowed" title="Voorraad verplaatsen">
                                             <RefreshCw size={15} />
+                                        </button>
+                                        <button onClick={() => { setZaagModal(rm); setZaagSourceQty(1); setZaagTargetLength(rm.dimensions?.length ? Math.floor(rm.dimensions.length / 2) : 1000); setZaagTargetQty(1); setZaagLocation(''); setZaagNote(''); }} disabled={rm.stock === 0} className="flex-1 flex items-center justify-center py-2.5 text-rose-600 bg-rose-50 dark:bg-rose-900/20 dark:text-rose-400 rounded-xl hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors disabled:opacity-30 disabled:cursor-not-allowed" title="Materiaal zagen">
+                                            <Scissors size={15} />
                                         </button>
                                         <button onClick={() => setHistoryModal(rm)} className="flex-1 flex items-center justify-center py-2.5 text-slate-500 bg-slate-50 dark:bg-slate-700/50 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors relative" title="Transactiegeschiedenis">
                                             <History size={15} />
@@ -664,6 +771,9 @@ export const RawMaterialManagement: React.FC = () => {
                                                         </button>
                                                         <button onClick={() => { setTransferModal(rm); setTransferAll(true); setTransferQty(1); setTransferToLocation(''); setTransferNote(''); }} disabled={rm.stock === 0} className="p-1.5 rounded-lg text-amber-500 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed" title="Voorraad verplaatsen">
                                                             <RefreshCw size={16} />
+                                                        </button>
+                                                        <button onClick={() => { setZaagModal(rm); setZaagSourceQty(1); setZaagTargetLength(rm.dimensions?.length ? Math.floor(rm.dimensions.length / 2) : 1000); setZaagTargetQty(1); setZaagLocation(''); setZaagNote(''); }} disabled={rm.stock === 0} className="p-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-900/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed" title="Materiaal zagen">
+                                                            <Scissors size={16} />
                                                         </button>
                                                         <button onClick={() => setHistoryModal(rm)} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all relative" title="Transactiegeschiedenis">
                                                             <History size={16} />
@@ -1136,7 +1246,8 @@ export const RawMaterialManagement: React.FC = () => {
                     RESTOCK: { label: 'Opgeboekt', color: 'text-teal-600', bg: 'bg-teal-50 dark:bg-teal-900/20' },
                     EDIT: { label: 'Bewerkt', color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/20' },
                     STOCK_ADJUST: { label: 'Voorraad', color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/20' },
-                    TRANSFER: { label: 'Verplaatst', color: 'text-orange-600', bg: 'bg-orange-50 dark:bg-orange-900/20' }
+                    TRANSFER: { label: 'Verplaatst', color: 'text-orange-600', bg: 'bg-orange-50 dark:bg-orange-900/20' },
+                    ZAAG:     { label: 'Gezaagd',    color: 'text-rose-600',   bg: 'bg-rose-50 dark:bg-rose-900/20' }
                 };
                 return (
                     <div className="fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
@@ -1205,6 +1316,161 @@ export const RawMaterialManagement: React.FC = () => {
                             </div>
                             <div className="p-4 border-t border-slate-100 dark:border-slate-700 shrink-0">
                                 <button onClick={() => setHistoryModal(false)} className="w-full py-3 rounded-2xl font-bold uppercase tracking-widest text-xs text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Sluiten</button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
+
+            {/* ── Zaag Modal ── */}
+            {zaagModal && (() => {
+                const rm = zaagModal;
+                const srcLen = rm.dimensions?.length;
+                const filteredZaagLocs = (storageLocations || []).filter(l =>
+                    zaagLocSearch === '' || l.code.toLowerCase().includes(zaagLocSearch.toLowerCase()) || (l.name || '').toLowerCase().includes(zaagLocSearch.toLowerCase())
+                );
+                const piecesPerBar = srcLen && zaagTargetLength > 0 ? Math.floor(srcLen / zaagTargetLength) : null;
+                const totalPieces = piecesPerBar !== null ? piecesPerBar * Math.min(zaagSourceQty, rm.stock) : null;
+                return (
+                    <div className="fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+                        <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-[2rem] shadow-2xl border border-slate-200 dark:border-slate-800 animate-in zoom-in-95 duration-300 max-h-[92vh] flex flex-col">
+
+                            {/* Header */}
+                            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0">
+                                <h3 className="text-lg font-black uppercase tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+                                    <Scissors size={20} className="text-rose-500" /> Materiaal Zagen
+                                </h3>
+                                <button onClick={() => setZaagModal(false)} className="p-2 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><X size={20} /></button>
+                            </div>
+
+                            {/* Material info */}
+                            <div className="px-6 py-3 bg-rose-50 dark:bg-rose-900/10 border-b border-rose-100 dark:border-rose-800/30 shrink-0">
+                                <p className="font-black text-sm text-slate-800 dark:text-white uppercase tracking-tight">{rm.description}</p>
+                                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-2 flex-wrap">
+                                    <span className="flex items-center gap-1"><MapPin size={10} /> {rm.location || 'Onbekend'}</span>
+                                    <span className="text-slate-300 dark:text-slate-600">·</span>
+                                    <span>Voorraad: <strong className="text-slate-700 dark:text-slate-200">{rm.stock} st.</strong></span>
+                                    {srcLen && <><span className="text-slate-300 dark:text-slate-600">·</span><span>Bronlengte: <strong className="text-rose-600">{srcLen} mm</strong></span></>}
+                                </p>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto p-6 space-y-5">
+
+                                {/* Te verbruiken */}
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">
+                                        Te verbruiken bronmateriaal
+                                    </label>
+                                    <div className="flex items-center gap-3">
+                                        <input type="number" min={1} max={rm.stock} value={zaagSourceQty}
+                                            onChange={e => setZaagSourceQty(Math.max(1, Math.min(rm.stock, parseInt(e.target.value) || 1)))}
+                                            className="w-24 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 dark:text-white font-black text-lg text-center outline-none focus:ring-2 focus:ring-rose-500" />
+                                        <span className="text-sm font-bold text-slate-400">st. van {rm.stock}</span>
+                                    </div>
+                                </div>
+
+                                {/* Zaaglengte */}
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">
+                                        Gewenste zaaglengte <span className="text-rose-500">*</span>
+                                    </label>
+                                    <div className="flex items-center gap-3">
+                                        <input type="number" min={1} value={zaagTargetLength}
+                                            onChange={e => setZaagTargetLength(Math.max(1, parseInt(e.target.value) || 1))}
+                                            className="w-32 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 dark:text-white font-black text-lg text-center outline-none focus:ring-2 focus:ring-rose-500" />
+                                        <span className="text-sm font-bold text-slate-400">mm</span>
+                                        {piecesPerBar !== null && (
+                                            <span className="text-[10px] font-bold text-rose-600 bg-rose-50 dark:bg-rose-900/20 px-3 py-1.5 rounded-xl flex items-center gap-1">
+                                                <Ruler size={11} /> {piecesPerBar} st. per bron
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Aantal zaagstukken */}
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">
+                                        Aantal zaagstukken aan te maken <span className="text-rose-500">*</span>
+                                    </label>
+                                    <div className="flex items-center gap-3">
+                                        <input type="number" min={1} value={zaagTargetQty}
+                                            onChange={e => setZaagTargetQty(Math.max(1, parseInt(e.target.value) || 1))}
+                                            className="w-24 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 dark:text-white font-black text-lg text-center outline-none focus:ring-2 focus:ring-rose-500" />
+                                        <span className="text-sm font-bold text-slate-400">st.</span>
+                                        {totalPieces !== null && (
+                                            <button type="button" onClick={() => setZaagTargetQty(totalPieces)}
+                                                className="text-[10px] font-bold text-slate-500 bg-slate-100 dark:bg-slate-700 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-900/20 px-3 py-1.5 rounded-xl transition-colors">
+                                                Max: {totalPieces} st. invullen
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Locatie */}
+                                <div className="relative">
+                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">
+                                        Locatie voor zaagstukken <span className="text-rose-500">*</span>
+                                    </label>
+                                    <input type="text"
+                                        className="w-full p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 dark:text-white font-bold outline-none focus:ring-2 focus:ring-rose-500"
+                                        placeholder="Zoek of typ een locatie..."
+                                        value={zaagLocDropOpen ? zaagLocSearch : zaagLocation}
+                                        onFocus={() => { setZaagLocDropOpen(true); setZaagLocSearch(zaagLocation); }}
+                                        onChange={e => { setZaagLocSearch(e.target.value); setZaagLocation(e.target.value); setZaagLocDropOpen(true); }}
+                                        onBlur={() => setTimeout(() => setZaagLocDropOpen(false), 150)}
+                                    />
+                                    {zaagLocDropOpen && filteredZaagLocs.length > 0 && (
+                                        <div className="absolute z-10 left-0 right-0 mt-1 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 max-h-44 overflow-y-auto">
+                                            {filteredZaagLocs.map(loc => (
+                                                <button key={loc.id} type="button" onMouseDown={e => e.preventDefault()}
+                                                    onClick={() => { setZaagLocation(loc.code); setZaagLocDropOpen(false); }}
+                                                    className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-3 border-b border-slate-100 dark:border-slate-700 last:border-0">
+                                                    <MapPin size={14} className="text-rose-400 shrink-0" />
+                                                    <div>
+                                                        <span className="text-sm font-black text-slate-800 dark:text-white">{loc.code}</span>
+                                                        {loc.name && <span className="text-[10px] text-slate-400 ml-2">{loc.name}</span>}
+                                                    </div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Notitie */}
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">Notitie (optioneel)</label>
+                                    <input type="text" className="w-full p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 dark:text-white font-bold outline-none focus:ring-2 focus:ring-rose-500"
+                                        value={zaagNote} onChange={e => setZaagNote(e.target.value)} placeholder="Bijv. voor project X, afval retour naar magazijn..." />
+                                </div>
+
+                                {/* Resultaat preview */}
+                                {zaagLocation && zaagTargetLength > 0 && zaagTargetQty > 0 && (
+                                    <div className="bg-rose-50 dark:bg-rose-900/10 border border-rose-200 dark:border-rose-800/30 rounded-2xl p-4 space-y-2">
+                                        <p className="text-[10px] font-black text-rose-500 uppercase tracking-widest">Resultaat</p>
+                                        <div className="flex items-center gap-3 flex-wrap text-sm">
+                                            <div className="text-center">
+                                                <div className="text-[9px] text-slate-400 uppercase font-black">Bron</div>
+                                                <div className="font-black text-slate-700 dark:text-white">-{Math.min(zaagSourceQty, rm.stock)} st.</div>
+                                                <div className="text-[9px] text-slate-400">{rm.stock - Math.min(zaagSourceQty, rm.stock)} resterend</div>
+                                            </div>
+                                            <Scissors size={18} className="text-rose-400 shrink-0" />
+                                            <div className="text-center">
+                                                <div className="text-[9px] text-slate-400 uppercase font-black">Nieuw</div>
+                                                <div className="font-black text-rose-600">{zaagTargetQty} st. × {zaagTargetLength}mm</div>
+                                                <div className="text-[9px] text-slate-400">{zaagLocation}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="flex gap-3 pt-1">
+                                    <button type="button" onClick={() => setZaagModal(false)} className="flex-1 py-3 rounded-2xl font-bold uppercase tracking-widest text-xs text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Annuleren</button>
+                                    <button type="button" onClick={handleZaag}
+                                        disabled={!zaagLocation.trim() || zaagTargetLength < 1 || zaagTargetQty < 1}
+                                        className="flex-[2] py-3 bg-rose-500 hover:bg-rose-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-rose-500/20 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2">
+                                        <Scissors size={16} /> Zagen & Opslaan
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
