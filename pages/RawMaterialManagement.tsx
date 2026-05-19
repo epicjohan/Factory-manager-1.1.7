@@ -512,6 +512,25 @@ export const RawMaterialManagement: React.FC = () => {
                 </div>
             </div>
 
+            {/* ── Legenda ── */}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 px-5 py-3 shadow-sm">
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2.5">Knoplegenda</p>
+                <div className="flex flex-wrap gap-x-5 gap-y-2">
+                    {[
+                        { icon: <Info size={13} />,       color: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20',  label: 'Info — bekijk alle materiaalgegevens, orders en batches (alleen lezen)' },
+                        { icon: <Package size={13} />,    color: 'text-blue-600 bg-blue-50 dark:bg-blue-900/20',        label: 'Afname — neem materiaal af voor een productie order' },
+                        { icon: <Plus size={13} />,       color: 'text-teal-600 bg-teal-50 dark:bg-teal-900/20',        label: 'Opboeken — voeg voorraad toe aan het materiaal' },
+                        { icon: <RefreshCw size={13} />,  color: 'text-amber-600 bg-amber-50 dark:bg-amber-900/20',     label: 'Verplaatsen — verplaats (deel van) de voorraad naar een nieuwe locatie' },
+                        { icon: <History size={13} />,    color: 'text-slate-500 bg-slate-100 dark:bg-slate-700/50',    label: 'Historie — bekijk alle transacties van dit materiaal' },
+                    ].map((item, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                            <span className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 ${item.color}`}>{item.icon}</span>
+                            <span className="text-[11px] text-slate-500 dark:text-slate-400">{item.label}</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
             {/* Content */}
             <div className="space-y-6">
                 {filteredRaw.length > 0 ? (
@@ -552,22 +571,22 @@ export const RawMaterialManagement: React.FC = () => {
                                             {rm.source === 'RESTMATERIAAL' ? 'Rest' : 'Nieuw'}
                                         </span>
                                     </div>
-                                    <div className="flex gap-2 pt-3 mt-3 border-t border-slate-100 dark:border-slate-700">
-                                        <button onClick={() => setInfoModal(rm)} className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 dark:text-indigo-400 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors" title="Materiaalinformatie">
-                                            <Info size={14} /> Info
+                                    <div className="flex gap-1.5 pt-3 mt-3 border-t border-slate-100 dark:border-slate-700">
+                                        <button onClick={() => setInfoModal(rm)} className="flex-1 flex items-center justify-center py-2.5 text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 dark:text-indigo-400 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors" title="Materiaalinformatie">
+                                            <Info size={15} />
                                         </button>
-                                        <button onClick={() => { setWithdrawModal(rm); setWithdrawQty(1); setWithdrawPO(''); setWithdrawNote(''); }} disabled={rm.stock === 0} className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors disabled:opacity-30 disabled:cursor-not-allowed" title="Materiaal afnemen">
-                                            <Package size={14} /> Afname
+                                        <button onClick={() => { setWithdrawModal(rm); setWithdrawQty(1); setWithdrawPO(''); setWithdrawNote(''); }} disabled={rm.stock === 0} className="flex-1 flex items-center justify-center py-2.5 text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors disabled:opacity-30 disabled:cursor-not-allowed" title="Materiaal afnemen">
+                                            <Package size={15} />
                                         </button>
-                                        <button onClick={() => openRestockModal(rm)} className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold text-teal-600 bg-teal-50 dark:bg-teal-900/20 dark:text-teal-400 rounded-xl hover:bg-teal-100 dark:hover:bg-teal-900/40 transition-colors" title="Voorraad opboeken">
-                                            <Plus size={14} /> Opboeken
+                                        <button onClick={() => openRestockModal(rm)} className="flex-1 flex items-center justify-center py-2.5 text-teal-600 bg-teal-50 dark:bg-teal-900/20 dark:text-teal-400 rounded-xl hover:bg-teal-100 dark:hover:bg-teal-900/40 transition-colors" title="Voorraad opboeken">
+                                            <Plus size={15} />
                                         </button>
-                                        <button onClick={() => { setTransferModal(rm); setTransferAll(true); setTransferQty(1); setTransferToLocation(''); setTransferNote(''); }} disabled={rm.stock === 0} className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400 rounded-xl hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors disabled:opacity-30 disabled:cursor-not-allowed" title="Voorraad verplaatsen">
-                                            <RefreshCw size={14} /> Verplaatsen
+                                        <button onClick={() => { setTransferModal(rm); setTransferAll(true); setTransferQty(1); setTransferToLocation(''); setTransferNote(''); }} disabled={rm.stock === 0} className="flex-1 flex items-center justify-center py-2.5 text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400 rounded-xl hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors disabled:opacity-30 disabled:cursor-not-allowed" title="Voorraad verplaatsen">
+                                            <RefreshCw size={15} />
                                         </button>
-                                        <button onClick={() => setHistoryModal(rm)} className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold text-slate-500 bg-slate-50 dark:bg-slate-700/50 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" title="Transactiegeschiedenis">
-                                            <History size={14} /> Historie
-                                            {(rm.transactions || []).length > 0 && <span className="text-[9px] bg-slate-200 dark:bg-slate-600 px-1.5 py-0.5 rounded-full font-black">{(rm.transactions || []).length}</span>}
+                                        <button onClick={() => setHistoryModal(rm)} className="flex-1 flex items-center justify-center py-2.5 text-slate-500 bg-slate-50 dark:bg-slate-700/50 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors relative" title="Transactiegeschiedenis">
+                                            <History size={15} />
+                                            {(rm.transactions || []).length > 0 && <span className="absolute top-1 right-1 text-[7px] bg-slate-400 text-white w-3 h-3 flex items-center justify-center rounded-full font-black leading-none">{(rm.transactions || []).length}</span>}
                                         </button>
                                     </div>
                                 </div>
