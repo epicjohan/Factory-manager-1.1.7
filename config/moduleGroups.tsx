@@ -21,7 +21,8 @@ import {
     Truck,
     FileText,
     ShieldCheck,
-    AlertTriangle
+    AlertTriangle,
+    Layers
 } from '../icons';
 import { AppModule } from '../types';
 
@@ -99,6 +100,7 @@ export const MODULE_GROUPS: ModuleGroupConfig[] = [
             { id: AppModule.COMPLIANCE, label: 'Kwaliteit & Audits', path: '/compliance', icon: ShieldCheck },
             { id: AppModule.PLANNER, label: 'Onderhoudsplanner', path: '/planner', icon: Calendar },
             { id: AppModule.INVENTORY, label: 'Materieel & Voorraad', path: '/admin/inventory', icon: Package },
+            { id: AppModule.RAW_MATERIALS, label: 'Ruwdelen Voorraad', path: '/raw-materials', icon: Layers },
         ]
     },
     {

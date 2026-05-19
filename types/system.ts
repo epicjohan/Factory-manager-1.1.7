@@ -2,7 +2,7 @@
 import { CommercialModule, LicenseStatus, NotificationTrigger, SyncEntry } from './common';
 import { User, UserRoleDefinition } from './user';
 import { Machine } from './machine';
-import { WorkSchedule, MaintenanceTicket, MaintenanceEvent, SupportRequest, MixingLog, MistLog, ChecklistLog, EfficiencyLog, MachinePart, GeneralPart } from './maintenance';
+import { WorkSchedule, MaintenanceTicket, MaintenanceEvent, SupportRequest, MixingLog, MistLog, ChecklistLog, EfficiencyLog, MachinePart, GeneralPart, MaterialType, MaterialProfile, RawMaterial, MaterialCategory, StorageLocation } from './maintenance';
 import { EnergyLiveData, EnergyHistoricalLog, EnergySettings, AssetEnergyConfig, EnergyQuarterlyLog } from './energy';
 import { Article, PredefinedOperation, SetupTemplate, DocumentCategory, DMSDocument, ToolPreparationRequest } from './pdm';
 import { QmsFramework, QmsFolder, QmsAudit } from './compliance';
@@ -126,4 +126,9 @@ export interface AppState {
   simulationState?: SimulationState;
   outbox?: SyncEntry[];
   toolPrepRequests?: ToolPreparationRequest[];
+  materialTypes?: MaterialType[];
+  materialProfiles?: MaterialProfile[];
+  rawMaterials?: RawMaterial[];
+  materialCategories?: MaterialCategory[];
+  storageLocations?: StorageLocation[];
 }

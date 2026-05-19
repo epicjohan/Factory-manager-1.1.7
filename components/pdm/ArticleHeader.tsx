@@ -1,8 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { Settings, Save, Lock, LockOpen, ArrowRight, CornerUpRight, AlertTriangle, Archive } from '../../icons';
-import { Article, ArticleStatus, User } from '../../types';
+import { Settings, Save, Lock, LockOpen, ArrowRight, CornerUpRight, AlertTriangle, Archive, Layers } from '../../icons';
+import { Article, ArticleStatus, User, MaterialType, MaterialProfile } from '../../types';
 import { useConfirm } from '../../contexts/ConfirmContext';
+import { useTable } from '../../hooks/useTable';
+import { KEYS } from '../../services/db/core';
 
 interface ArticleHeaderProps {
     article: Article | null;
@@ -19,6 +21,8 @@ interface ArticleHeaderProps {
 
 export const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, isLocked, canEdit, canRelease, canManageLock = false, onSave, onChangeStatus, onRevise, onObsolete }) => {
     const confirm = useConfirm();
+    const { data: materialTypes } = useTable<MaterialType>(KEYS.MATERIAL_TYPES);
+    const { data: materialProfiles } = useTable<MaterialProfile>(KEYS.MATERIAL_PROFILES);
     const [formCode, setFormCode] = useState('');
     const [formDrawing, setFormDrawing] = useState('');
     const [formDrawingRev, setFormDrawingRev] = useState('');
@@ -26,6 +30,9 @@ export const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, isLocked,
     const [formPos, setFormPos] = useState('');
     const [formName, setFormName] = useState('');
     const [formDesc2, setFormDesc2] = useState('');
+    const [formMaterialTypeId, setFormMaterialTypeId] = useState('');
+    const [formMaterialProfile, setFormMaterialProfile] = useState('');
+    const [formMaterialDims, setFormMaterialDims] = useState<Record<string, number | undefined>>({});
 
     const currentStatus = article?.status || ArticleStatus.DRAFT;
     const isReadOnly = isLocked || !canEdit;
@@ -39,6 +46,9 @@ export const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, isLocked,
             setFormPos(article.posNumber || '');
             setFormName(article.name);
             setFormDesc2(article.description2 || '');
+            setFormMaterialTypeId(article.materialTypeId || '');
+            setFormMaterialProfile(article.materialProfile || '');
+            setFormMaterialDims(article.materialDimensions || {});
         } else {
             setFormCode('');
             setFormDrawing('');
@@ -47,6 +57,9 @@ export const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, isLocked,
             setFormPos('');
             setFormName('');
             setFormDesc2('');
+            setFormMaterialTypeId('');
+            setFormMaterialProfile('');
+            setFormMaterialDims({});
         }
     }, [article]);
 
@@ -55,13 +68,18 @@ export const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, isLocked,
         // NOTE: `revision` is intentionally omitted — PLM revisie mag NOOIT
         // direct worden opgeslagen via de stamgegevens-form. Uitsluitend via
         // articleService.createNewRevision() (knop "Nieuwe Revisie").
+        const mt = materialTypes.find(t => t.id === formMaterialTypeId);
         onSave({
             articleCode: formCode,
             drawingNumber: formDrawing,
             drawingRevision: formDrawingRev,
             posNumber: formPos,
             name: formName,
-            description2: formDesc2
+            description2: formDesc2,
+            material: mt?.name || '',
+            materialTypeId: formMaterialTypeId || undefined,
+            materialProfile: formMaterialProfile || undefined,
+            materialDimensions: Object.keys(formMaterialDims).length > 0 ? formMaterialDims as any : undefined
         });
     };
 
@@ -168,6 +186,38 @@ export const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, isLocked,
                         </div>
                     </div>
                 </div>
+
+                {/* Material Specification */}
+                {materialTypes.length > 0 && (
+                    <div className="bg-blue-50/50 dark:bg-blue-900/10 p-6 rounded-[2rem] border border-blue-100 dark:border-blue-800/30">
+                        <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-4 flex items-center gap-2"><Layers size={14} /> Materiaal Specificatie</h4>
+                        <div className="grid grid-cols-2 gap-4 mb-3">
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase mb-2 tracking-widest">Materiaalsoort</label>
+                                <select disabled={isReadOnly} className="w-full p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 font-bold disabled:opacity-60 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" value={formMaterialTypeId} onChange={e => setFormMaterialTypeId(e.target.value)}>
+                                    <option value="">— Geen —</option>
+                                    {materialTypes.map(mt => <option key={mt.id} value={mt.id}>{mt.name} ({mt.category})</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase mb-2 tracking-widest">Profielvorm</label>
+                                <select disabled={isReadOnly} className="w-full p-3 rounded-[2rem] border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 font-bold disabled:opacity-60 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none" value={formMaterialProfile} onChange={e => { setFormMaterialProfile(e.target.value); setFormMaterialDims({}); }}>
+                                    <option value="">— Geen —</option>
+                                    {materialProfiles.map(mp => <option key={mp.id} value={mp.id}>{mp.name}</option>)}
+                                </select>
+                            </div>
+                        </div>
+                        {(() => { const sp = materialProfiles.find(p => p.id === formMaterialProfile); if (!sp) return null; return (
+                            <div className="grid grid-cols-5 gap-3">
+                                {sp.hasDiameter && <div><label className="text-[9px] font-black text-slate-400 uppercase">Ø mm</label><input disabled={isReadOnly} type="number" step="0.1" className="w-full p-2.5 rounded-xl border border-blue-200 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white font-mono font-bold outline-none disabled:opacity-60" value={formMaterialDims.diameter ?? ''} onChange={e => setFormMaterialDims({...formMaterialDims, diameter: parseFloat(e.target.value) || undefined})} /></div>}
+                                {sp.hasWidth && <div><label className="text-[9px] font-black text-slate-400 uppercase">Breedte</label><input disabled={isReadOnly} type="number" step="0.1" className="w-full p-2.5 rounded-xl border border-blue-200 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white font-mono font-bold outline-none disabled:opacity-60" value={formMaterialDims.width ?? ''} onChange={e => setFormMaterialDims({...formMaterialDims, width: parseFloat(e.target.value) || undefined})} /></div>}
+                                {sp.hasHeight && <div><label className="text-[9px] font-black text-slate-400 uppercase">Hoogte</label><input disabled={isReadOnly} type="number" step="0.1" className="w-full p-2.5 rounded-xl border border-blue-200 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white font-mono font-bold outline-none disabled:opacity-60" value={formMaterialDims.height ?? ''} onChange={e => setFormMaterialDims({...formMaterialDims, height: parseFloat(e.target.value) || undefined})} /></div>}
+                                {sp.hasLength && <div><label className="text-[9px] font-black text-slate-400 uppercase">Lengte</label><input disabled={isReadOnly} type="number" step="0.1" className="w-full p-2.5 rounded-xl border border-blue-200 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white font-mono font-bold outline-none disabled:opacity-60" value={formMaterialDims.length ?? ''} onChange={e => setFormMaterialDims({...formMaterialDims, length: parseFloat(e.target.value) || undefined})} /></div>}
+                                {sp.hasThickness && <div><label className="text-[9px] font-black text-slate-400 uppercase">Dikte</label><input disabled={isReadOnly} type="number" step="0.1" className="w-full p-2.5 rounded-xl border border-blue-200 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white font-mono font-bold outline-none disabled:opacity-60" value={formMaterialDims.thickness ?? ''} onChange={e => setFormMaterialDims({...formMaterialDims, thickness: parseFloat(e.target.value) || undefined})} /></div>}
+                            </div>
+                        ); })()}
+                    </div>
+                )}
 
                 {/* Workflow Actions Bar */}
                 <div className="flex flex-wrap justify-between items-center gap-3 pt-4 border-t dark:border-slate-700">

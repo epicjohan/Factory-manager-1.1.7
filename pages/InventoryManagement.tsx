@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { db } from '../services/storage';
 import { KEYS, generateId } from '../services/db/core';
-import { GeneralPart, Machine, AssetType } from '../types';
+import { GeneralPart, Machine, AssetType, RawMaterial, RawMaterialTransaction, MaterialType, MaterialProfile, MaterialCategory, RawMaterialDimensions, DMSDocument, StorageLocation, UserRole } from '../types';
 import { useNavigate } from 'react-router-dom';
 import {
     Plus,
@@ -15,27 +15,176 @@ import {
     MapPin,
     AlertTriangle,
     CloudCog,
-    X
+    X,
+    Layers,
+    Save,
+    Upload,
+    FileText,
+    Eye,
+    History
 } from '../icons';
 import { MachineCard } from '../components/MachineCard';
 import { useAuth } from '../contexts/AuthContext';
 import { useTable } from '../hooks/useTable';
 import { useConfirm } from '../contexts/ConfirmContext';
+import { documentService } from '../services/db/documentService';
+import { DocumentLibraryModal } from '../components/pdm/modals/DocumentLibraryModal';
 
 export const InventoryManagement: React.FC = () => {
     const navigate = useNavigate();
-    const { canAccessAsset } = useAuth();
+    const { canAccessAsset, user } = useAuth();
     const confirm = useConfirm();
+    const isAdmin = user?.role === UserRole.ADMIN || user?.id === 'super-admin-ghost';
 
     const { data: allParts } = useTable<GeneralPart>(KEYS.PARTS_GENERAL);
     const { data: allMachines } = useTable<Machine>(KEYS.MACHINES);
+    const { data: rawMaterials } = useTable<RawMaterial>(KEYS.RAW_MATERIALS);
+    const { data: materialTypes } = useTable<MaterialType>(KEYS.MATERIAL_TYPES);
+    const { data: materialProfiles } = useTable<MaterialProfile>(KEYS.MATERIAL_PROFILES);
+    const { data: materialCategories } = useTable<MaterialCategory>(KEYS.MATERIAL_CATEGORIES);
+    const { data: allDocs } = useTable<DMSDocument>(KEYS.DOCUMENTS);
+    const certInputRef = useRef<HTMLInputElement>(null);
+    const [showCertLibrary, setShowCertLibrary] = useState(false);
+    const [isUploadingCert, setIsUploadingCert] = useState(false);
+    const { data: storageLocations } = useTable<StorageLocation>(KEYS.STORAGE_LOCATIONS);
+    const [locSearch, setLocSearch] = useState('');
+    const [locDropOpen, setLocDropOpen] = useState(false);
+
+    // Withdrawal & History modals
+    const [withdrawModal, setWithdrawModal] = useState<RawMaterial | false>(false);
+    const [withdrawQty, setWithdrawQty] = useState(1);
+    const [withdrawPO, setWithdrawPO] = useState('');
+    const [withdrawNote, setWithdrawNote] = useState('');
+    const [historyModal, setHistoryModal] = useState<RawMaterial | false>(false);
 
     const [activeTab, setActiveTab] = useState<'EQUIPMENT' | 'STOCK'>('EQUIPMENT');
     const [search, setSearch] = useState('');
 
+    // Raw material filters
+    const [filterCategory, setFilterCategory] = useState<string>('');
+    const [filterSource, setFilterSource] = useState<string>('');
+    const [filterLocation, setFilterLocation] = useState<string>('');
+    const [sortBy, setSortBy] = useState<'description' | 'materialTypeName' | 'location' | 'stock'>('description');
+    const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+
     const [showModal, setShowModal] = useState(false);
     const [editingPart, setEditingPart] = useState<GeneralPart | null>(null);
     const [formData, setFormData] = useState<Partial<GeneralPart>>({});
+
+    // Raw material state
+    const [rawModal, setRawModal] = useState<Partial<RawMaterial> | false>(false);
+
+    const getCatColor = (catCode: string) => {
+        const cat = materialCategories.find(c => c.code === catCode);
+        return cat?.color || 'bg-slate-400';
+    };
+
+    // Auto-generate description from material + profile + dimensions
+    const buildRawDescription = (mtId?: string, profId?: string, dims?: RawMaterialDimensions) => {
+        const mt = materialTypes.find(t => t.id === mtId);
+        const mp = materialProfiles.find(p => p.id === profId);
+        const parts: string[] = [];
+        if (mt) parts.push(mt.name);
+        if (mp) parts.push(mp.name);
+        if (dims?.diameter) parts.push(`Ø${dims.diameter}`);
+        if (dims?.width && dims?.height) parts.push(`${dims.width}×${dims.height}`);
+        else if (dims?.width) parts.push(`B${dims.width}`);
+        else if (dims?.height) parts.push(`H${dims.height}`);
+        if (dims?.length) parts.push(`L${dims.length}mm`);
+        if (dims?.thickness) parts.push(`D${dims.thickness}mm`);
+        return parts.join(' ') || '';
+    };
+
+    const setRmFormWithDesc = (update: Partial<RawMaterial>) => {
+        const merged = { ...(rawModal || {}), ...update } as Partial<RawMaterial>;
+        // Only auto-fill for new items (not when editing existing)
+        if (!merged.id) {
+            merged.description = buildRawDescription(merged.materialTypeId, merged.profileId, merged.dimensions);
+        }
+        setRawModal(merged);
+    };
+
+    const filteredRaw = useMemo(() => {
+        const q = search.toLowerCase();
+        let results = (rawMaterials || []).filter(r => {
+            // text search
+            const textMatch = !q || r.description.toLowerCase().includes(q) ||
+                r.materialTypeName.toLowerCase().includes(q) ||
+                r.profileName.toLowerCase().includes(q) ||
+                r.location.toLowerCase().includes(q) ||
+                (r.articleCode || '').toLowerCase().includes(q) ||
+                (r.productionOrderNr || '').toLowerCase().includes(q) ||
+                (r.purchaseOrderNr || '').toLowerCase().includes(q) ||
+                (r.supplier || '').toLowerCase().includes(q);
+            // category filter
+            const catMatch = !filterCategory || (materialTypes.find(t => t.id === r.materialTypeId)?.category === filterCategory);
+            // source filter
+            const sourceMatch = !filterSource || r.source === filterSource;
+            // location filter
+            const locMatch = !filterLocation || r.location === filterLocation;
+            return textMatch && catMatch && sourceMatch && locMatch;
+        });
+        // sorting
+        results.sort((a, b) => {
+            let av = '', bv = '';
+            if (sortBy === 'stock') {
+                return sortDir === 'asc' ? (a.stock - b.stock) : (b.stock - a.stock);
+            }
+            av = (a[sortBy] || '').toLowerCase();
+            bv = (b[sortBy] || '').toLowerCase();
+            return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+        });
+        return results;
+    }, [rawMaterials, search, filterCategory, filterSource, filterLocation, sortBy, sortDir, materialTypes]);
+
+    const activeFilterCount = [filterCategory, filterSource, filterLocation].filter(Boolean).length;
+
+    const handleSaveRaw = async (item: RawMaterial) => {
+        const exists = (rawMaterials || []).find(r => r.id === item.id);
+        const now = new Date().toISOString();
+        const userName = user?.name || 'Onbekend';
+        const txs: RawMaterialTransaction[] = [...(item.transactions || [])];
+
+        if (exists) {
+            // Admin edit — check if stock changed
+            if (exists.stock !== item.stock) {
+                txs.push({ id: generateId(), type: 'STOCK_ADJUST', previousStock: exists.stock, newStock: item.stock, quantity: Math.abs(item.stock - exists.stock), performedBy: userName, performedAt: now, note: `Voorraad aangepast van ${exists.stock} naar ${item.stock}` });
+            } else {
+                txs.push({ id: generateId(), type: 'EDIT', performedBy: userName, performedAt: now, note: 'Materiaal gegevens bijgewerkt' });
+            }
+            item.transactions = txs;
+            await db.updateRawMaterial(item);
+        } else {
+            // New — add CREATED transaction
+            txs.push({ id: generateId(), type: 'CREATED', newStock: item.stock, performedBy: userName, performedAt: now });
+            item.transactions = txs;
+            await db.addRawMaterial(item);
+        }
+        setRawModal(false);
+    };
+
+    const handleWithdraw = async () => {
+        if (!withdrawModal || withdrawQty < 1 || !withdrawPO.trim()) return;
+        const rm = withdrawModal;
+        const now = new Date().toISOString();
+        const userName = user?.name || 'Onbekend';
+        const previousStock = rm.stock;
+        const newStock = Math.max(0, previousStock - withdrawQty);
+        const tx: RawMaterialTransaction = {
+            id: generateId(), type: 'WITHDRAWAL', quantity: withdrawQty,
+            previousStock, newStock, productionOrderNr: withdrawPO.trim(),
+            note: withdrawNote.trim() || undefined, performedBy: userName, performedAt: now
+        };
+        const updated: RawMaterial = { ...rm, stock: newStock, transactions: [...(rm.transactions || []), tx] };
+        await db.updateRawMaterial(updated);
+        setWithdrawModal(false);
+        setWithdrawQty(1); setWithdrawPO(''); setWithdrawNote('');
+    };
+
+    const handleDeleteRaw = async (id: string) => {
+        const ok = await confirm({ title: 'Ruwdeel verwijderen', message: 'Weet u zeker dat u dit ruwdeel wilt verwijderen?' });
+        if (ok) await db.deleteRawMaterial(id);
+    };
 
     const equipmentAssets = useMemo(() => {
         return (allMachines || []).filter(m => canAccessAsset(m.id) && m.type === AssetType.OTHER);

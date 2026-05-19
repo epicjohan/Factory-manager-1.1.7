@@ -40,11 +40,23 @@ export const KEYS = {
     QMS_FRAMEWORKS: 'fm_table_qms_frameworks',
     QMS_FOLDERS: 'fm_table_qms_folders',
     QMS_AUDITS: 'fm_table_qms_audits',
-    TOOL_PREP_REQUESTS: 'fm_table_tool_prep_requests'
+    TOOL_PREP_REQUESTS: 'fm_table_tool_prep_requests',
+    MATERIAL_TYPES: 'fm_table_material_types',
+    MATERIAL_PROFILES: 'fm_table_material_profiles',
+    RAW_MATERIALS: 'fm_table_raw_materials',
+    MATERIAL_CATEGORIES: 'fm_table_material_categories',
+    STORAGE_LOCATIONS: 'fm_table_storage_locations'
+    // NOTE: De IndexedDB store names (fm_table_*) zijn bewust afwijkend van de PocketBase
+    // collectienamen. De mapping staat in TABLE_MAP in sync.ts:
+    //   fm_table_material_types      → material_types
+    //   fm_table_material_profiles   → material_profiles
+    //   fm_table_raw_materials       → raw_materials
+    //   fm_table_material_categories → material_categories
+    //   fm_table_storage_locations   → storage_locations
 };
 
 export const DB_NAME = 'FactoryManagerDB';
-export const CURRENT_DB_VERSION = 5;
+export const CURRENT_DB_VERSION = 8;
 
 // BUG B-05 FIX: crypto.getRandomValues() is cryptografisch veilig — onvoorspelbaar en niet repliceerbaar.
 // Math.random() is deterministisch en kan worden voorspeld bij kennis van de seed.

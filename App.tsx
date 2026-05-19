@@ -46,6 +46,7 @@ import { TemplateManagement } from './pages/TemplateManagement';
 import { ProductionDashboard } from './pages/ProductionDashboard';
 import { ToolPreparation } from './pages/ToolPreparation';
 import { TicketDashboard } from './pages/TicketDashboard';
+import { RawMaterialManagement } from './pages/RawMaterialManagement';
 import { UserRole, AssetType, AppModule, FocasLiveStats } from './types';
 
 const ModuleGuard: React.FC<{ module: AppModule, children: React.ReactNode }> = ({ module, children }) => {
@@ -204,6 +205,7 @@ const App: React.FC = () => {
                                     <Route path="/admin/templates" element={<ProtectedRoute><AdminRoute><ModuleGuard module={AppModule.ARTICLES}><TemplateManagement /></ModuleGuard></AdminRoute></ProtectedRoute>} />
                                     <Route path="/admin/users" element={<ProtectedRoute><AdminRoute><UserManagement /></AdminRoute></ProtectedRoute>} />
                                     <Route path="/admin/inventory" element={<ProtectedRoute><AdminRoute><InventoryManagement /></AdminRoute></ProtectedRoute>} />
+                                    <Route path="/raw-materials" element={<ProtectedRoute><RawMaterialManagement /></ProtectedRoute>} />
                                     <Route path="/admin/cost-report" element={<ProtectedRoute><AdminRoute><CostReport /></AdminRoute></ProtectedRoute>} />
                                     <Route path="/admin/health" element={<ProtectedRoute><AdminRoute><SystemHealth /></AdminRoute></ProtectedRoute>} />
                                     <Route path="/admin/simulator" element={<ProtectedRoute><GhostAdminRoute><SystemSimulator /></GhostAdminRoute></ProtectedRoute>} />

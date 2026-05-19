@@ -208,3 +208,92 @@ export interface GeneralPart {
   minStock?: number;
   location?: string;
 }
+
+// --- MATERIAL REGISTER ---
+
+export interface StorageLocation {
+  id: string;
+  code: string;            // "ST-01-A"
+  name: string;            // "Stelling 1, Schap A"
+  zone?: string;           // "Hal 1", "Magazijn"
+}
+
+export interface MaterialCategory {
+  id: string;
+  name: string;            // "Staal"
+  code: string;            // "STAAL"
+  color: string;           // Tailwind bg class, e.g. "bg-slate-500"
+  order?: number;
+}
+
+export interface MaterialType {
+  id: string;
+  name: string;            // "S235JR", "7075-T6", "316L", "PA6"
+  category: string;        // "STAAL" | "ALUMINIUM" | "RVS" | "KUNSTSTOF" | "MESSING" | "KOPER" | "OVERIG"
+  density?: number;        // kg/dm³
+  notes?: string;
+}
+
+export interface MaterialProfile {
+  id: string;
+  name: string;            // "Rondstaf"
+  code: string;            // "RONDSTAF"
+  hasDiameter: boolean;
+  hasWidth: boolean;
+  hasHeight: boolean;
+  hasLength: boolean;
+  hasThickness: boolean;
+  icon?: string;
+  notes?: string;
+}
+
+// --- RAW MATERIALS ---
+
+export interface RawMaterialDimensions {
+  diameter?: number;
+  width?: number;
+  height?: number;
+  length?: number;
+  thickness?: number;
+}
+
+export interface RawMaterial {
+  id: string;
+  description: string;
+  articleCode?: string;
+  batchNumber?: string;
+  materialTypeId: string;
+  materialTypeName: string;
+  profileId: string;
+  profileName: string;
+  dimensions: RawMaterialDimensions;
+  stock: number;
+  weight?: number;
+  location: string;
+  source: string;           // "NIEUW" | "RESTMATERIAAL"
+  sourceOrderNr?: string;
+  productionOrderNr?: string;
+  purchaseOrderNr?: string;
+  supplier?: string;
+  pricePerKg?: number;
+  addedBy: string;
+  addedDate: string;
+  notes?: string;
+  certificateDocIds?: string[];
+  transactions?: RawMaterialTransaction[];
+}
+
+export interface RawMaterialTransaction {
+  id: string;
+  type: 'CREATED' | 'WITHDRAWAL' | 'EDIT' | 'STOCK_ADJUST' | 'RESTOCK';
+  batchNr?: string;              // uniek batch nummer bij afname (BATCH-YYYYMMDD-XXXX)
+  quantity?: number;             // afgenomen / toegevoegde hoeveelheid
+  previousStock?: number;
+  newStock?: number;
+  productionOrderNr?: string;
+  purchaseOrderNr?: string;
+  certificateDocIds?: string[];
+  note?: string;
+  performedBy: string;
+  performedAt: string;           // ISO date
+}

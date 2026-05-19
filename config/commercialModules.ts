@@ -51,7 +51,7 @@ export const COMMERCIAL_MODULES: CommercialModuleDefinition[] = [
         name: "Inventory & Stock",
         description: "Magazijnbeheer, reserveonderdelen en voorraadwaarde.",
         icon: Package,
-        enables: [AppModule.INVENTORY]
+        enables: [AppModule.INVENTORY, AppModule.RAW_MATERIALS]
     },
     {
         id: CommercialModule.ANDON,

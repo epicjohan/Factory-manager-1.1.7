@@ -211,6 +211,15 @@ export interface Article {
   description2?: string;
   customer?: string;
   material?: string;
+  materialTypeId?: string;
+  materialProfile?: string;
+  materialDimensions?: {
+    diameter?: number;
+    width?: number;
+    height?: number;
+    length?: number;
+    thickness?: number;
+  };
   description?: string;
   status: ArticleStatus;
   operations: ArticleOperation[];

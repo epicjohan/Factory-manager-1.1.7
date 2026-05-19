@@ -1,6 +1,6 @@
 
-import { MachinePart, GeneralPart, NotificationTrigger } from '../../types';
-import { KEYS, loadTable, saveTable, outboxUtils, getNowISO, getCurrentUserName } from './core';
+import { MachinePart, GeneralPart, NotificationTrigger, MaterialType, MaterialProfile, RawMaterial, MaterialCategory, StorageLocation } from '../../types';
+import { KEYS, loadTable, saveTable, outboxUtils, getNowISO, getCurrentUserName, generateId } from './core';
 
 export const inventoryService = {
     getMachineParts: async (id: string) => (await loadTable<MachinePart[]>(KEYS.PARTS_MACHINE, [])).filter(p => p.machineId === id),
@@ -133,5 +133,124 @@ export const inventoryService = {
             await saveTable(KEYS.PARTS_GENERAL, gParts);
             await outboxUtils.addToOutbox(KEYS.PARTS_GENERAL, 'UPDATE', part);
         }
+    },
+
+    // --- MATERIAL TYPES ---
+    getMaterialTypes: () => loadTable<MaterialType[]>(KEYS.MATERIAL_TYPES, []),
+    addMaterialType: async (item: MaterialType) => {
+        const now = getNowISO();
+        (item as any).updated = now;
+        (item as any).created = now;
+        const items = await loadTable<MaterialType[]>(KEYS.MATERIAL_TYPES, []);
+        items.push(item);
+        await saveTable(KEYS.MATERIAL_TYPES, items);
+        await outboxUtils.addToOutbox(KEYS.MATERIAL_TYPES, 'INSERT', item);
+        await outboxUtils.logAudit('ADD_MATERIAL_TYPE', getCurrentUserName(), `Materiaalsoort toegevoegd: ${item.name}`);
+    },
+    updateMaterialType: async (item: MaterialType) => {
+        const now = getNowISO();
+        (item as any).updated = now;
+        const items = (await loadTable<MaterialType[]>(KEYS.MATERIAL_TYPES, [])).map(x => x.id === item.id ? item : x);
+        await saveTable(KEYS.MATERIAL_TYPES, items);
+        await outboxUtils.addToOutbox(KEYS.MATERIAL_TYPES, 'UPDATE', item);
+    },
+    deleteMaterialType: async (id: string) => {
+        const items = (await loadTable<MaterialType[]>(KEYS.MATERIAL_TYPES, [])).filter(x => x.id !== id);
+        await saveTable(KEYS.MATERIAL_TYPES, items);
+        await outboxUtils.addToOutbox(KEYS.MATERIAL_TYPES, 'DELETE', { id });
+    },
+
+    // --- MATERIAL PROFILES ---
+    getMaterialProfiles: () => loadTable<MaterialProfile[]>(KEYS.MATERIAL_PROFILES, []),
+    addMaterialProfile: async (item: MaterialProfile) => {
+        const now = getNowISO();
+        (item as any).updated = now;
+        (item as any).created = now;
+        const items = await loadTable<MaterialProfile[]>(KEYS.MATERIAL_PROFILES, []);
+        items.push(item);
+        await saveTable(KEYS.MATERIAL_PROFILES, items);
+        await outboxUtils.addToOutbox(KEYS.MATERIAL_PROFILES, 'INSERT', item);
+        await outboxUtils.logAudit('ADD_MATERIAL_PROFILE', getCurrentUserName(), `Profielvorm toegevoegd: ${item.name}`);
+    },
+    updateMaterialProfile: async (item: MaterialProfile) => {
+        const now = getNowISO();
+        (item as any).updated = now;
+        const items = (await loadTable<MaterialProfile[]>(KEYS.MATERIAL_PROFILES, [])).map(x => x.id === item.id ? item : x);
+        await saveTable(KEYS.MATERIAL_PROFILES, items);
+        await outboxUtils.addToOutbox(KEYS.MATERIAL_PROFILES, 'UPDATE', item);
+    },
+    deleteMaterialProfile: async (id: string) => {
+        const items = (await loadTable<MaterialProfile[]>(KEYS.MATERIAL_PROFILES, [])).filter(x => x.id !== id);
+        await saveTable(KEYS.MATERIAL_PROFILES, items);
+        await outboxUtils.addToOutbox(KEYS.MATERIAL_PROFILES, 'DELETE', { id });
+    },
+
+    // --- RAW MATERIALS ---
+    getRawMaterials: () => loadTable<RawMaterial[]>(KEYS.RAW_MATERIALS, []),
+    addRawMaterial: async (item: RawMaterial) => {
+        const now = getNowISO();
+        (item as any).updated = now;
+        (item as any).created = now;
+        const items = await loadTable<RawMaterial[]>(KEYS.RAW_MATERIALS, []);
+        items.push(item);
+        await saveTable(KEYS.RAW_MATERIALS, items);
+        await outboxUtils.addToOutbox(KEYS.RAW_MATERIALS, 'INSERT', item);
+        await outboxUtils.logAudit('ADD_RAW_MATERIAL', getCurrentUserName(), `Ruwdeel toegevoegd: ${item.description}`);
+    },
+    updateRawMaterial: async (item: RawMaterial) => {
+        const now = getNowISO();
+        (item as any).updated = now;
+        const items = (await loadTable<RawMaterial[]>(KEYS.RAW_MATERIALS, [])).map(x => x.id === item.id ? item : x);
+        await saveTable(KEYS.RAW_MATERIALS, items);
+        await outboxUtils.addToOutbox(KEYS.RAW_MATERIALS, 'UPDATE', item);
+    },
+    deleteRawMaterial: async (id: string) => {
+        const items = (await loadTable<RawMaterial[]>(KEYS.RAW_MATERIALS, [])).filter(x => x.id !== id);
+        await saveTable(KEYS.RAW_MATERIALS, items);
+        await outboxUtils.addToOutbox(KEYS.RAW_MATERIALS, 'DELETE', { id });
+    },
+
+    // --- MATERIAL CATEGORIES ---
+    getMaterialCategories: () => loadTable<MaterialCategory[]>(KEYS.MATERIAL_CATEGORIES, []),
+    addMaterialCategory: async (item: MaterialCategory) => {
+        const now = getNowISO();
+        (item as any).updated = now;
+        (item as any).created = now;
+        const items = await loadTable<MaterialCategory[]>(KEYS.MATERIAL_CATEGORIES, []);
+        items.push(item);
+        await saveTable(KEYS.MATERIAL_CATEGORIES, items);
+        await outboxUtils.addToOutbox(KEYS.MATERIAL_CATEGORIES, 'INSERT', item);
+    },
+    updateMaterialCategory: async (item: MaterialCategory) => {
+        const now = getNowISO();
+        (item as any).updated = now;
+        const items = (await loadTable<MaterialCategory[]>(KEYS.MATERIAL_CATEGORIES, [])).map(x => x.id === item.id ? item : x);
+        await saveTable(KEYS.MATERIAL_CATEGORIES, items);
+        await outboxUtils.addToOutbox(KEYS.MATERIAL_CATEGORIES, 'UPDATE', item);
+    },
+    deleteMaterialCategory: async (id: string) => {
+        const items = (await loadTable<MaterialCategory[]>(KEYS.MATERIAL_CATEGORIES, [])).filter(x => x.id !== id);
+        await saveTable(KEYS.MATERIAL_CATEGORIES, items);
+        await outboxUtils.addToOutbox(KEYS.MATERIAL_CATEGORIES, 'DELETE', { id });
+    },
+
+    // --- STORAGE LOCATIONS ---
+    getStorageLocations: () => loadTable<StorageLocation[]>(KEYS.STORAGE_LOCATIONS, []),
+    addStorageLocation: async (item: StorageLocation) => {
+        const now = getNowISO(); (item as any).updated = now; (item as any).created = now;
+        const items = await loadTable<StorageLocation[]>(KEYS.STORAGE_LOCATIONS, []); items.push(item);
+        await saveTable(KEYS.STORAGE_LOCATIONS, items);
+        await outboxUtils.addToOutbox(KEYS.STORAGE_LOCATIONS, 'INSERT', item);
+    },
+    updateStorageLocation: async (item: StorageLocation) => {
+        const now = getNowISO(); (item as any).updated = now;
+        const items = (await loadTable<StorageLocation[]>(KEYS.STORAGE_LOCATIONS, [])).map(x => x.id === item.id ? item : x);
+        await saveTable(KEYS.STORAGE_LOCATIONS, items);
+        await outboxUtils.addToOutbox(KEYS.STORAGE_LOCATIONS, 'UPDATE', item);
+    },
+    deleteStorageLocation: async (id: string) => {
+        const items = (await loadTable<StorageLocation[]>(KEYS.STORAGE_LOCATIONS, [])).filter(x => x.id !== id);
+        await saveTable(KEYS.STORAGE_LOCATIONS, items);
+        await outboxUtils.addToOutbox(KEYS.STORAGE_LOCATIONS, 'DELETE', { id });
     }
 };

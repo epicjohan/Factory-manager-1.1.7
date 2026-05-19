@@ -89,7 +89,12 @@ const TABLE_MAP: Record<string, string> = {
     [KEYS.QMS_FRAMEWORKS]: 'qms_frameworks',
     [KEYS.QMS_FOLDERS]: 'qms_folders',
     [KEYS.QMS_AUDITS]: 'qms_audits',
-    [KEYS.TOOL_PREP_REQUESTS]: 'tool_prep_requests'
+    [KEYS.TOOL_PREP_REQUESTS]: 'tool_prep_requests',
+    [KEYS.MATERIAL_TYPES]: 'material_types',
+    [KEYS.MATERIAL_PROFILES]: 'material_profiles',
+    [KEYS.RAW_MATERIALS]: 'raw_materials',
+    [KEYS.MATERIAL_CATEGORIES]: 'material_categories',
+    [KEYS.STORAGE_LOCATIONS]: 'storage_locations'
 };
 
 const COLLECTION_TO_KEY = Object.fromEntries(
@@ -129,7 +134,12 @@ const STATE_KEY_MAP: Partial<Record<string, keyof AppState>> = {
     [KEYS.QMS_FRAMEWORKS]: 'qmsFrameworks',
     [KEYS.QMS_FOLDERS]: 'qmsFolders',
     [KEYS.QMS_AUDITS]: 'qmsAudits',
-    [KEYS.TOOL_PREP_REQUESTS]: 'toolPrepRequests' as keyof AppState
+    [KEYS.TOOL_PREP_REQUESTS]: 'toolPrepRequests' as keyof AppState,
+    [KEYS.MATERIAL_TYPES]: 'materialTypes' as keyof AppState,
+    [KEYS.MATERIAL_PROFILES]: 'materialProfiles' as keyof AppState,
+    [KEYS.RAW_MATERIALS]: 'rawMaterials' as keyof AppState,
+    [KEYS.MATERIAL_CATEGORIES]: 'materialCategories' as keyof AppState,
+    [KEYS.STORAGE_LOCATIONS]: 'storageLocations' as keyof AppState
 };
 
 // created/updated meesturen veroorzaakt stille validatiefouten of onjuiste overwrite.

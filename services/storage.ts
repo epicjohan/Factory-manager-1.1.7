@@ -78,7 +78,12 @@ export const getStore = async (): Promise<AppState> => {
         // Gebruik settingsService.getServerSettings() voor directe toegang.,
         simulationState: await machineService.getSimulationState(),
         outbox: await outboxUtils.getOutbox(),
-        toolPrepRequests: await toolPrepService.getToolPrepRequests()
+        toolPrepRequests: await toolPrepService.getToolPrepRequests(),
+        materialTypes: await inventoryService.getMaterialTypes(),
+        materialProfiles: await inventoryService.getMaterialProfiles(),
+        rawMaterials: await inventoryService.getRawMaterials(),
+        materialCategories: await inventoryService.getMaterialCategories(),
+        storageLocations: await inventoryService.getStorageLocations()
     };
 };
 
@@ -114,7 +119,12 @@ export const setStore = async (state: AppState) => {
         state.energyHistorical ? saveTable(KEYS.LOGS_ENERGY_HISTORICAL, state.energyHistorical) : Promise.resolve(),
         saveTable(KEYS.SIMULATION, state.simulationState),
         state.outbox ? saveTable(KEYS.OUTBOX, state.outbox) : Promise.resolve(),
-        state.toolPrepRequests ? saveTable(KEYS.TOOL_PREP_REQUESTS, state.toolPrepRequests) : Promise.resolve()
+        state.toolPrepRequests ? saveTable(KEYS.TOOL_PREP_REQUESTS, state.toolPrepRequests) : Promise.resolve(),
+        state.materialTypes ? saveTable(KEYS.MATERIAL_TYPES, state.materialTypes) : Promise.resolve(),
+        state.materialProfiles ? saveTable(KEYS.MATERIAL_PROFILES, state.materialProfiles) : Promise.resolve(),
+        state.rawMaterials ? saveTable(KEYS.RAW_MATERIALS, state.rawMaterials) : Promise.resolve(),
+        state.materialCategories ? saveTable(KEYS.MATERIAL_CATEGORIES, state.materialCategories) : Promise.resolve(),
+        state.storageLocations ? saveTable(KEYS.STORAGE_LOCATIONS, state.storageLocations) : Promise.resolve()
     ]);
 
     await saveTable(KEYS.METADATA, {
