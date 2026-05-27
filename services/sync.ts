@@ -305,14 +305,24 @@ export const SyncService = {
                         }
                     }
                 }
-                // Alleen isBootstrapped=true als download slaagt
-                const result = await SyncService.downloadState().catch(e => {
-                    console.error('[SyncService] Initiële download mislukt:', e);
-                    return { success: false, message: String(e) };
-                });
-                if (result?.success) {
-                    isBootstrapped = true;
+                // BUG-FIX: downloadState() ALLEEN aanroepen als er een geldig token is.
+                // Zonder token retourneren PocketBase-endpoints stil 401.
+                // Promise.allSettled() vangt die fouten op en downloadState() geeft toch
+                // { success: true } terug — waarna isBootstrapped=true wordt gezet en
+                // de serverHighWaterMark een foute timestamp krijgt.
+                // Resultaat: alle volgende syncs gebruiken delta-filtering en slaan
+                // oude records (machines, users) permanent over.
+                if (cachedToken) {
+                    const result = await SyncService.downloadState().catch(e => {
+                        console.error('[SyncService] Initiële download mislukt:', e);
+                        return { success: false, message: String(e) };
+                    });
+                    if (result?.success) {
+                        isBootstrapped = true;
+                    }
                 }
+                // Geen token: isBootstrapped blijft false. runSyncLoop bootstrap
+                // zodra de gebruiker inloggegevens heeft ingevuld.
             }
         }
 
