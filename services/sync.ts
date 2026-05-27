@@ -815,8 +815,12 @@ export const SyncService = {
         const isDeviceEmpty = localMachines.length === 0;
 
         const lastSyncISO = meta.serverHighWaterMark || '2000-01-01T00:00:00.000Z';
-        const filterTime = (forceFull || isDeviceEmpty) ? '2000-01-01T00:00:00.000Z' : lastSyncISO;
-        const pbFilterValue = formatDateForPB(filterTime);
+        // BUG-FIX: Bij een full sync (forceFull of leeg apparaat) GEEN tijdsfilter meesturen.
+        // Records zonder 'updated' veld (aangemaakt vóór autodate in PocketBase was ingesteld)
+        // worden door de filter `updated >= '...'` overgeslagen omdat null >= datum = false.
+        // Zonder filter haalt PocketBase ALLE records op, inclusief die zonder timestamp.
+        const isFullSync = forceFull || isDeviceEmpty;
+        const pbFilterValue = isFullSync ? null : formatDateForPB(lastSyncISO);
 
         // S-7 FIX: Alle tabel-fetches lopen parallel via Promise.allSettled().
         // Eerder was dit sequentieel: 27 tabellen × ~100ms = ~2.7s per sync-cycle.
@@ -826,7 +830,6 @@ export const SyncService = {
         // S-1 FIX: fetchAllPages haalt alle pagina's op voor één tabel.
         // Zonder paginering werden records boven de 500-limiet permanent overgeslagen.
         const fetchAllPages = async (tableKey: string, collection: string): Promise<{ tableKey: string; items: any[]; newestISO: string }> => {
-            const filterString = `updated >= '${pbFilterValue}'`;
             const allItems: any[] = [];
             let page = 1;
             let totalPages = 1;
@@ -834,11 +837,15 @@ export const SyncService = {
 
             do {
                 const params = new URLSearchParams({
-                    filter: filterString,
                     perPage: '500',
                     sort: '-updated',
                     page: String(page)
                 });
+                // Alleen filteren bij delta-sync — bij full sync alles ophalen
+                // zodat ook records zonder 'updated' veld worden meegenomen.
+                if (pbFilterValue) {
+                    params.set('filter', `updated >= '${pbFilterValue}'`);
+                }
                 const res = await fetchWithTimeout(
                     `${url}/api/collections/${collection}/records?${params}`,
                     { headers, timeout: 25000 }
