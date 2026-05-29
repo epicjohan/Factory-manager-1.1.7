@@ -149,16 +149,13 @@ export const MkgPlanningWidget: React.FC<{ rsrcNum: number; machineName: string 
                                                     {order.prdh_num || '—'}
                                                 </p>
                                                 <p className="text-[10px] text-slate-400">
-                                                    Bewerking {order.plnb_num} · {order.plnc_forecast ? 'Forecast' : 'Gepland'}
+                                                    Regel {order.prdr_num} · {order.plnc_forecast ? 'Forecast' : 'Gepland'} · {order.plnc_datum}
                                                 </p>
                                             </div>
                                             <div className="text-right shrink-0">
-                                                <p className="text-xs font-black text-slate-700 dark:text-slate-200">
-                                                    {formatMinutes(order.plnc_tijd)}
-                                                </p>
-                                                {order.plnc_tijd_bemand > 0 && (
+                                                {order.plnc_tijd_bemand_min > 0 && (
                                                     <p className="text-[10px] text-slate-400">
-                                                        {formatMinutes(order.plnc_tijd_bemand)} bemand
+                                                        {formatMinutes(order.plnc_tijd_bemand_min)} bemand
                                                     </p>
                                                 )}
                                             </div>

@@ -29,25 +29,30 @@ const toMinutes = (val: any): number => {
 
 /**
  * Map een ruwe MKG plnc record naar ons MkgPlncRecord type.
+ * Bevestigde data uit Postman test (2026-05-29):
+ * - RowKey = unieke hex identifier (bijv. "0x0000000001d6b1fb")
+ * - plnc_tijd altijd 0 in productiedata
+ * - plnc_tijd_bemand in SECONDEN (bijv. 25200 = 7 uur)
  */
-const mapPlncRecord = (raw: any): MkgPlncRecord => ({
-    id: `${raw.admi_num ?? 0}_${raw.rsrc_num ?? 0}_${raw.plnc_week ?? 0}_${raw.plnc_datum ?? ''}`,
-    admi_num:         raw.admi_num        ?? 0,
-    rsrc_num:         raw.rsrc_num        ?? 0,
-    prdh_num:         raw.prdh_num        ?? '',
-    prdr_num:         raw.prdr_num        ?? 0,
-    plnb_num:         raw.plnb_num        ?? 0,
-    plnb_type:        raw.plnb_type       ?? 0,
-    plnc_admi:        raw.plnc_admi       ?? 0,
-    plnc_datum:       raw.plnc_datum      ?? '',
-    plnc_week:        raw.plnc_week       ?? 0,
-    plnc_maand:       raw.plnc_maand      ?? 0,
-    plnc_tijd:        toMinutes(raw.plnc_tijd),
-    plnc_tijd_bemand: toMinutes(raw.plnc_tijd_bemand),
-    plnc_forecast:    !!raw.plnc_forecast,
-    plns_num:         raw.plns_num        ?? 0,
-    syncedAt:         getNowISO(),
-});
+const mapPlncRecord = (raw: any): MkgPlncRecord => {
+    const tijdSec: number = typeof raw.plnc_tijd_bemand === 'number' ? raw.plnc_tijd_bemand : 0;
+    return {
+        id:                   raw.RowKey         ?? `${raw.admi_num}_${raw.rsrc_num}_${raw.plnc_datum}`,
+        admi_num:             raw.admi_num        ?? 0,
+        rsrc_num:             raw.rsrc_num        ?? 0,
+        prdh_num:             raw.prdh_num        ?? '',
+        prdr_num:             raw.prdr_num        ?? 0,
+        plnc_datum:           raw.plnc_datum      ?? '',
+        plnc_week:            raw.plnc_week       ?? 0,
+        plnc_maand:           raw.plnc_maand      ?? 0,
+        plnc_tijd:            raw.plnc_tijd       ?? 0,
+        plnc_tijd_bemand:     tijdSec,
+        plnc_tijd_bemand_min: Math.round(tijdSec / 60),  // seconden → minuten
+        plnc_forecast:        !!raw.plnc_forecast,
+        syncedAt:             getNowISO(),
+    };
+};
+
 
 export const mkgCapaciteitService = {
 

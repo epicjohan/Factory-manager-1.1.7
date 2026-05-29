@@ -65,22 +65,19 @@ export interface SystemSettings {
 
 // ─── MKG Geplande Capaciteit (tabel: plnc) ────────────────────────────────────
 export interface MkgPlncRecord {
-  id: string;              // gegenereerd: `${admi_num}_${rsrc_num}_${plnc_week}_${plnc_datum}`
-  admi_num: number;        // Administratie
-  rsrc_num: number;        // Resource/Machine ID in MKG
-  prdh_num: string;        // Productieorder nummer
-  prdr_num: number;        // Halffabricaat
-  plnb_num: number;        // Bewerking planning
-  plnb_type: number;       // Type bewerking
-  plnc_admi: number;       // Administratie resource
-  plnc_datum: string;      // Datum (ISO string)
-  plnc_week: number;       // Weeknummer
-  plnc_maand: number;      // Maandnummer
-  plnc_tijd: number;       // Geplande tijd in minuten
-  plnc_tijd_bemand: number; // Bemande tijd in minuten
-  plnc_forecast: boolean;  // Is forecast
-  plns_num: number;        // Simulatie
-  syncedAt: string;        // Tijdstip van laatste sync
+  id: string;                   // RowKey uit MKG (hex string, bijv. "0x0000000001d6b1fb")
+  admi_num: number;             // Administratie
+  rsrc_num: number;             // Resource/Machine ID in MKG
+  prdh_num: string;             // Productieorder nummer
+  prdr_num: number;             // Halffabricaat/bewerkingsstap
+  plnc_datum: string;           // Datum (ISO string, bijv. "2026-05-29")
+  plnc_week: number;            // Weeknummer
+  plnc_maand: number;           // Maandnummer
+  plnc_tijd: number;            // Stel-/insteltijd in seconden (vaak 0)
+  plnc_tijd_bemand: number;     // Geplande bemande tijd in SECONDEN (bijv. 25200 = 7 uur)
+  plnc_tijd_bemand_min: number; // Berekend: plnc_tijd_bemand / 60 (minuten, voor weergave)
+  plnc_forecast: boolean;       // Is forecast-record
+  syncedAt: string;             // Tijdstip van laatste sync
 }
 
 export interface DataSnapshot {
