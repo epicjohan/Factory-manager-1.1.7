@@ -40,7 +40,8 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
     }
 
     function mkgLogin(cfg) {
-        var loginUrl = cfg.url + "/j_spring_security_check";
+        // MKG auth pad: /static/auth/j_spring_security_check
+        var loginUrl = cfg.url + "/static/auth/j_spring_security_check";
         try {
             var formBody = "j_username=" + encodeURIComponent(cfg.username)
                          + "&j_password=" + encodeURIComponent(cfg.password);
@@ -50,10 +51,8 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
 
             var loginHeaders = {
                 "Content-Type": "application/x-www-form-urlencoded",
-                "Accept":       "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-                "User-Agent":   "FactoryManager/1.0"
+                "Accept":       "application/json"
             };
-            // MKG kan de API-sleutel ook bij login vereisen
             if (cfg.apiKey) {
                 loginHeaders["X-customerID"] = cfg.apiKey;
             }
