@@ -117,9 +117,9 @@ function mkgHeaders(cfg, extraHeaders) {
         "Content-Type":  "application/json",
         "Accept":        "application/json"
     };
-    // Voeg optionele API-sleutel toe als header (indien geconfigureerd)
+    // MKG API-sleutel via X-customerID header (conform MKG Postman collection)
     if (cfg.apiKey) {
-        headers["X-Api-Key"] = cfg.apiKey;
+        headers["X-customerID"] = cfg.apiKey;
     }
     if (extraHeaders) {
         Object.keys(extraHeaders).forEach(function(k) {
