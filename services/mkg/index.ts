@@ -1,0 +1,1 @@
+export { mkgCapaciteitService } from './mkgCapaciteitService';

@@ -98,4 +98,5 @@ export interface Machine {
   checklist?: ChecklistItem[];
   setupTemplateId?: string;
   activeJob?: ActiveJob | null;
+  mkgResourceCode?: number;  // MKG rsrc_num voor capaciteitskoppeling
 }

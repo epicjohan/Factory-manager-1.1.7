@@ -71,8 +71,10 @@ export enum AssetTab {
   MIST = 'MIST',
   PARTS = 'PARTS',
   DOCS = 'DOCS',
-  TOOLS = 'TOOLS'
+  TOOLS = 'TOOLS',
+  MKG_PLANNING = 'MKG_PLANNING'
 }
+
 
 export enum CommercialModule {
   CORE = 'CORE',
