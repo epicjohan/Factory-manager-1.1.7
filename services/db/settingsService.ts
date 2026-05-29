@@ -223,6 +223,32 @@ export const settingsService = {
         const current = await settingsService.getSystemSettings();
         await settingsService.setSystemSettings({ ...current, teamsWebhook: url });
     },
+
+    // ─── MKG API INSTELLINGEN ─────────────────────────────────────────────────
+    getMkgSettings: async (): Promise<{ serverUrl: string; apiKey: string; username: string; password: string }> => {
+        const meta = await loadTable<any>(KEYS.METADATA, {});
+        const decryptedApiKey = await decryptPassword(meta.mkgApiKey || '');
+        const decryptedPassword = await decryptPassword(meta.mkgPassword || '');
+        return {
+            serverUrl: meta.mkgServerUrl || '',
+            apiKey: decryptedApiKey,
+            username: meta.mkgUsername || '',
+            password: decryptedPassword,
+        };
+    },
+    setMkgSettings: async (serverUrl: string, apiKey: string, username: string, password: string) => {
+        const meta = await loadTable<any>(KEYS.METADATA, {});
+        const encryptedApiKey = await encryptPassword(apiKey);
+        const encryptedPassword = await encryptPassword(password);
+        await saveTable(KEYS.METADATA, {
+            ...meta,
+            mkgServerUrl: serverUrl,
+            mkgApiKey: encryptedApiKey,
+            mkgUsername: username,
+            mkgPassword: encryptedPassword,
+            lastModified: Date.now()
+        });
+    },
     getEnergyLive: () => loadTable<EnergyLiveData[] | undefined>(KEYS.ENERGY_LIVE, undefined),
     setEnergyLive: (d: EnergyLiveData) => saveTable(KEYS.ENERGY_LIVE, [d]),
     getSnapshots: () => loadTable<DataSnapshot[]>(KEYS.SNAPSHOTS, []),
