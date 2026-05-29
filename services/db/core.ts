@@ -45,7 +45,8 @@ export const KEYS = {
     MATERIAL_PROFILES: 'fm_table_material_profiles',
     RAW_MATERIALS: 'fm_table_raw_materials',
     MATERIAL_CATEGORIES: 'fm_table_material_categories',
-    STORAGE_LOCATIONS: 'fm_table_storage_locations'
+    STORAGE_LOCATIONS: 'fm_table_storage_locations',
+    MKG_PLNC: 'fm_table_mkg_plnc'
     // NOTE: De IndexedDB store names (fm_table_*) zijn bewust afwijkend van de PocketBase
     // collectienamen. De mapping staat in TABLE_MAP in sync.ts:
     //   fm_table_material_types      → material_types
@@ -56,7 +57,7 @@ export const KEYS = {
 };
 
 export const DB_NAME = 'FactoryManagerDB';
-export const CURRENT_DB_VERSION = 8;
+export const CURRENT_DB_VERSION = 9;
 
 // BUG B-05 FIX: crypto.getRandomValues() is cryptografisch veilig — onvoorspelbaar en niet repliceerbaar.
 // Math.random() is deterministisch en kan worden voorspeld bij kennis van de seed.

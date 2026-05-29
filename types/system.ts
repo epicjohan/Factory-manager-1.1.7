@@ -63,6 +63,26 @@ export interface SystemSettings {
 }
 
 
+// ─── MKG Geplande Capaciteit (tabel: plnc) ────────────────────────────────────
+export interface MkgPlncRecord {
+  id: string;              // gegenereerd: `${admi_num}_${rsrc_num}_${plnc_week}_${plnc_datum}`
+  admi_num: number;        // Administratie
+  rsrc_num: number;        // Resource/Machine ID in MKG
+  prdh_num: string;        // Productieorder nummer
+  prdr_num: number;        // Halffabricaat
+  plnb_num: number;        // Bewerking planning
+  plnb_type: number;       // Type bewerking
+  plnc_admi: number;       // Administratie resource
+  plnc_datum: string;      // Datum (ISO string)
+  plnc_week: number;       // Weeknummer
+  plnc_maand: number;      // Maandnummer
+  plnc_tijd: number;       // Geplande tijd in minuten
+  plnc_tijd_bemand: number; // Bemande tijd in minuten
+  plnc_forecast: boolean;  // Is forecast
+  plns_num: number;        // Simulatie
+  syncedAt: string;        // Tijdstip van laatste sync
+}
+
 export interface DataSnapshot {
   id: string;
   timestamp: string;
@@ -137,4 +157,5 @@ export interface AppState {
   rawMaterials?: RawMaterial[];
   materialCategories?: MaterialCategory[];
   storageLocations?: StorageLocation[];
+  mkgPlncRecords?: MkgPlncRecord[];
 }

@@ -235,10 +235,66 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
         }
     }
 
+    // ── SYNC_PLNC: Haal geplande capaciteit op ────────────────────────────────
+    if (body.action === "SYNC_PLNC") {
+        console.log("[MKG Proxy] SYNC_PLNC aanvraag");
+
+        // Stap 1: Inloggen
+        var loginResult = mkgLogin(cfg);
+        if (!loginResult.success) {
+            return e.json(200, {
+                success: false,
+                message: "MKG login mislukt voor SYNC_PLNC: " + (loginResult.error || "HTTP " + loginResult.statusCode)
+            });
+        }
+
+        // Stap 2: Haal plnc op — optioneel gefilterd op resource en/of week
+        try {
+            var queryParams = "";
+            if (body.rsrcNum) {
+                queryParams += (queryParams ? "&" : "?") + "rsrc_num=" + body.rsrcNum;
+            }
+            if (body.weekFrom) {
+                queryParams += (queryParams ? "&" : "?") + "plnc_week=" + body.weekFrom;
+            }
+            if (body.limit) {
+                queryParams += (queryParams ? "&" : "?") + "_limit=" + body.limit;
+            } else {
+                queryParams += (queryParams ? "&" : "?") + "_limit=500";
+            }
+
+            var plncRes = $http.send({
+                url:     cfg.url + "/api/v3/plnc" + queryParams,
+                method:  "GET",
+                headers: {
+                    "Cookie": loginResult.sessionCookie,
+                    "Accept": "application/json"
+                },
+                timeout: 30
+            });
+
+            console.log("[MKG Proxy] plnc response: " + plncRes.statusCode);
+
+            return e.json(200, {
+                success:    (plncRes.statusCode >= 200 && plncRes.statusCode < 300),
+                statusCode: plncRes.statusCode,
+                message:    "plnc opgehaald: HTTP " + plncRes.statusCode,
+                data:       plncRes.json || plncRes.raw || null
+            });
+
+        } catch (plncErr) {
+            console.error("[MKG Proxy] plnc fetch fout: " + String(plncErr));
+            return e.json(200, {
+                success: false,
+                message: "plnc ophalen mislukt: " + String(plncErr)
+            });
+        }
+    }
+
     // ── Onbekende actie ────────────────────────────────────────────────────────
     return e.json(400, {
         success: false,
-        message: "Onbekende actie '" + body.action + "'. Ondersteund: PING, REQUEST."
+        message: "Onbekende actie '" + body.action + "'. Ondersteund: PING, REQUEST, SYNC_PLNC."
     });
 });
 
