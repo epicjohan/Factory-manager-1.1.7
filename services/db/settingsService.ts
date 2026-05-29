@@ -224,31 +224,31 @@ export const settingsService = {
         await settingsService.setSystemSettings({ ...current, teamsWebhook: url });
     },
 
-    // ─── MKG API INSTELLINGEN ─────────────────────────────────────────────────
+    // ─── MKG API INSTELLINGEN (gesynct via system_config → alle devices) ──────
+    // Credentials worden opgeslagen in PocketBase's system_config tabel,
+    // zodat ze automatisch beschikbaar zijn op elk apparaat na een sync.
+    // De PocketBase proxy leest ze rechtstreeks server-side — ze verlaten
+    // PocketBase nooit meer via de browser.
     getMkgSettings: async (): Promise<{ serverUrl: string; apiKey: string; username: string; password: string }> => {
-        const meta = await loadTable<any>(KEYS.METADATA, {});
-        const decryptedApiKey = await decryptPassword(meta.mkgApiKey || '');
-        const decryptedPassword = await decryptPassword(meta.mkgPassword || '');
+        const sys = await settingsService.getSystemSettings();
         return {
-            serverUrl: meta.mkgServerUrl || '',
-            apiKey: decryptedApiKey,
-            username: meta.mkgUsername || '',
-            password: decryptedPassword,
+            serverUrl: sys.mkgServerUrl || '',
+            apiKey:    sys.mkgApiKey    || '',
+            username:  sys.mkgUsername  || '',
+            password:  sys.mkgPassword  || '',
         };
     },
     setMkgSettings: async (serverUrl: string, apiKey: string, username: string, password: string) => {
-        const meta = await loadTable<any>(KEYS.METADATA, {});
-        const encryptedApiKey = await encryptPassword(apiKey);
-        const encryptedPassword = await encryptPassword(password);
-        await saveTable(KEYS.METADATA, {
-            ...meta,
+        const current = await settingsService.getSystemSettings();
+        await settingsService.setSystemSettings({
+            ...current,
             mkgServerUrl: serverUrl,
-            mkgApiKey: encryptedApiKey,
-            mkgUsername: username,
-            mkgPassword: encryptedPassword,
-            lastModified: Date.now()
+            mkgApiKey:    apiKey,
+            mkgUsername:  username,
+            mkgPassword:  password,
         });
     },
+
     getEnergyLive: () => loadTable<EnergyLiveData[] | undefined>(KEYS.ENERGY_LIVE, undefined),
     setEnergyLive: (d: EnergyLiveData) => saveTable(KEYS.ENERGY_LIVE, [d]),
     getSnapshots: () => loadTable<DataSnapshot[]>(KEYS.SNAPSHOTS, []),

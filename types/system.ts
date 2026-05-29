@@ -55,7 +55,13 @@ export interface SystemSettings {
   darkModeStyle?: 'OLED' | 'CLASSIC' | 'MIDNIGHT';
   lightModeStyle?: 'CLEAN' | 'SOFT' | 'COOL';
   autoLogoutMinutes?: number; // 0 = uitgeschakeld, standaard 15
+  // ─── MKG ERP Integratie (gesynct via system_config → alle devices) ───────
+  mkgServerUrl?: string;
+  mkgApiKey?: string;
+  mkgUsername?: string;
+  mkgPassword?: string;
 }
+
 
 export interface DataSnapshot {
   id: string;
