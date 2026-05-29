@@ -22,6 +22,11 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
 
             if (!mkgUrl || !mkgUsername || !mkgPassword) return null;
 
+            // Auto-prefix https:// als de gebruiker geen protocol opgeeft
+            if (mkgUrl && mkgUrl.indexOf("://") === -1) {
+                mkgUrl = "https://" + mkgUrl;
+            }
+
             return {
                 url:      mkgUrl.replace(/\/$/, ""),
                 username: mkgUsername,
