@@ -147,7 +147,8 @@ function extractMkgData(json, tableName) {
 
 routerAdd("POST", "/api/mkg-proxy", function(e) {
 
-    // 1. Lees de request body
+    // 1. Lees de request body via $apis.requestInfo (correct PocketBase patroon)
+    //    e.bindBody() werkt alleen met Go-struct pointers, niet met JS objecten.
     var body = {
         action:      "",
         endpoint:    "",
@@ -159,7 +160,17 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
     };
 
     try {
-        e.bindBody(body);
+        var reqData = $apis.requestInfo(e).data;
+        if (reqData) {
+            if (reqData.action)      body.action      = String(reqData.action);
+            if (reqData.endpoint)    body.endpoint    = String(reqData.endpoint);
+            if (reqData.method)      body.method      = String(reqData.method);
+            if (reqData.requestBody) body.requestBody = reqData.requestBody;
+            if (reqData.rsrcNum  != null) body.rsrcNum  = reqData.rsrcNum;
+            if (reqData.weekFrom != null) body.weekFrom = reqData.weekFrom;
+            if (reqData.limit    != null) body.limit    = reqData.limit;
+            if (reqData.admiNum  != null) body.admiNum  = reqData.admiNum;
+        }
     } catch (err) {
         return e.json(400, { success: false, message: "Ongeldige JSON body: " + String(err) });
     }
