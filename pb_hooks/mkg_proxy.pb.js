@@ -48,11 +48,21 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
             console.log("[MKG Proxy] Login URL: " + loginUrl);
             console.log("[MKG Proxy] Login body: j_username=" + cfg.username + "&j_password=***");
 
+            var loginHeaders = {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept":       "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                "User-Agent":   "FactoryManager/1.0"
+            };
+            // MKG kan de API-sleutel ook bij login vereisen
+            if (cfg.apiKey) {
+                loginHeaders["X-customerID"] = cfg.apiKey;
+            }
+
             var res = $http.send({
                 url:     loginUrl,
                 method:  "POST",
                 body:    formBody,
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                headers: loginHeaders,
                 timeout: 15
             });
 
