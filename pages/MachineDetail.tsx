@@ -54,6 +54,8 @@ import { MaintenanceSection } from '../components/machine/MaintenanceSection';
 import { PartsSection } from '../components/machine/PartsSection';
 import { DocsSection } from '../components/machine/DocsSection';
 import { JobSection } from '../components/machine/JobSection'; // Import JobSection
+import { MkgPlanningWidget } from '../components/machine/MkgPlanningWidget';
+import { TrendingUp } from '../icons';
 import { useMaintenance } from '../hooks/useMaintenance';
 import { useTable } from '../hooks/useTable';
 
@@ -169,6 +171,10 @@ export const MachineDetail: React.FC = () => {
         ...(machine.type === AssetType.CNC ? [{ id: AssetTab.MIST, icon: Wind, label: 'Mistfilter' }] : []),
         { id: AssetTab.PARTS, icon: Database, label: 'Onderdelen' },
         { id: AssetTab.DOCS, icon: FileText, label: 'Docs' },
+        // MKG Planning tab — alleen tonen als machineNumber een geldig MKG resource-nummer is
+        ...(machine.machineNumber && !isNaN(parseInt(machine.machineNumber))
+            ? [{ id: AssetTab.MKG_PLANNING, icon: TrendingUp, label: 'MKG Planning' }]
+            : []),
     ].filter(tab => {
         if (!user) return false;
 
@@ -344,6 +350,16 @@ export const MachineDetail: React.FC = () => {
                 {activeTab === AssetTab.MIST && isTabVisible(AssetTab.MIST) && <MistSection machine={machine} />}
                 {activeTab === AssetTab.PARTS && isTabVisible(AssetTab.PARTS) && <PartsSection machine={machine} />}
                 {activeTab === AssetTab.DOCS && isTabVisible(AssetTab.DOCS) && <DocsSection machine={machine} />}
+
+                {/* MKG Planning Tab */}
+                {activeTab === AssetTab.MKG_PLANNING && isTabVisible(AssetTab.MKG_PLANNING) && (
+                    <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <MkgPlanningWidget
+                            rsrcNum={parseInt(machine.machineNumber)}
+                            machineName={machine.name}
+                        />
+                    </div>
+                )}
             </div>
 
             {showQrModal && <AssetLabelModal machine={machine} onClose={() => setShowQrModal(false)} />}
