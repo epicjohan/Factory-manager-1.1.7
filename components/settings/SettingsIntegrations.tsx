@@ -165,44 +165,48 @@ export const SettingsIntegrations: React.FC = () => {
             addNotification('ERROR', 'Fout', 'Voer eerst een MKG Server URL in.');
             return;
         }
+        if (!mkgUsername || !mkgPassword) {
+            addNotification('ERROR', 'Fout', 'Voer ook een MKG gebruikersnaam en wachtwoord in.');
+            return;
+        }
         setMkgTestStatus('testing');
         setMkgTestError(null);
 
-        // Sla eerst op zodat de proxy de juiste gegevens kan gebruiken
+        // Sla eerst op zodat instellingen bewaard zijn, ongeacht het testresultaat
         await db.setMkgSettings(mkgUrl, mkgApiKey, mkgUsername, mkgPassword);
 
         try {
-            // We roepen het PocketBase proxy-endpoint aan (wordt gebouwd in Fase 1 van de backend)
-            // Als de proxy nog niet bestaat krijgen we een 404 — dat geven we duidelijk weer.
+            // Roep de PocketBase proxy aan — deze stuurt de aanroep server-to-server
+            // door naar MKG (omzeilt CORS). Hook: pb_hooks/mkg_proxy.pb.js
             const pbSrv = await db.getServerSettings();
-            const res = await fetch(`${pbSrv.url || ''}/api/mkg-proxy`, {
+            const proxyUrl = `${pbSrv.url || window.location.origin}/api/mkg-proxy`;
+
+            const res = await fetch(proxyUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    action: 'PING',
+                    action:   'PING',
                     mkgUrl,
-                    apiKey: mkgApiKey,
+                    apiKey:   mkgApiKey,
                     username: mkgUsername,
                     password: mkgPassword,
                 }),
             });
 
             if (res.status === 404) {
-                // Proxy nog niet gebouwd — geef een informatieve melding
                 setMkgTestStatus('fail');
-                setMkgTestError('De MKG proxy service is nog niet geïnstalleerd op PocketBase. Instellingen zijn wel opgeslagen.');
-            } else if (res.ok) {
-                const data = await res.json();
-                if (data.success) {
-                    setMkgTestStatus('success');
-                    setTimeout(() => setMkgTestStatus('idle'), 4000);
-                } else {
-                    setMkgTestStatus('fail');
-                    setMkgTestError(data.message || 'Onbekende fout van MKG server.');
-                }
+                setMkgTestError('De MKG proxy hook is niet gevonden op PocketBase. Controleer of pb_hooks/mkg_proxy.pb.js aanwezig is en PocketBase opnieuw is opgestart.');
+                return;
+            }
+
+            const data = await res.json();
+            if (data.success) {
+                setMkgTestStatus('success');
+                setTimeout(() => setMkgTestStatus('idle'), 4000);
+                addNotification('SUCCESS', 'MKG Verbinding', data.message || 'Verbinding met MKG geslaagd!');
             } else {
                 setMkgTestStatus('fail');
-                setMkgTestError(`HTTP ${res.status} — ${res.statusText}`);
+                setMkgTestError(data.message || `HTTP ${res.status} — verbinding mislukt.`);
             }
         } catch (e) {
             setMkgTestStatus('fail');
