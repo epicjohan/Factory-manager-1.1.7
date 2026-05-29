@@ -172,25 +172,20 @@ export const SettingsIntegrations: React.FC = () => {
         setMkgTestStatus('testing');
         setMkgTestError(null);
 
-        // Sla eerst op zodat instellingen bewaard zijn, ongeacht het testresultaat
+        // Sla eerst op naar system_config → PocketBase → alle devices
         await db.setMkgSettings(mkgUrl, mkgApiKey, mkgUsername, mkgPassword);
 
         try {
-            // Roep de PocketBase proxy aan — deze stuurt de aanroep server-to-server
-            // door naar MKG (omzeilt CORS). Hook: pb_hooks/mkg_proxy.pb.js
+            // Proxy v2.0: credentials worden NIET meegestuurd — de PocketBase
+            // proxy leest ze zelf uit system_config. De browser stuurt alleen
+            // de actie. Hook: pb_hooks/mkg_proxy.pb.js
             const pbSrv = await db.getServerSettings();
             const proxyUrl = `${pbSrv.url || window.location.origin}/api/mkg-proxy`;
 
             const res = await fetch(proxyUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action:   'PING',
-                    mkgUrl,
-                    apiKey:   mkgApiKey,
-                    username: mkgUsername,
-                    password: mkgPassword,
-                }),
+                body: JSON.stringify({ action: 'PING' }),
             });
 
             if (res.status === 404) {
