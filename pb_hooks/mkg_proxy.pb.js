@@ -257,14 +257,20 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
         }
 
         try {
-            var queryParams = "";
-            if (body.rsrcNum)  queryParams += (queryParams ? "&" : "?") + "rsrc_num="  + body.rsrcNum;
-            if (body.weekFrom) queryParams += (queryParams ? "&" : "?") + "plnc_week=" + body.weekFrom;
+            // Bouw query params conform MKG Documents-endpoint patroon
+            var queryParams = "?FieldList=admi_num,plnc_datum,plnc_week,plnc_maand,plnc_tijd,plnc_tijd_bemand,plnc_forecast,rsrc_num,prdh_num,prdr_num";
+
+            // Filter op resource als opgegeven, anders alle niet-historische records
+            var filterParts = ["plnc_historisch = false"];
+            if (body.rsrcNum)  filterParts.push("rsrc_num = " + body.rsrcNum);
+            if (body.weekFrom) filterParts.push("plnc_week >= " + body.weekFrom);
+            queryParams += "&Filter=" + encodeURIComponent(filterParts.join(" AND "));
+
             var limitVal = body.limit || 500;
-            queryParams += (queryParams ? "&" : "?") + "_limit=" + limitVal;
+            queryParams += "&limit=" + limitVal;
 
             var plncRes = $http.send({
-                url:     cfg.url + "/api/v3/plnc" + queryParams,
+                url:     cfg.url + "/api/v3/Documents/plnc" + queryParams,
                 method:  "GET",
                 headers: mkgApiHeaders(loginResult.sessionCookie, cfg.apiKey),
                 timeout: 30
