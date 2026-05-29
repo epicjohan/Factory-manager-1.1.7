@@ -45,6 +45,9 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
             var formBody = "j_username=" + encodeURIComponent(cfg.username)
                          + "&j_password=" + encodeURIComponent(cfg.password);
 
+            console.log("[MKG Proxy] Login URL: " + loginUrl);
+            console.log("[MKG Proxy] Login body: j_username=" + cfg.username + "&j_password=***");
+
             var res = $http.send({
                 url:     loginUrl,
                 method:  "POST",
@@ -54,7 +57,15 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
             });
 
             console.log("[MKG Proxy] Login status: " + res.statusCode);
+            console.log("[MKG Proxy] Login cookies: " + JSON.stringify(res.cookies));
+            console.log("[MKG Proxy] Login headers: " + JSON.stringify(res.headers));
 
+            // Debug: log de response body (eerste 500 chars)
+            var rawLoginBody = "";
+            try { rawLoginBody = toString(res.body); } catch(x) {}
+            console.log("[MKG Proxy] Login response body: " + (rawLoginBody || "").substring(0, 500));
+
+            // Zoek JSESSIONID in cookies
             var sessionCookie = "";
             if (res.cookies && res.cookies["JSESSIONID"]) {
                 var c = res.cookies["JSESSIONID"];
@@ -65,9 +76,12 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
                 return { success: true, sessionCookie: sessionCookie };
             }
 
+            // Geen JSESSIONID — stuur debug info mee in de foutmelding
             return {
                 success: false,
-                error: "Geen JSESSIONID ontvangen (HTTP " + res.statusCode + "). Controleer gebruikersnaam en wachtwoord."
+                error: "Geen JSESSIONID ontvangen (HTTP " + res.statusCode + ")."
+                     + " Response: " + (rawLoginBody || "").substring(0, 200)
+                     + " | Cookies: " + JSON.stringify(res.cookies || {})
             };
         } catch (err) {
             console.error("[MKG Proxy] Login fout: " + String(err));
