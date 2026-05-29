@@ -147,8 +147,10 @@ function extractMkgData(json, tableName) {
 
 routerAdd("POST", "/api/mkg-proxy", function(e) {
 
-    // 1. Lees de request body via $apis.requestInfo (correct PocketBase patroon)
-    //    e.bindBody() werkt alleen met Go-struct pointers, niet met JS objecten.
+    // 1. Lees de request body via e.requestInfo().body (PocketBase v0.23+ / v0.35 API)
+    //    Docs: https://pocketbase.io/docs/js-routing/#reading-request-body
+    //    let body = e.requestInfo().body  ← correct
+    //    NIET: $apis.requestInfo(e)       ← bestaat niet in v0.35
     var body = {
         action:      "",
         endpoint:    "",
@@ -156,20 +158,21 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
         requestBody: null,
         rsrcNum:     null,
         weekFrom:    null,
-        limit:       null
+        limit:       null,
+        admiNum:     null
     };
 
     try {
-        var reqData = $apis.requestInfo(e).data;
-        if (reqData) {
-            if (reqData.action)      body.action      = String(reqData.action);
-            if (reqData.endpoint)    body.endpoint    = String(reqData.endpoint);
-            if (reqData.method)      body.method      = String(reqData.method);
-            if (reqData.requestBody) body.requestBody = reqData.requestBody;
-            if (reqData.rsrcNum  != null) body.rsrcNum  = reqData.rsrcNum;
-            if (reqData.weekFrom != null) body.weekFrom = reqData.weekFrom;
-            if (reqData.limit    != null) body.limit    = reqData.limit;
-            if (reqData.admiNum  != null) body.admiNum  = reqData.admiNum;
+        var reqBody = e.requestInfo().body;
+        if (reqBody) {
+            if (reqBody.action      != null) body.action      = String(reqBody.action);
+            if (reqBody.endpoint    != null) body.endpoint    = String(reqBody.endpoint);
+            if (reqBody.method      != null) body.method      = String(reqBody.method);
+            if (reqBody.requestBody != null) body.requestBody = reqBody.requestBody;
+            if (reqBody.rsrcNum     != null) body.rsrcNum     = reqBody.rsrcNum;
+            if (reqBody.weekFrom    != null) body.weekFrom    = reqBody.weekFrom;
+            if (reqBody.limit       != null) body.limit       = reqBody.limit;
+            if (reqBody.admiNum     != null) body.admiNum     = reqBody.admiNum;
         }
     } catch (err) {
         return e.json(400, { success: false, message: "Ongeldige JSON body: " + String(err) });
