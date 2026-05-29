@@ -130,12 +130,18 @@ export const mkgCapaciteitService = {
                 return { success: false, count: 0, message: result.message || 'MKG fout' };
             }
 
-            // result.data kan een array zijn of een object met een data-property
-            const rawRecords: any[] = Array.isArray(result.data)
-                ? result.data
-                : (result.data?.data ?? result.data?.items ?? []);
-
-            if (!Array.isArray(rawRecords)) {
+            // De proxy (v4.0) extraheert al response.ResultData[0].plnc server-side.
+            // result.data is dus een directe array van plnc-records.
+            // Fallback: ook ruwe MKG-structuur afhandelen als de proxy dat niet deed.
+            let rawRecords: any[] = [];
+            if (Array.isArray(result.data)) {
+                rawRecords = result.data;
+            } else if (result.data?.response?.ResultData?.[0]?.plnc) {
+                rawRecords = result.data.response.ResultData[0].plnc;
+            } else if (result.rawResponse?.response?.ResultData?.[0]?.plnc) {
+                rawRecords = result.rawResponse.response.ResultData[0].plnc;
+            } else {
+                console.warn('[MkgCapaciteit] Onverwacht data-formaat:', result);
                 return { success: false, count: 0, message: 'Onverwacht data-formaat van MKG' };
             }
 

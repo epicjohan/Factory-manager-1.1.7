@@ -1,61 +1,43 @@
 /**
- * Factory Manager — MKG API Proxy v3.0
+ * Factory Manager — MKG API Proxy v4.0
  * ======================================
  *
  * Registreert een POST-endpoint: /api/mkg-proxy
  *
- * v3.0 wijziging: Authenticatie via HTTP Basic Auth (RFC 7617).
- * MKG API v3 accepteert geen form-login meer maar gebruikt
- * stateless Basic Authentication op elke aanroep:
- *   Authorization: Basic base64(username:password)
- *
- * Voordelen t.o.v. v2 (Spring Security sessie):
- *   - Geen aparte login-stap nodig
- *   - Geen JSESSIONID cookie beheren
- *   - Elke aanroep is onafhankelijk (stateless)
+ * v4.0 correcties (op basis van MKG Postman collection):
+ *   1. Login via POST j_spring_security_check (Spring Security, form-encoded)
+ *      → geeft JSESSIONID cookie terug
+ *   2. Alle vervolgaanroepen: JSESSIONID cookie + X-customerID header (API-sleutel)
+ *   3. Response-structuur: response.ResultData[0].<tabel>[]
  *
  * Credentials worden gelezen uit PocketBase system_config (server-side).
- * De browser stuurt NOOIT credentials mee — alleen de gewenste actie/endpoint.
+ * Browser stuurt NOOIT credentials — alleen de gewenste actie/endpoint.
  *
  * Ondersteunde acties:
- *   PING      — Test de verbinding met MKG.
+ *   PING      — Test de verbinding (login + root API check).
  *   REQUEST   — Willekeurige MKG API-aanroep (GET/POST/PATCH).
  *   SYNC_PLNC — Haal geplande capaciteit (tabel: plnc) op.
- *
- * Request body (JSON):
- * {
- *   "action":      "PING" | "REQUEST" | "SYNC_PLNC",
- *   "endpoint":    "plnc" (alleen bij REQUEST),
- *   "method":      "GET" | "POST" | "PATCH" (alleen bij REQUEST),
- *   "requestBody": { ... } (optioneel, alleen bij POST/PATCH),
- *   "rsrcNum":     5 (optioneel, filter bij SYNC_PLNC),
- *   "weekFrom":    22 (optioneel, filter bij SYNC_PLNC),
- *   "limit":       100 (optioneel, bij SYNC_PLNC)
- * }
  */
 
-console.log("[MKG Proxy] v3.0 — Registering /api/mkg-proxy (Basic Auth) ...");
+console.log("[MKG Proxy] v4.0 — Registering /api/mkg-proxy ...");
 
 // ─── HULPFUNCTIES ──────────────────────────────────────────────────────────────
 
 /**
  * Lees de MKG-instellingen uit de system_config tabel van PocketBase.
- * Geeft null terug als de configuratie ontbreekt of onvolledig is.
  */
 function readMkgConfig() {
     try {
         var record = $app.findFirstRecordByFilter("system_config", "id != ''");
-        if (!record) {
-            return null;
-        }
+        if (!record) return null;
+
         var mkgUrl      = record.getString("mkgServerUrl") || "";
         var mkgUsername = record.getString("mkgUsername")  || "";
         var mkgPassword = record.getString("mkgPassword")  || "";
         var mkgApiKey   = record.getString("mkgApiKey")    || "";
 
-        if (!mkgUrl || !mkgUsername || !mkgPassword) {
-            return null;
-        }
+        if (!mkgUrl || !mkgUsername || !mkgPassword) return null;
+
         return {
             url:      mkgUrl.replace(/\/$/, ""),
             username: mkgUsername,
@@ -69,83 +51,95 @@ function readMkgConfig() {
 }
 
 /**
- * Bouw de Basic Auth header waarde: "Basic base64(username:password)"
- * PocketBase JSVM heeft geen btoa() — we bouwen base64 handmatig via $security.
+ * Login bij MKG via Spring Security (j_spring_security_check).
+ * Geeft { success, sessionCookie, error } terug.
+ *
+ * MKG verwacht form-encoded body: j_username + j_password
+ * Response: 200 OK + Set-Cookie: JSESSIONID=...
  */
-function buildBasicAuth(username, password) {
-    var credentials = username + ":" + password;
-    // $security.encrypt is niet base64 — gebruik de ingebouwde base64 encoder
-    // PocketBase JSVM ondersteunt geen btoa() maar wel $base64Encode (beschikbaar in JSVM)
+function mkgLogin(cfg) {
+    var loginUrl = cfg.url + "/j_spring_security_check";
     try {
-        // Methode 1: via $base64Encode (PocketBase JSVM helper, beschikbaar in PocketBase >= 0.20)
-        return "Basic " + $base64Encode(credentials);
-    } catch (e) {
-        // Methode 2: fallback via Buffer (niet beschikbaar in JSVM)
-        // Methode 3: handmatige base64 implementatie
-        return "Basic " + base64Encode(credentials);
-    }
-}
+        var formBody = "j_username=" + encodeURIComponent(cfg.username)
+                     + "&j_password=" + encodeURIComponent(cfg.password);
 
-/**
- * Handmatige base64 encoder als $base64Encode niet beschikbaar is.
- */
-function base64Encode(str) {
-    var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    var result = "";
-    var i = 0;
-    while (i < str.length) {
-        var a = str.charCodeAt(i++);
-        var b = i < str.length ? str.charCodeAt(i++) : 0;
-        var c = i < str.length ? str.charCodeAt(i++) : 0;
-        var idx1 = a >> 2;
-        var idx2 = ((a & 3) << 4) | (b >> 4);
-        var idx3 = ((b & 15) << 2) | (c >> 6);
-        var idx4 = c & 63;
-        result += chars[idx1] + chars[idx2];
-        result += (i - 2 < str.length || (i - 2 >= str.length && b)) ? chars[idx3] : "=";
-        result += (i - 1 < str.length) ? chars[idx4] : "=";
-    }
-    return result;
-}
-
-/**
- * Bouw de headers voor een MKG API-aanroep met Basic Auth.
- */
-function mkgHeaders(cfg, extraHeaders) {
-    var headers = {
-        "Authorization": buildBasicAuth(cfg.username, cfg.password),
-        "Content-Type":  "application/json",
-        "Accept":        "application/json"
-    };
-    // MKG API-sleutel via X-customerID header (conform MKG Postman collection)
-    if (cfg.apiKey) {
-        headers["X-customerID"] = cfg.apiKey;
-    }
-    if (extraHeaders) {
-        Object.keys(extraHeaders).forEach(function(k) {
-            headers[k] = extraHeaders[k];
+        var res = $http.send({
+            url:     loginUrl,
+            method:  "POST",
+            body:    formBody,
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            timeout: 15
         });
+
+        console.log("[MKG Proxy] Login status: " + res.statusCode);
+
+        // Zoek JSESSIONID in de Set-Cookie response
+        var sessionCookie = "";
+        if (res.cookies && res.cookies["JSESSIONID"]) {
+            var c = res.cookies["JSESSIONID"];
+            sessionCookie = "JSESSIONID=" + (c.value !== undefined ? c.value : c);
+        }
+
+        if (sessionCookie) {
+            return { success: true, sessionCookie: sessionCookie };
+        }
+
+        return {
+            success: false,
+            error: "Geen JSESSIONID ontvangen (HTTP " + res.statusCode + "). "
+                 + "Controleer gebruikersnaam en wachtwoord."
+        };
+
+    } catch (err) {
+        console.error("[MKG Proxy] Login fout: " + String(err));
+        return {
+            success: false,
+            error: "Kan MKG niet bereiken op '" + cfg.url + "': " + String(err)
+        };
+    }
+}
+
+/**
+ * Bouw headers voor een MKG API-aanroep:
+ *   - Cookie: JSESSIONID (uit de login)
+ *   - X-customerID: API-sleutel (conform MKG Postman collection)
+ *   - Content-Type + Accept: application/json
+ */
+function mkgApiHeaders(sessionCookie, apiKey) {
+    var headers = {
+        "Cookie":       sessionCookie,
+        "Content-Type": "application/json",
+        "Accept":       "application/json"
+    };
+    if (apiKey) {
+        headers["X-customerID"] = apiKey;
     }
     return headers;
 }
 
 /**
- * Test de verbinding met MKG via een eenvoudige GET op de API root.
- * Geeft { success, statusCode, error } terug.
+ * Extraheer de data-array uit de MKG response-structuur:
+ *   response.ResultData[0].<tabelNaam>[]
+ *
+ * Als de structuur niet herkend wordt, geef de raw data terug.
  */
-function mkgPing(cfg) {
+function extractMkgData(json, tableName) {
+    if (!json) return null;
     try {
-        var res = $http.send({
-            url:     cfg.url + "/api/v3",
-            method:  "GET",
-            headers: mkgHeaders(cfg),
-            timeout: 10
-        });
-        console.log("[MKG Proxy] PING status: " + res.statusCode);
-        return { success: (res.statusCode >= 200 && res.statusCode < 400), statusCode: res.statusCode };
-    } catch (err) {
-        console.error("[MKG Proxy] PING fout: " + String(err));
-        return { success: false, statusCode: 0, error: "Kan MKG niet bereiken: " + String(err) };
+        // Standaard MKG structuur: { response: { ResultData: [{ <tabel>: [...] }] } }
+        var resultData = json.response && json.response.ResultData;
+        if (Array.isArray(resultData) && resultData.length > 0) {
+            var first = resultData[0];
+            if (tableName && Array.isArray(first[tableName])) {
+                return first[tableName];
+            }
+            // Geen specifieke tabel: geef het eerste object terug
+            return first;
+        }
+        // Fallback: directe array of object
+        return json;
+    } catch (e) {
+        return json;
     }
 }
 
@@ -170,7 +164,7 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
         return e.json(400, { success: false, message: "Ongeldige JSON body: " + String(err) });
     }
 
-    // 2. Lees MKG-credentials uit system_config (server-side, nooit via browser)
+    // 2. Lees MKG-credentials uit system_config
     var cfg = readMkgConfig();
     if (!cfg) {
         return e.json(200, {
@@ -182,54 +176,73 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
     // ── PING: Test verbinding ──────────────────────────────────────────────────
     if (body.action === "PING") {
         console.log("[MKG Proxy] PING voor: " + cfg.url);
-        var pingResult = mkgPing(cfg);
-        if (pingResult.success) {
+
+        var loginResult = mkgLogin(cfg);
+        if (!loginResult.success) {
+            return e.json(200, { success: false, message: loginResult.error });
+        }
+
+        // Bevestig dat de API bereikbaar is
+        try {
+            var pingRes = $http.send({
+                url:     cfg.url + "/api/v3",
+                method:  "GET",
+                headers: mkgApiHeaders(loginResult.sessionCookie, cfg.apiKey),
+                timeout: 10
+            });
             return e.json(200, {
                 success: true,
-                message: "MKG verbinding geslaagd (HTTP " + pingResult.statusCode + ").",
-                statusCode: pingResult.statusCode
+                message: "MKG verbinding geslaagd (HTTP " + pingRes.statusCode + ").",
+                statusCode: pingRes.statusCode
+            });
+        } catch (apiErr) {
+            // Login werkte, API root niet bereikbaar — toch als success rapporteren
+            return e.json(200, {
+                success: true,
+                message: "MKG login geslaagd. API root: " + String(apiErr)
             });
         }
-        return e.json(200, {
-            success: false,
-            message: pingResult.error || ("Verbinding mislukt: HTTP " + pingResult.statusCode)
-        });
     }
 
-    // ── REQUEST: Geef een willekeurige API-aanroep door ────────────────────────
+    // ── REQUEST: Willekeurige API-aanroep ──────────────────────────────────────
     if (body.action === "REQUEST") {
         if (!body.endpoint) {
-            return e.json(400, { success: false, message: "endpoint is vereist voor een REQUEST actie." });
+            return e.json(400, { success: false, message: "endpoint is vereist." });
         }
 
         var reqMethod = (body.method || "GET").toUpperCase();
-        var apiUrl    = cfg.url + "/api/v3/" + body.endpoint;
-        console.log("[MKG Proxy] REQUEST: " + reqMethod + " " + apiUrl);
+        console.log("[MKG Proxy] REQUEST: " + reqMethod + " /api/v3/" + body.endpoint);
+
+        var loginResult = mkgLogin(cfg);
+        if (!loginResult.success) {
+            return e.json(200, { success: false, message: loginResult.error });
+        }
 
         try {
-            var requestConfig = {
+            var apiUrl = cfg.url + "/api/v3/" + body.endpoint;
+            var reqConfig = {
                 url:     apiUrl,
                 method:  reqMethod,
-                headers: mkgHeaders(cfg),
+                headers: mkgApiHeaders(loginResult.sessionCookie, cfg.apiKey),
                 timeout: 30
             };
 
             if (body.requestBody && (reqMethod === "POST" || reqMethod === "PATCH" || reqMethod === "PUT")) {
-                requestConfig.body = JSON.stringify(body.requestBody);
+                reqConfig.body = JSON.stringify(body.requestBody);
             }
 
-            var apiRes = $http.send(requestConfig);
-            console.log("[MKG Proxy] REQUEST response: " + apiRes.statusCode);
+            var apiRes = $http.send(reqConfig);
+            var rawJson = apiRes.json || null;
 
             return e.json(200, {
                 success:    (apiRes.statusCode >= 200 && apiRes.statusCode < 300),
                 statusCode: apiRes.statusCode,
                 message:    "HTTP " + apiRes.statusCode,
-                data:       apiRes.json || apiRes.raw || null
+                data:       rawJson,
+                raw:        rawJson ? null : (apiRes.raw || null)
             });
 
         } catch (apiErr) {
-            console.error("[MKG Proxy] REQUEST fout: " + String(apiErr));
             return e.json(200, { success: false, message: "API aanroep mislukt: " + String(apiErr) });
         }
     }
@@ -238,31 +251,37 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
     if (body.action === "SYNC_PLNC") {
         console.log("[MKG Proxy] SYNC_PLNC aanvraag");
 
+        var loginResult = mkgLogin(cfg);
+        if (!loginResult.success) {
+            return e.json(200, { success: false, message: loginResult.error });
+        }
+
         try {
             var queryParams = "";
-            if (body.rsrcNum) {
-                queryParams += (queryParams ? "&" : "?") + "rsrc_num=" + body.rsrcNum;
-            }
-            if (body.weekFrom) {
-                queryParams += (queryParams ? "&" : "?") + "plnc_week=" + body.weekFrom;
-            }
+            if (body.rsrcNum)  queryParams += (queryParams ? "&" : "?") + "rsrc_num="  + body.rsrcNum;
+            if (body.weekFrom) queryParams += (queryParams ? "&" : "?") + "plnc_week=" + body.weekFrom;
             var limitVal = body.limit || 500;
             queryParams += (queryParams ? "&" : "?") + "_limit=" + limitVal;
 
             var plncRes = $http.send({
                 url:     cfg.url + "/api/v3/plnc" + queryParams,
                 method:  "GET",
-                headers: mkgHeaders(cfg),
+                headers: mkgApiHeaders(loginResult.sessionCookie, cfg.apiKey),
                 timeout: 30
             });
 
             console.log("[MKG Proxy] SYNC_PLNC response: " + plncRes.statusCode);
 
+            var plncJson  = plncRes.json || null;
+            // Extraheer de plnc-records uit response.ResultData[0].plnc
+            var plncData  = extractMkgData(plncJson, "plnc");
+
             return e.json(200, {
                 success:    (plncRes.statusCode >= 200 && plncRes.statusCode < 300),
                 statusCode: plncRes.statusCode,
                 message:    "plnc opgehaald: HTTP " + plncRes.statusCode,
-                data:       plncRes.json || plncRes.raw || null
+                data:       plncData,
+                rawResponse: plncJson  // ook de volledige response voor debugging
             });
 
         } catch (plncErr) {
@@ -278,4 +297,4 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
     });
 });
 
-console.log("[MKG Proxy] v3.0 — Klaar. Luistert op POST /api/mkg-proxy (Basic Auth)");
+console.log("[MKG Proxy] v4.0 — Klaar. Luistert op POST /api/mkg-proxy");
