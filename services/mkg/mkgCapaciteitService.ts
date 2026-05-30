@@ -228,16 +228,23 @@ export const mkgCapaciteitService = {
 
     /**
      * Synchroniseer plnb (planning bewerkingen) vanuit MKG.
+     * @param pbUrl PocketBase URL
+     * @param rsrcNum Optioneel: alleen voor deze resource ophalen (veel sneller)
      */
-    syncPlnbFromMkg: async (pbUrl: string): Promise<{ success: boolean; count: number; message: string }> => {
+    syncPlnbFromMkg: async (pbUrl: string, rsrcNum?: number): Promise<{ success: boolean; count: number; message: string }> => {
         try {
+            const requestBody: any = {
+                action: 'SYNC_PLNB',
+            };
+            if (rsrcNum) {
+                requestBody.rsrcNum = rsrcNum;
+                console.log(`[MkgPlnb] Sync voor resource ${rsrcNum}`);
+            }
+            
             const response = await fetch(`${pbUrl}/api/mkg-proxy`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'SYNC_PLNB',
-                    limit:  5000,
-                }),
+                body: JSON.stringify(requestBody),
             });
 
             if (!response.ok) {
@@ -281,14 +288,24 @@ export const mkgCapaciteitService = {
             const mapped = rawRecords.map(mapPlnbRecord);
             
             // Client-side filter: verwijder afgeronde bewerkingen
-            // (proxy filtert niet meer op plnb_gereed vanwege MKG boolean syntax)
             const open = mapped.filter(r => !r.plnb_gereed);
             console.log(`[MkgPlnb] Totaal: ${mapped.length}, niet-gereed: ${open.length}, gereed (verwijderd): ${mapped.length - open.length}`);
 
-            await saveTable(KEYS.MKG_PLNB, open);
-            console.log(`[MkgPlnb] Sync voltooid: ${open.length} openstaande bewerkingen opgeslagen.`);
+            if (rsrcNum) {
+                // Per-resource sync: vervang alleen records van deze resource in cache
+                const existing = await loadTable<MkgPlnbRecord[]>(KEYS.MKG_PLNB, []);
+                const numRsrc = Number(rsrcNum);
+                const otherRecords = existing.filter(r => Number(r.rsrc_num) !== numRsrc);
+                const merged = [...otherRecords, ...open];
+                await saveTable(KEYS.MKG_PLNB, merged);
+                console.log(`[MkgPlnb] Sync resource ${rsrcNum}: ${open.length} records (cache totaal: ${merged.length})`);
+            } else {
+                // Volledige sync: vervang alles
+                await saveTable(KEYS.MKG_PLNB, open);
+                console.log(`[MkgPlnb] Sync voltooid: ${open.length} openstaande bewerkingen opgeslagen.`);
+            }
 
-            return { success: true, count: mapped.length, message: `${mapped.length} bewerkingen gesynchroniseerd.` };
+            return { success: true, count: open.length, message: `${open.length} bewerkingen gesynchroniseerd.` };
         } catch (err) {
             console.error('[MkgPlnb] Sync fout:', err);
             return { success: false, count: 0, message: String(err) };
@@ -297,14 +314,15 @@ export const mkgCapaciteitService = {
 };
 
 /**
- * Dedupliceer plnb-records: MKG maakt meerdere records per order+bewerking (tijdslots).
- * Groepeer per prdh_num+bwrk_num en merge tot 1 samengevat record.
+ * Dedupliceer plnb-records: MKG maakt meerdere records per order+bewerking+week (tijdslots).
+ * Groepeer per prdh_num+bwrk_num+plnb_wk_start en merge tot 1 record per week.
+ * Zo blijft per week een apart record bestaan, maar worden tijdslots binnen 1 week gemerged.
  */
 const deduplicatePlnbRecords = (records: MkgPlnbRecord[]): MkgPlnbRecord[] => {
     const groups = new Map<string, MkgPlnbRecord[]>();
     
     for (const r of records) {
-        const key = `${r.prdh_num}_${r.bwrk_num}`;
+        const key = `${r.prdh_num}_${r.bwrk_num}_${r.plnb_wk_start}`;
         if (!groups.has(key)) groups.set(key, []);
         groups.get(key)!.push(r);
     }

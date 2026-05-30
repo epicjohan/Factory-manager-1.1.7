@@ -96,9 +96,9 @@ export const MkgPlanningWidget: React.FC<Props> = ({
         try {
             const srv = await db.getServerSettings();
             const pbUrl = srv.url || window.location.origin;
-            console.log('[MkgPlanning] Sync plnb naar:', pbUrl);
+            console.log(`[MkgPlanning] Sync plnb voor resource ${rsrcNum} naar:`, pbUrl);
 
-            const result = await mkgCapaciteitService.syncPlnbFromMkg(pbUrl);
+            const result = await mkgCapaciteitService.syncPlnbFromMkg(pbUrl, rsrcNum);
             console.log('[MkgPlanning] Sync resultaat:', result);
 
             if (result.success) {
