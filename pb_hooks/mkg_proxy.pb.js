@@ -321,8 +321,9 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
                     "plnb_uitbesteden","cred_num",
                     "plnb_tijd_besteed","plnb_prod_fase","plnb_memo","plnb_volgorde"
                 ].join(",");
-
-                var plnbFilter = ["plnb_gereed = false"];
+                // Filter: geen plnb_gereed filter — MKG boolean syntax onbekend (ja/nee vs true/false)
+                // Client-side filteren we op gereed status
+                var plnbFilter = [];
                 if (body.rsrcNum) plnbFilter.push("rsrc_num = " + body.rsrcNum);
                 var filterStr = plnbFilter.join(" AND ");
 
@@ -335,9 +336,13 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
                     var startRow = page * pageSize;
 
                     var plnbParams = "?FieldList=" + encodeURIComponent(plnbFields)
-                                   + "&Filter="    + encodeURIComponent(filterStr)
                                    + "&NumRows="   + pageSize
                                    + "&StartRow="  + startRow;
+
+                    // Voeg Filter alleen toe als er filteronderdelen zijn
+                    if (filterStr) {
+                        plnbParams += "&Filter=" + encodeURIComponent(filterStr);
+                    }
 
                     var plnbUrl = cfg.url + MKG_API_BASE + "/Documents/plnb/" + plnbParams;
                     console.log("[MKG Proxy] SYNC_PLNB page " + (page + 1) + " StartRow=" + startRow + " URL: " + plnbUrl);
