@@ -197,6 +197,13 @@ export const mkgCapaciteitService = {
         const numRsrc = Number(rsrcNum);
         const filtered = all.filter(r => Number(r.rsrc_num) === numRsrc);
         console.log(`[MkgPlnb] Zoek rsrc_num=${numRsrc}, cache=${all.length}, matches=${filtered.length}`);
+        
+        // Debug: als 0 matches, toon alle beschikbare resources
+        if (filtered.length === 0 && all.length > 0) {
+            const uniqueResources = [...new Set(all.map(r => Number(r.rsrc_num)))].sort((a, b) => a - b);
+            console.log(`[MkgPlnb] ⚠ Resource ${numRsrc} NIET gevonden! Beschikbare resources (${uniqueResources.length}): [${uniqueResources.join(', ')}]`);
+        }
+        
         return filtered;
     },
 
