@@ -128,7 +128,9 @@ export const MkgPlanningWidget: React.FC<Props> = ({
     // ── Data laden ────────────────────────────────────────────────────────────
     const load = async () => {
         setLoading(true);
+        console.log(`[MkgPlanning] Laden voor rsrcNum=${rsrcNum} (type: ${typeof rsrcNum})`);
         const records = await mkgCapaciteitService.getRecordsForResource(rsrcNum);
+        console.log(`[MkgPlanning] ${records.length} records gevonden voor resource ${rsrcNum}`);
         setAllRecords(records);
         setLoading(false);
     };

@@ -40,7 +40,7 @@ const mapPlncRecord = (raw: any): MkgPlncRecord => {
     return {
         id:                   raw.RowKey         ?? `${raw.admi_num}_${raw.rsrc_num}_${raw.plnc_datum}`,
         admi_num:             raw.admi_num        ?? 0,
-        rsrc_num:             raw.rsrc_num        ?? 0,
+        rsrc_num:             Number(raw.rsrc_num) || 0,
         prdh_num:             raw.prdh_num        ?? '',
         prdr_num:             raw.prdr_num        ?? 0,
         plnc_datum:           raw.plnc_datum      ?? '',
@@ -69,7 +69,15 @@ export const mkgCapaciteitService = {
      */
     getRecordsForResource: async (rsrcNum: number): Promise<MkgPlncRecord[]> => {
         const all = await loadTable<MkgPlncRecord[]>(KEYS.MKG_PLNC, []);
-        return all.filter(r => r.rsrc_num === rsrcNum);
+        // Gebruik Number() conversie — MKG kan rsrc_num als string sturen
+        const numRsrc = Number(rsrcNum);
+        const filtered = all.filter(r => Number(r.rsrc_num) === numRsrc);
+        
+        // Debug: log beschikbare resources en match
+        const uniqueResources = [...new Set(all.map(r => r.rsrc_num))];
+        console.log(`[MkgCapaciteit] Zoek rsrc_num=${numRsrc}, cache=${all.length} records, unieke resources: [${uniqueResources.join(', ')}], matches: ${filtered.length}`);
+        
+        return filtered;
     },
 
     /**
