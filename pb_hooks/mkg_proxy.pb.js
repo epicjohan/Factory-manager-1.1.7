@@ -299,7 +299,7 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
 
         // ── SYNC_PLNB ─────────────────────────────────────────────────────
         if (body.action === "SYNC_PLNB") {
-            console.log("[MKG Proxy] SYNC_PLNB aanvraag");
+            console.log("[MKG Proxy] SYNC_PLNB aanvraag (met paginatie)");
 
             var loginResult = mkgLogin(cfg);
             if (!loginResult.success) {
@@ -324,38 +324,71 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
 
                 var plnbFilter = ["plnb_gereed = false"];
                 if (body.rsrcNum) plnbFilter.push("rsrc_num = " + body.rsrcNum);
+                var filterStr = plnbFilter.join(" AND ");
 
-                var plnbParams = "?FieldList=" + encodeURIComponent(plnbFields)
-                               + "&Filter="    + encodeURIComponent(plnbFilter.join(" AND "))
-                               + "&NumRows="   + (body.limit || 5000);
+                // ── Paginatie: MKG limiteert tot ~1000 rijen per request ──
+                var pageSize = 1000;
+                var maxPages = 10;   // veiligheid: max 10.000 records
+                var allRecords = [];
 
-                var plnbUrl = cfg.url + MKG_API_BASE + "/Documents/plnb/" + plnbParams;
-                console.log("[MKG Proxy] SYNC_PLNB URL: " + plnbUrl);
+                for (var page = 0; page < maxPages; page++) {
+                    var startRow = page * pageSize;
 
-                var plnbRes = $http.send({
-                    url:     plnbUrl,
-                    method:  "GET",
-                    headers: mkgApiHeaders(loginResult.sessionCookie, cfg.apiKey),
-                    timeout: 30
-                });
+                    var plnbParams = "?FieldList=" + encodeURIComponent(plnbFields)
+                                   + "&Filter="    + encodeURIComponent(filterStr)
+                                   + "&NumRows="   + pageSize
+                                   + "&StartRow="  + startRow;
 
-                console.log("[MKG Proxy] SYNC_PLNB response: " + plnbRes.statusCode);
+                    var plnbUrl = cfg.url + MKG_API_BASE + "/Documents/plnb/" + plnbParams;
+                    console.log("[MKG Proxy] SYNC_PLNB page " + (page + 1) + " StartRow=" + startRow + " URL: " + plnbUrl);
 
-                var plnbJson = plnbRes.json || null;
+                    var plnbRes = $http.send({
+                        url:     plnbUrl,
+                        method:  "GET",
+                        headers: mkgApiHeaders(loginResult.sessionCookie, cfg.apiKey),
+                        timeout: 30
+                    });
 
-                // Debug: log de ruwe response structuur
-                var plnbRaw = "";
-                try { plnbRaw = JSON.stringify(plnbJson).substring(0, 500); } catch(x) {}
-                console.log("[MKG Proxy] SYNC_PLNB raw: " + plnbRaw);
+                    console.log("[MKG Proxy] SYNC_PLNB page " + (page + 1) + " response: " + plnbRes.statusCode);
 
-                var plnbData = extractMkgData(plnbJson, "plnb");
+                    var plnbJson = plnbRes.json || null;
+
+                    // Debug: log de eerste pagina
+                    if (page === 0) {
+                        var plnbRaw = "";
+                        try { plnbRaw = JSON.stringify(plnbJson).substring(0, 500); } catch(x) {}
+                        console.log("[MKG Proxy] SYNC_PLNB raw page 1: " + plnbRaw);
+                    }
+
+                    var pageData = extractMkgData(plnbJson, "plnb");
+
+                    if (!Array.isArray(pageData) || pageData.length === 0) {
+                        console.log("[MKG Proxy] SYNC_PLNB page " + (page + 1) + ": geen data meer, stoppen.");
+                        break;
+                    }
+
+                    // Voeg pagina records toe aan totaal
+                    for (var i = 0; i < pageData.length; i++) {
+                        allRecords.push(pageData[i]);
+                    }
+
+                    console.log("[MKG Proxy] SYNC_PLNB page " + (page + 1) + ": " + pageData.length + " records (totaal nu: " + allRecords.length + ")");
+
+                    // Als we minder dan pageSize kregen, zijn er geen volgende pagina's
+                    if (pageData.length < pageSize) {
+                        console.log("[MKG Proxy] SYNC_PLNB klaar — laatste pagina berikt.");
+                        break;
+                    }
+                }
+
+                console.log("[MKG Proxy] SYNC_PLNB totaal: " + allRecords.length + " records in " + (page + 1) + " pagina's.");
 
                 return e.json(200, {
-                    success:     (plnbRes.statusCode >= 200 && plnbRes.statusCode < 300),
-                    statusCode:  plnbRes.statusCode,
-                    message:     "plnb opgehaald: HTTP " + plnbRes.statusCode,
-                    data:        plnbData,
-                    rawResponse: plnbJson
+                    success:     true,
+                    statusCode:  200,
+                    message:     "plnb opgehaald: " + allRecords.length + " records (" + (page + 1) + " pagina's)",
+                    data:        allRecords,
+                    pages:       page + 1
                 });
             } catch (plnbErr) {
                 console.error("[MKG Proxy] SYNC_PLNB fout: " + String(plnbErr));
