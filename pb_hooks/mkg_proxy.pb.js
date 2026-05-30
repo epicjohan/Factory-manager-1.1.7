@@ -1,14 +1,21 @@
 /**
- * Factory Manager — MKG API Proxy v5.1 (PocketBase v0.35)
+ * Factory Manager — MKG API Proxy v6.0 (PocketBase v0.35)
  * ========================================================
- * Fix: alle functies BINNEN de routerAdd callback (Goja scope fix).
+ * MKG URL-structuur (conform documentatie):
+ *   Base:  https://{server}/mkg
+ *   Login: https://{server}/mkg/static/auth/j_spring_security_check
+ *   REST:  https://{server}/mkg/web/v3/MKG/Documents/{tabel}?...
  */
 
-console.log("[MKG Proxy] v5.1 — Registering /api/mkg-proxy ...");
+console.log("[MKG Proxy] v6.0 — Registering /api/mkg-proxy ...");
 
 routerAdd("POST", "/api/mkg-proxy", function(e) {
 
-    // ── Alle helpers BINNEN de callback (Goja JS engine scope) ────────────
+    // ── MKG URL-paden (conform documentatie) ─────────────────────────────
+    var MKG_AUTH_PATH = "/mkg/static/auth/j_spring_security_check";
+    var MKG_API_BASE  = "/mkg/web/v3/MKG";
+
+    // ── Helpers ──────────────────────────────────────────────────────────
 
     function readMkgConfig() {
         try {
@@ -22,13 +29,20 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
 
             if (!mkgUrl || !mkgUsername || !mkgPassword) return null;
 
-            // Auto-prefix https:// als de gebruiker geen protocol opgeeft
-            if (mkgUrl && mkgUrl.indexOf("://") === -1) {
+            // Auto-prefix https://
+            if (mkgUrl.indexOf("://") === -1) {
                 mkgUrl = "https://" + mkgUrl;
             }
 
+            // Strip trailing slashes en eventueel /mkg suffix
+            // (we voegen /mkg zelf toe via de constanten)
+            mkgUrl = mkgUrl.replace(/\/+$/, "");
+            if (mkgUrl.endsWith("/mkg")) {
+                mkgUrl = mkgUrl.slice(0, -4);
+            }
+
             return {
-                url:      mkgUrl.replace(/\/$/, ""),
+                url:      mkgUrl,
                 username: mkgUsername,
                 password: mkgPassword,
                 apiKey:   mkgApiKey
@@ -40,14 +54,12 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
     }
 
     function mkgLogin(cfg) {
-        // MKG auth pad: /static/auth/j_spring_security_check
-        var loginUrl = cfg.url + "/static/auth/j_spring_security_check";
+        var loginUrl = cfg.url + MKG_AUTH_PATH;
         try {
             var formBody = "j_username=" + encodeURIComponent(cfg.username)
                          + "&j_password=" + encodeURIComponent(cfg.password);
 
             console.log("[MKG Proxy] Login URL: " + loginUrl);
-            console.log("[MKG Proxy] Login body: j_username=" + cfg.username + "&j_password=***");
 
             var loginHeaders = {
                 "Content-Type": "application/x-www-form-urlencoded",
@@ -67,12 +79,10 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
 
             console.log("[MKG Proxy] Login status: " + res.statusCode);
             console.log("[MKG Proxy] Login cookies: " + JSON.stringify(res.cookies));
-            console.log("[MKG Proxy] Login headers: " + JSON.stringify(res.headers));
 
-            // Debug: log de response body (eerste 500 chars)
+            // Debug: response body
             var rawLoginBody = "";
             try { rawLoginBody = toString(res.body); } catch(x) {}
-            console.log("[MKG Proxy] Login response body: " + (rawLoginBody || "").substring(0, 500));
 
             // Zoek JSESSIONID in cookies
             var sessionCookie = "";
@@ -82,10 +92,10 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
             }
 
             if (sessionCookie) {
+                console.log("[MKG Proxy] Login OK — JSESSIONID ontvangen");
                 return { success: true, sessionCookie: sessionCookie };
             }
 
-            // Geen JSESSIONID — stuur debug info mee in de foutmelding
             return {
                 success: false,
                 error: "Geen JSESSIONID ontvangen (HTTP " + res.statusCode + ")."
@@ -94,7 +104,7 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
             };
         } catch (err) {
             console.error("[MKG Proxy] Login fout: " + String(err));
-            return { success: false, error: "Kan MKG niet bereiken op '" + cfg.url + "': " + String(err) };
+            return { success: false, error: "Kan MKG niet bereiken op '" + loginUrl + "': " + String(err) };
         }
     }
 
@@ -127,7 +137,7 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
         }
     }
 
-    // ── Hoofd-logica (met top-level catch) ────────────────────────────────
+    // ── Hoofd-logica ─────────────────────────────────────────────────────
 
     try {
         // 1. Lees request body
@@ -174,7 +184,7 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
 
             try {
                 var pingRes = $http.send({
-                    url:     cfg.url + "/api/v3",
+                    url:     cfg.url + MKG_API_BASE,
                     method:  "GET",
                     headers: mkgApiHeaders(loginResult.sessionCookie, cfg.apiKey),
                     timeout: 10
@@ -207,7 +217,7 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
             }
 
             try {
-                var apiUrl = cfg.url + "/api/v3/" + body.endpoint;
+                var apiUrl = cfg.url + MKG_API_BASE + "/" + body.endpoint;
                 var reqConfig = {
                     url: apiUrl, method: reqMethod,
                     headers: mkgApiHeaders(loginResult.sessionCookie, cfg.apiKey),
@@ -249,8 +259,11 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
                                 + "&Filter="    + encodeURIComponent(filterParts.join(" AND "))
                                 + "&limit="     + (body.limit || 500);
 
+                var plncUrl = cfg.url + MKG_API_BASE + "/Documents/plnc" + queryParams;
+                console.log("[MKG Proxy] SYNC_PLNC URL: " + plncUrl);
+
                 var plncRes = $http.send({
-                    url:     cfg.url + "/api/v3/Documents/plnc" + queryParams,
+                    url:     plncUrl,
                     method:  "GET",
                     headers: mkgApiHeaders(loginResult.sessionCookie, cfg.apiKey),
                     timeout: 30
@@ -286,4 +299,4 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
     }
 });
 
-console.log("[MKG Proxy] v5.1 — Klaar. Luistert op POST /api/mkg-proxy");
+console.log("[MKG Proxy] v6.0 — Klaar. Luistert op POST /api/mkg-proxy");
