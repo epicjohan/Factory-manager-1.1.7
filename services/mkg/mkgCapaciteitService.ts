@@ -4,7 +4,7 @@
  */
 
 import { KEYS, loadTable, saveTable } from '../db/core';
-import { MkgPlncRecord } from '../../types';
+import { MkgPlncRecord, MkgPlnbRecord } from '../../types';
 
 const getNowISO = () => new Date().toISOString();
 
@@ -178,6 +178,145 @@ export const mkgCapaciteitService = {
             return { success: false, count: 0, message: String(err) };
         }
     },
+
+    // ══════════════════════════════════════════════════════════════════════
+    // PLNB — Planning bewerkingen (nieuw, vervangt plnc)
+    // ══════════════════════════════════════════════════════════════════════
+
+    /**
+     * Haal alle lokaal opgeslagen plnb-records op.
+     */
+    getPlnbRecords: (): Promise<MkgPlnbRecord[]> =>
+        loadTable<MkgPlnbRecord[]>(KEYS.MKG_PLNB, []),
+
+    /**
+     * Haal plnb-records op voor een specifieke resource.
+     */
+    getPlnbForResource: async (rsrcNum: number): Promise<MkgPlnbRecord[]> => {
+        const all = await loadTable<MkgPlnbRecord[]>(KEYS.MKG_PLNB, []);
+        const numRsrc = Number(rsrcNum);
+        const filtered = all.filter(r => Number(r.rsrc_num) === numRsrc);
+        console.log(`[MkgPlnb] Zoek rsrc_num=${numRsrc}, cache=${all.length}, matches=${filtered.length}`);
+        return filtered;
+    },
+
+    /**
+     * Groepeer plnb-records per startweek voor een resource.
+     */
+    getPlnbByWeek: async (rsrcNum: number): Promise<Map<number, MkgPlnbRecord[]>> => {
+        const records = await mkgCapaciteitService.getPlnbForResource(rsrcNum);
+        const map = new Map<number, MkgPlnbRecord[]>();
+        for (const r of records) {
+            const week = r.plnb_wk_start || 0;
+            if (!map.has(week)) map.set(week, []);
+            map.get(week)!.push(r);
+        }
+        return map;
+    },
+
+    /**
+     * Synchroniseer plnb (planning bewerkingen) vanuit MKG.
+     */
+    syncPlnbFromMkg: async (pbUrl: string): Promise<{ success: boolean; count: number; message: string }> => {
+        try {
+            const response = await fetch(`${pbUrl}/api/mkg-proxy`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'SYNC_PLNB',
+                    limit:  5000,
+                }),
+            });
+
+            if (!response.ok) {
+                return { success: false, count: 0, message: `HTTP ${response.status}` };
+            }
+
+            const result = await response.json();
+            if (!result.success) {
+                return { success: false, count: 0, message: result.message || 'MKG fout' };
+            }
+
+            // Extractie: proxy geeft data als array, of MKG nested structuur
+            let rawRecords: any[] = [];
+            if (Array.isArray(result.data)) {
+                rawRecords = result.data;
+            } else if (result.data?.response?.ResultData?.[0]?.plnb) {
+                rawRecords = result.data.response.ResultData[0].plnb;
+            } else if (result.rawResponse?.response?.ResultData?.[0]?.plnb) {
+                rawRecords = result.rawResponse.response.ResultData[0].plnb;
+            } else {
+                console.warn('[MkgPlnb] Onverwacht data-formaat:', result);
+                return { success: false, count: 0, message: 'Onverwacht data-formaat van MKG' };
+            }
+
+            const mapped = rawRecords.map(mapPlnbRecord);
+
+            // Volledige vervanging: we halen alleen niet-gereed bewerkingen op
+            await saveTable(KEYS.MKG_PLNB, mapped);
+            console.log(`[MkgPlnb] Sync voltooid: ${mapped.length} bewerkingen opgeslagen.`);
+
+            return { success: true, count: mapped.length, message: `${mapped.length} bewerkingen gesynchroniseerd.` };
+        } catch (err) {
+            console.error('[MkgPlnb] Sync fout:', err);
+            return { success: false, count: 0, message: String(err) };
+        }
+    },
+};
+
+/**
+ * Map een ruwe MKG plnb record naar MkgPlnbRecord.
+ */
+const mapPlnbRecord = (raw: any): MkgPlnbRecord => {
+    const duurSec = Number(raw.plnb_duur) || 0;
+    const instalSec = Number(raw.plnb_instel_tijd) || 0;
+    const besteedSec = Number(raw.plnb_tijd_besteed) || 0;
+
+    return {
+        id:                      raw.RowKey ?? `${raw.admi_num}_${raw.rsrc_num}_${raw.prdh_num}_${raw.bwrk_num}`,
+        admi_num:                Number(raw.admi_num) || 0,
+        rsrc_num:                Number(raw.rsrc_num) || 0,
+        prdh_num:                String(raw.prdh_num ?? ''),
+        prdr_num:                Number(raw.prdr_num) || 0,
+        bwrk_num:                Number(raw.bwrk_num) || 0,
+        plnb_num:                Number(raw.plnb_num) || 0,
+        plnb_oms:                String(raw.plnb_oms ?? ''),
+
+        plnb_dat_start:          String(raw.plnb_dat_start ?? ''),
+        plnb_dat_eind:           String(raw.plnb_dat_eind ?? ''),
+        plnb_wk_start:           Number(raw.plnb_wk_start) || 0,
+        plnb_wk_eind:            Number(raw.plnb_wk_eind) || 0,
+        plnb_tijd_start:         Number(raw.plnb_tijd_start) || 0,
+        plnb_tijd_eind:          Number(raw.plnb_tijd_eind) || 0,
+
+        plnb_duur:               duurSec,
+        plnb_duur_min:           Math.round(duurSec / 60),
+        plnb_instel_tijd:        instalSec,
+        plnb_instel_min:         Math.round(instalSec / 60),
+
+        plnb_tijd_per_stuk:      Number(raw.plnb_tijd_per_stuk) || 0,
+        plnb_plan_tijd_per_stuk: Number(raw.plnb_plan_tijd_per_stuk) || 0,
+
+        plnb_aantal:             Number(raw.plnb_aantal) || 0,
+        plnb_aantal_grd:         Number(raw.plnb_aantal_grd) || 0,
+        plnb_start_aantal:       Number(raw.plnb_start_aantal) || 0,
+        plnb_gestart:            !!raw.plnb_gestart,
+        plnb_gereed:             !!raw.plnb_gereed,
+        plnb_forecast:           !!raw.plnb_forecast,
+
+        plnb_onbemand:           !!raw.plnb_onbemand,
+        plnb_vast:               !!raw.plnb_vast,
+        plnb_uitbesteden:        !!raw.plnb_uitbesteden,
+        cred_num:                String(raw.cred_num ?? ''),
+
+        plnb_tijd_besteed:       besteedSec,
+        plnb_tijd_besteed_min:   Math.round(besteedSec / 60),
+        plnb_prod_fase:          Number(raw.plnb_prod_fase) || 0,
+        plnb_memo:               String(raw.plnb_memo ?? ''),
+        plnb_volgorde:           Number(raw.plnb_volgorde) || 0,
+
+        syncedAt:                getNowISO(),
+    };
 };
 
 /** ISO week number voor de huidige datum. */

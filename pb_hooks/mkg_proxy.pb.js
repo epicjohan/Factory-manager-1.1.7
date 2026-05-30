@@ -297,10 +297,76 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
             }
         }
 
+        // ── SYNC_PLNB ─────────────────────────────────────────────────────
+        if (body.action === "SYNC_PLNB") {
+            console.log("[MKG Proxy] SYNC_PLNB aanvraag");
+
+            var loginResult = mkgLogin(cfg);
+            if (!loginResult.success) {
+                return e.json(200, { success: false, message: loginResult.error });
+            }
+
+            try {
+                var plnbFields = [
+                    "admi_num","prdh_num","prdr_num","rsrc_num","bwrk_num",
+                    "plnb_num","plnb_oms",
+                    "plnb_dat_start","plnb_dat_eind",
+                    "plnb_wk_start","plnb_wk_eind",
+                    "plnb_tijd_start","plnb_tijd_eind",
+                    "plnb_duur","plnb_instel_tijd",
+                    "plnb_tijd_per_stuk","plnb_plan_tijd_per_stuk",
+                    "plnb_aantal","plnb_aantal_grd","plnb_start_aantal",
+                    "plnb_gestart","plnb_gereed",
+                    "plnb_forecast","plnb_onbemand","plnb_vast",
+                    "plnb_uitbesteden","cred_num",
+                    "plnb_tijd_besteed","plnb_prod_fase","plnb_memo","plnb_volgorde"
+                ].join(",");
+
+                var plnbFilter = ["plnb_gereed = false"];
+                if (body.rsrcNum) plnbFilter.push("rsrc_num = " + body.rsrcNum);
+
+                var plnbParams = "?FieldList=" + encodeURIComponent(plnbFields)
+                               + "&Filter="    + encodeURIComponent(plnbFilter.join(" AND "))
+                               + "&NumRows="   + (body.limit || 5000);
+
+                var plnbUrl = cfg.url + MKG_API_BASE + "/Documents/plnb/" + plnbParams;
+                console.log("[MKG Proxy] SYNC_PLNB URL: " + plnbUrl);
+
+                var plnbRes = $http.send({
+                    url:     plnbUrl,
+                    method:  "GET",
+                    headers: mkgApiHeaders(loginResult.sessionCookie, cfg.apiKey),
+                    timeout: 30
+                });
+
+                console.log("[MKG Proxy] SYNC_PLNB response: " + plnbRes.statusCode);
+
+                var plnbJson = plnbRes.json || null;
+
+                // Debug: log de ruwe response structuur
+                var plnbRaw = "";
+                try { plnbRaw = JSON.stringify(plnbJson).substring(0, 500); } catch(x) {}
+                console.log("[MKG Proxy] SYNC_PLNB raw: " + plnbRaw);
+
+                var plnbData = extractMkgData(plnbJson, "plnb");
+
+                return e.json(200, {
+                    success:     (plnbRes.statusCode >= 200 && plnbRes.statusCode < 300),
+                    statusCode:  plnbRes.statusCode,
+                    message:     "plnb opgehaald: HTTP " + plnbRes.statusCode,
+                    data:        plnbData,
+                    rawResponse: plnbJson
+                });
+            } catch (plnbErr) {
+                console.error("[MKG Proxy] SYNC_PLNB fout: " + String(plnbErr));
+                return e.json(200, { success: false, message: "plnb ophalen mislukt: " + String(plnbErr) });
+            }
+        }
+
         // ── Onbekende actie ───────────────────────────────────────────────
         return e.json(400, {
             success: false,
-            message: "Onbekende actie '" + body.action + "'. Ondersteund: PING, REQUEST, SYNC_PLNC."
+            message: "Onbekende actie '" + body.action + "'. Ondersteund: PING, REQUEST, SYNC_PLNC, SYNC_PLNB."
         });
 
     } catch (fatalErr) {
