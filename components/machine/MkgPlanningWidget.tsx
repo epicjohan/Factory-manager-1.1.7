@@ -47,6 +47,10 @@ interface WeekData {
     label: string;
     totalMin: number;
     totalH: number;
+    bemandMin: number;
+    bemandH: number;
+    onbemandMin: number;
+    onbemandH: number;
     isBacklog: boolean;
     orders: MkgPlncRecord[];
 }
@@ -84,12 +88,16 @@ const CustomTooltip = ({ active, payload, label, capacityMin }: any) => {
     const data: WeekData = payload[0]?.payload;
     const pct = capacityMin > 0 ? Math.round((data.totalMin / capacityMin) * 100) : 0;
     return (
-        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl shadow-xl p-3 min-w-[160px]">
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl shadow-xl p-3 min-w-[180px]">
             <p className="text-xs font-black text-slate-800 dark:text-white mb-1">{label}</p>
             <p className="text-sm font-black" style={{ color: data.isBacklog ? '#ef4444' : '#3b82f6' }}>
-                {formatHours(data.totalMin)}u gepland
+                {formatHours(data.totalMin)}u totaal
             </p>
-            <p className="text-[10px] text-slate-400 mt-0.5">{data.orders.length} orders · {pct}% bezetting</p>
+            <div className="text-[10px] text-slate-500 mt-1 space-y-0.5">
+                <p>👤 Bemand: {formatHours(data.bemandMin)}u</p>
+                <p>⚙ Onbemand: {formatHours(data.onbemandMin)}u</p>
+            </div>
+            <p className="text-[10px] text-slate-400 mt-1">{data.orders.length} orders · {pct}% bezetting</p>
             {data.isBacklog && (
                 <p className="text-[10px] text-red-400 font-bold mt-1">⚠ Achterstand</p>
             )}
@@ -146,12 +154,18 @@ export const MkgPlanningWidget: React.FC<Props> = ({
         return Array.from(map.entries())
             .sort(([a], [b]) => a - b)
             .map(([week, orders]) => {
-                const totalMin = orders.reduce((s, r) => s + (r.plnc_tijd_bemand_min ?? 0), 0);
+                const bemandMin = orders.reduce((s, r) => s + (r.plnc_tijd_bemand_min ?? 0), 0);
+                const onbemandMin = orders.reduce((s, r) => s + (r.plnc_tijd_min ?? 0), 0);
+                const totalMin = bemandMin + onbemandMin;
                 return {
                     week,
                     label: weekLabel(week),
                     totalMin,
                     totalH: minutesToHours(totalMin),
+                    bemandMin,
+                    bemandH: minutesToHours(bemandMin),
+                    onbemandMin,
+                    onbemandH: minutesToHours(onbemandMin),
                     isBacklog: week < now,
                     orders,
                 };
@@ -413,7 +427,7 @@ export const MkgPlanningWidget: React.FC<Props> = ({
                                     {selectedData.isBacklog ? '⚠ Achterstand' : 'Planning'} — Week {selectedData.week}
                                 </p>
                                 <p className="text-[10px] text-slate-500">
-                                    {selectedData.orders.length} orders · {formatHours(selectedData.totalMin)}u gepland
+                                    {selectedData.orders.length} orders · 👤 {formatHours(selectedData.bemandMin)}u bemand · ⚙ {formatHours(selectedData.onbemandMin)}u onbemand
                                 </p>
                             </div>
                         </div>
@@ -434,7 +448,8 @@ export const MkgPlanningWidget: React.FC<Props> = ({
                                         <th className="px-4 py-2.5 text-left font-black text-[10px] text-slate-500 uppercase tracking-wider">Productieorder</th>
                                         <th className="px-4 py-2.5 text-left font-black text-[10px] text-slate-500 uppercase tracking-wider">Startdatum</th>
                                         <th className="px-4 py-2.5 text-left font-black text-[10px] text-slate-500 uppercase tracking-wider">Regel</th>
-                                        <th className="px-4 py-2.5 text-right font-black text-[10px] text-slate-500 uppercase tracking-wider">Bemand</th>
+                                        <th className="px-4 py-2.5 text-right font-black text-[10px] text-slate-500 uppercase tracking-wider">👤 Bemand</th>
+                                        <th className="px-4 py-2.5 text-right font-black text-[10px] text-slate-500 uppercase tracking-wider">⚙ Onbemand</th>
                                         <th className="px-4 py-2.5 text-center font-black text-[10px] text-slate-500 uppercase tracking-wider">Type</th>
                                     </tr>
                                 </thead>
@@ -475,6 +490,18 @@ export const MkgPlanningWidget: React.FC<Props> = ({
                                                     }
                                                 </span>
                                             </td>
+                                            <td className="px-4 py-2.5 text-right">
+                                                <span className={`font-black tabular-nums
+                                                    ${(order.plnc_tijd_min ?? 0) > 0
+                                                        ? 'text-slate-600 dark:text-slate-300'
+                                                        : 'text-slate-300'}`}
+                                                >
+                                                    {(order.plnc_tijd_min ?? 0) > 0
+                                                        ? formatHours(order.plnc_tijd_min ?? 0)
+                                                        : '—'
+                                                    }
+                                                </span>
+                                            </td>
                                             <td className="px-4 py-2.5 text-center">
                                                 {order.plnc_forecast ? (
                                                     <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full text-[9px] font-black uppercase">Forecast</span>
@@ -492,7 +519,10 @@ export const MkgPlanningWidget: React.FC<Props> = ({
                                             Totaal {selectedData.orders.length} orders
                                         </td>
                                         <td className="px-4 py-2.5 text-right font-black text-slate-800 dark:text-white tabular-nums">
-                                            {formatHours(selectedData.totalMin)}
+                                            {formatHours(selectedData.bemandMin)}
+                                        </td>
+                                        <td className="px-4 py-2.5 text-right font-black text-slate-600 dark:text-slate-300 tabular-nums">
+                                            {formatHours(selectedData.onbemandMin)}
                                         </td>
                                         <td className="px-4 py-2.5 text-center text-[10px] font-bold text-slate-500">
                                             {capacityMin > 0 ? `${Math.round((selectedData.totalMin / capacityMin) * 100)}%` : ''}

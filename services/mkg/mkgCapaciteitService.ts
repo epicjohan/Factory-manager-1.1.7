@@ -35,7 +35,8 @@ const toMinutes = (val: any): number => {
  * - plnc_tijd_bemand in SECONDEN (bijv. 25200 = 7 uur)
  */
 const mapPlncRecord = (raw: any): MkgPlncRecord => {
-    const tijdSec: number = typeof raw.plnc_tijd_bemand === 'number' ? raw.plnc_tijd_bemand : 0;
+    const tijdBemandSec: number = typeof raw.plnc_tijd_bemand === 'number' ? raw.plnc_tijd_bemand : 0;
+    const tijdOnbemandSec: number = typeof raw.plnc_tijd === 'number' ? raw.plnc_tijd : 0;
     return {
         id:                   raw.RowKey         ?? `${raw.admi_num}_${raw.rsrc_num}_${raw.plnc_datum}`,
         admi_num:             raw.admi_num        ?? 0,
@@ -45,9 +46,10 @@ const mapPlncRecord = (raw: any): MkgPlncRecord => {
         plnc_datum:           raw.plnc_datum      ?? '',
         plnc_week:            raw.plnc_week       ?? 0,
         plnc_maand:           raw.plnc_maand      ?? 0,
-        plnc_tijd:            raw.plnc_tijd       ?? 0,
-        plnc_tijd_bemand:     tijdSec,
-        plnc_tijd_bemand_min: Math.round(tijdSec / 60),  // seconden → minuten
+        plnc_tijd:            tijdOnbemandSec,
+        plnc_tijd_min:        Math.round(tijdOnbemandSec / 60),  // seconden → minuten (onbemand)
+        plnc_tijd_bemand:     tijdBemandSec,
+        plnc_tijd_bemand_min: Math.round(tijdBemandSec / 60),    // seconden → minuten (bemand)
         plnc_forecast:        !!raw.plnc_forecast,
         syncedAt:             getNowISO(),
     };
@@ -121,8 +123,8 @@ export const mkgCapaciteitService = {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     action:   'SYNC_PLNC',
-                    weekFrom: currentWeek - 4,  // 4 weken achterstand meenemen
-                    limit:    2000,
+                    // Geen weekFrom filter — haal alles op, widget filtert client-side
+                    limit:    5000,
                 }),
             });
 

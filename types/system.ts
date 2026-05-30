@@ -73,9 +73,10 @@ export interface MkgPlncRecord {
   plnc_datum: string;           // Datum (ISO string, bijv. "2026-05-29")
   plnc_week: number;            // Weeknummer
   plnc_maand: number;           // Maandnummer
-  plnc_tijd: number;            // Stel-/insteltijd in seconden (vaak 0)
-  plnc_tijd_bemand: number;     // Geplande bemande tijd in SECONDEN (bijv. 25200 = 7 uur)
-  plnc_tijd_bemand_min: number; // Berekend: plnc_tijd_bemand / 60 (minuten, voor weergave)
+  plnc_tijd: number;            // Onbemande machinetijd in SECONDEN
+  plnc_tijd_min: number;        // Berekend: plnc_tijd / 60 (onbemand, minuten)
+  plnc_tijd_bemand: number;     // Bemande tijd in SECONDEN (bijv. 25200 = 7 uur)
+  plnc_tijd_bemand_min: number; // Berekend: plnc_tijd_bemand / 60 (bemand, minuten)
   plnc_forecast: boolean;       // Is forecast-record
   syncedAt: string;             // Tijdstip van laatste sync
 }
