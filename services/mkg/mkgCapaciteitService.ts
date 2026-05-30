@@ -204,7 +204,12 @@ export const mkgCapaciteitService = {
             console.log(`[MkgPlnb] ⚠ Resource ${numRsrc} NIET gevonden! Beschikbare resources (${uniqueResources.length}): [${uniqueResources.join(', ')}]`);
         }
         
-        return filtered;
+        // Deduplicatie: MKG maakt meerdere plnb-records per order+bewerking (per tijdslot/batch).
+        // Groepeer per prdh_num+bwrk_num en merge tot 1 record.
+        const merged = deduplicatePlnbRecords(filtered);
+        console.log(`[MkgPlnb] Na deduplicatie: ${filtered.length} → ${merged.length} unieke bewerkingen`);
+        
+        return merged;
     },
 
     /**
@@ -289,6 +294,62 @@ export const mkgCapaciteitService = {
             return { success: false, count: 0, message: String(err) };
         }
     },
+};
+
+/**
+ * Dedupliceer plnb-records: MKG maakt meerdere records per order+bewerking (tijdslots).
+ * Groepeer per prdh_num+bwrk_num en merge tot 1 samengevat record.
+ */
+const deduplicatePlnbRecords = (records: MkgPlnbRecord[]): MkgPlnbRecord[] => {
+    const groups = new Map<string, MkgPlnbRecord[]>();
+    
+    for (const r of records) {
+        const key = `${r.prdh_num}_${r.bwrk_num}`;
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key)!.push(r);
+    }
+    
+    return Array.from(groups.values()).map(group => {
+        if (group.length === 1) return group[0];
+        
+        // Neem het eerste record als basis
+        const base = { ...group[0] };
+        
+        // Vroegste start, laatste eind
+        for (const r of group) {
+            if (r.plnb_dat_start && r.plnb_dat_start < base.plnb_dat_start) {
+                base.plnb_dat_start = r.plnb_dat_start;
+                base.plnb_tijd_start = r.plnb_tijd_start;
+            }
+            if (r.plnb_dat_eind && r.plnb_dat_eind > base.plnb_dat_eind) {
+                base.plnb_dat_eind = r.plnb_dat_eind;
+                base.plnb_tijd_eind = r.plnb_tijd_eind;
+            }
+            // Vroegste startweek, laatste eindweek
+            if (r.plnb_wk_start > 0 && (base.plnb_wk_start === 0 || r.plnb_wk_start < base.plnb_wk_start)) {
+                base.plnb_wk_start = r.plnb_wk_start;
+            }
+            if (r.plnb_wk_eind > base.plnb_wk_eind) {
+                base.plnb_wk_eind = r.plnb_wk_eind;
+            }
+            // Als minstens 1 record gestart is → gestart
+            if (r.plnb_gestart) base.plnb_gestart = true;
+        }
+        
+        // Insteltijd: neem slechts 1x mee (niet per tijdslot herhalen)
+        // Werktijd (plnb_duur_min) = instel + (tijd_per_stuk × aantal) — al correct per record
+        // Maar bij duplicaten is het PER RECORD dezelfde waarde, dus NIET sommeren
+        // We houden het basis-record aan want alle duplicaten zijn identiek qua berekende werktijd
+        
+        // Bestede tijd: neem de max (meest recente status)
+        base.plnb_tijd_besteed = Math.max(...group.map(r => r.plnb_tijd_besteed));
+        base.plnb_tijd_besteed_min = Math.round(base.plnb_tijd_besteed / 60);
+        
+        // Aantal gereed: neem de max
+        base.plnb_aantal_grd = Math.max(...group.map(r => r.plnb_aantal_grd));
+        
+        return base;
+    });
 };
 
 /**
