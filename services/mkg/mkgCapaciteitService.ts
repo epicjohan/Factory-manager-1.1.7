@@ -250,6 +250,25 @@ export const mkgCapaciteitService = {
                 return { success: false, count: 0, message: 'Onverwacht data-formaat van MKG' };
             }
 
+            // Debug: log eerste 3 ruwe records om formaat te analyseren
+            for (let i = 0; i < Math.min(3, rawRecords.length); i++) {
+                const r = rawRecords[i];
+                console.log(`[MkgPlnb] RAW record ${i}:`, JSON.stringify({
+                    prdh_num: r.prdh_num,
+                    rsrc_num: r.rsrc_num,
+                    plnb_duur: r.plnb_duur,
+                    plnb_instel_tijd: r.plnb_instel_tijd,
+                    plnb_tijd_per_stuk: r.plnb_tijd_per_stuk,
+                    plnb_plan_tijd_per_stuk: r.plnb_plan_tijd_per_stuk,
+                    plnb_aantal: r.plnb_aantal,
+                    plnb_tijd_besteed: r.plnb_tijd_besteed,
+                    plnb_dat_start: r.plnb_dat_start,
+                    plnb_dat_eind: r.plnb_dat_eind,
+                    plnb_tijd_start: r.plnb_tijd_start,
+                    plnb_tijd_eind: r.plnb_tijd_eind,
+                }));
+            }
+
             const mapped = rawRecords.map(mapPlnbRecord);
 
             // Volledige vervanging: we halen alleen niet-gereed bewerkingen op
