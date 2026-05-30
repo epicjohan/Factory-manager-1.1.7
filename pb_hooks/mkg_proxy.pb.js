@@ -257,9 +257,9 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
 
                 var queryParams = "?FieldList=" + encodeURIComponent(fieldList)
                                 + "&Filter="    + encodeURIComponent(filterParts.join(" AND "))
-                                + "&limit="     + (body.limit || 500);
+                                + "&NumRows="   + (body.limit || 500);
 
-                var plncUrl = cfg.url + MKG_API_BASE + "/Documents/plnc" + queryParams;
+                var plncUrl = cfg.url + MKG_API_BASE + "/Documents/plnc/" + queryParams;
                 console.log("[MKG Proxy] SYNC_PLNC URL: " + plncUrl);
 
                 var plncRes = $http.send({

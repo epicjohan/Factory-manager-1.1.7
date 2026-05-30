@@ -121,8 +121,8 @@ export const mkgCapaciteitService = {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     action:   'SYNC_PLNC',
-                    weekFrom: currentWeek,
-                    limit:    1000,
+                    weekFrom: currentWeek - 4,  // 4 weken achterstand meenemen
+                    limit:    2000,
                 }),
             });
 
