@@ -130,6 +130,11 @@ export interface MkgPlnbRecord {
   plnb_memo: string;               // Memo/notities
   plnb_volgorde: number;           // Volgorde
 
+  // Artikelgegevens (berekende velden uit MKG)
+  arti_code: string;               // Artikelcode
+  arti_oms1: string;               // Omschrijving 1
+  arti_tek_num: string;            // Tekening nummer
+
   // Meta
   syncedAt: string;                // Laatste sync tijdstip
 }

@@ -319,7 +319,8 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
                     "plnb_gestart","plnb_gereed",
                     "plnb_forecast","plnb_onbemand","plnb_vast",
                     "plnb_uitbesteden","cred_num",
-                    "plnb_tijd_besteed","plnb_prod_fase","plnb_memo","plnb_volgorde"
+                    "plnb_tijd_besteed","plnb_prod_fase","plnb_memo","plnb_volgorde",
+                    "arti_code","arti_oms1","arti_tek_num"
                 ].join(",");
                 // Filter: geen plnb_gereed filter — MKG boolean syntax onbekend (ja/nee vs true/false)
                 // Client-side filteren we op gereed status

@@ -263,16 +263,13 @@ export const mkgCapaciteitService = {
                 console.log(`[MkgPlnb] RAW record ${i}:`, JSON.stringify({
                     prdh_num: r.prdh_num,
                     rsrc_num: r.rsrc_num,
+                    arti_code: r.arti_code,
+                    arti_oms1: r.arti_oms1,
+                    arti_tek_num: r.arti_tek_num,
                     plnb_duur: r.plnb_duur,
                     plnb_instel_tijd: r.plnb_instel_tijd,
                     plnb_tijd_per_stuk: r.plnb_tijd_per_stuk,
-                    plnb_plan_tijd_per_stuk: r.plnb_plan_tijd_per_stuk,
                     plnb_aantal: r.plnb_aantal,
-                    plnb_tijd_besteed: r.plnb_tijd_besteed,
-                    plnb_dat_start: r.plnb_dat_start,
-                    plnb_dat_eind: r.plnb_dat_eind,
-                    plnb_tijd_start: r.plnb_tijd_start,
-                    plnb_tijd_eind: r.plnb_tijd_eind,
                 }));
             }
 
@@ -350,6 +347,10 @@ const mapPlnbRecord = (raw: any): MkgPlnbRecord => {
         plnb_prod_fase:          Number(raw.plnb_prod_fase) || 0,
         plnb_memo:               String(raw.plnb_memo ?? ''),
         plnb_volgorde:           Number(raw.plnb_volgorde) || 0,
+
+        arti_code:               String(raw.arti_code ?? ''),
+        arti_oms1:               String(raw.arti_oms1 ?? ''),
+        arti_tek_num:            String(raw.arti_tek_num ?? ''),
 
         syncedAt:                getNowISO(),
     };

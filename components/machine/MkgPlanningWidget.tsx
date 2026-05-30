@@ -328,6 +328,9 @@ export const MkgPlanningWidget: React.FC<Props> = ({
                                             <thead>
                                                 <tr className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-700">
                                                     <th className="px-3 py-2 text-left font-black text-[10px] text-slate-500 uppercase">Order</th>
+                                                    <th className="px-3 py-2 text-left font-black text-[10px] text-slate-500 uppercase">Artikel</th>
+                                                    <th className="px-3 py-2 text-left font-black text-[10px] text-slate-500 uppercase">Tekening</th>
+                                                    <th className="px-3 py-2 text-left font-black text-[10px] text-slate-500 uppercase">Omschrijving</th>
                                                     <th className="px-3 py-2 text-left font-black text-[10px] text-slate-500 uppercase">Bewerking</th>
                                                     <th className="px-3 py-2 text-left font-black text-[10px] text-slate-500 uppercase">Start → Eind</th>
                                                     <th className="px-3 py-2 text-right font-black text-[10px] text-slate-500 uppercase">Stuks</th>
@@ -344,6 +347,19 @@ export const MkgPlanningWidget: React.FC<Props> = ({
                                                             <span className="font-black text-slate-800 dark:text-white font-mono text-[11px]">
                                                                 {r.prdh_num || '—'}
                                                             </span>
+                                                        </td>
+                                                        <td className="px-3 py-2">
+                                                            <span className="font-mono text-[11px] text-indigo-600 dark:text-indigo-400 font-bold">
+                                                                {r.arti_code || '—'}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-3 py-2">
+                                                            <span className="text-[11px] text-slate-600 dark:text-slate-300 font-mono">
+                                                                {r.arti_tek_num || '—'}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-3 py-2 text-slate-600 dark:text-slate-300 max-w-[200px] truncate" title={r.arti_oms1}>
+                                                            {r.arti_oms1 || '—'}
                                                         </td>
                                                         <td className="px-3 py-2 text-slate-600 dark:text-slate-300 max-w-[150px] truncate" title={r.plnb_oms}>
                                                             {r.plnb_oms || `Bew. ${r.bwrk_num}`}
@@ -378,7 +394,7 @@ export const MkgPlanningWidget: React.FC<Props> = ({
                                             </tbody>
                                             <tfoot>
                                                 <tr className="bg-slate-50 dark:bg-slate-800/60 border-t-2 border-slate-200 dark:border-slate-700">
-                                                    <td colSpan={4} className="px-3 py-2 text-[10px] font-black text-slate-500 uppercase">
+                                                    <td colSpan={7} className="px-3 py-2 text-[10px] font-black text-slate-500 uppercase">
                                                         Totaal {wg.records.length} bewerkingen
                                                     </td>
                                                     <td className="px-3 py-2 text-right font-black text-slate-800 dark:text-white tabular-nums">
