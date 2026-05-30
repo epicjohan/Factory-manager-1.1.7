@@ -277,10 +277,14 @@ export const mkgCapaciteitService = {
             }
 
             const mapped = rawRecords.map(mapPlnbRecord);
+            
+            // Client-side filter: verwijder afgeronde bewerkingen
+            // (proxy filtert niet meer op plnb_gereed vanwege MKG boolean syntax)
+            const open = mapped.filter(r => !r.plnb_gereed);
+            console.log(`[MkgPlnb] Totaal: ${mapped.length}, niet-gereed: ${open.length}, gereed (verwijderd): ${mapped.length - open.length}`);
 
-            // Volledige vervanging: we halen alleen niet-gereed bewerkingen op
-            await saveTable(KEYS.MKG_PLNB, mapped);
-            console.log(`[MkgPlnb] Sync voltooid: ${mapped.length} bewerkingen opgeslagen.`);
+            await saveTable(KEYS.MKG_PLNB, open);
+            console.log(`[MkgPlnb] Sync voltooid: ${open.length} openstaande bewerkingen opgeslagen.`);
 
             return { success: true, count: mapped.length, message: `${mapped.length} bewerkingen gesynchroniseerd.` };
         } catch (err) {
