@@ -172,7 +172,7 @@ export const MkgPlanningWidget: React.FC<Props> = ({
 
     // ── Max duur voor bar scaling ──────────────────────────────────────────
     const maxDuurMin = useMemo(() =>
-        Math.max(1, ...allRecords.map(r => r.plnb_duur_min + r.plnb_instel_min)),
+        Math.max(1, ...allRecords.map(r => r.plnb_duur_min)),
     [allRecords]);
 
     // ── Render ────────────────────────────────────────────────────────────
@@ -237,7 +237,7 @@ export const MkgPlanningWidget: React.FC<Props> = ({
             {/* ── Weekkaarten ── */}
             {weekGroups.map(wg => {
                 const isExpanded = expandedWeeks.has(wg.week);
-                const bezettingPct = capacityMin > 0 ? pct(wg.totalDuurMin + wg.totalInstelMin, capacityMin) : 0;
+                const bezettingPct = capacityMin > 0 ? pct(wg.totalDuurMin, capacityMin) : 0;
 
                 return (
                     <div key={wg.week} className={`rounded-2xl border transition-all ${
@@ -285,7 +285,7 @@ export const MkgPlanningWidget: React.FC<Props> = ({
                                 <p className={`text-sm font-black tabular-nums ${
                                     wg.isBacklog ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-white'
                                 }`}>
-                                    {formatMinutes(wg.totalDuurMin + wg.totalInstelMin)}u
+                                    {formatMinutes(wg.totalDuurMin)}u
                                 </p>
                                 <p className="text-[10px] text-slate-400 tabular-nums">
                                     {bezettingPct}% bezetting
@@ -424,7 +424,7 @@ const KpiCard: React.FC<{ icon: React.ReactNode; label: string; value: string; a
 };
 
 const TimelineBar: React.FC<{ record: MkgPlnbRecord; maxMin: number; now: number }> = ({ record, maxMin, now }) => {
-    const totalMin = record.plnb_duur_min + record.plnb_instel_min;
+    const totalMin = record.plnb_duur_min; // Bevat al instel + productie
     const barWidth = Math.max(5, pct(totalMin, maxMin));
     const voortgang = pct(record.plnb_aantal_grd, record.plnb_aantal);
     const isAchterstand = record.plnb_wk_eind < now && !record.plnb_gereed;
