@@ -287,9 +287,15 @@ export const mkgCapaciteitService = {
  * Map een ruwe MKG plnb record naar MkgPlnbRecord.
  */
 const mapPlnbRecord = (raw: any): MkgPlnbRecord => {
-    const duurSec = Number(raw.plnb_duur) || 0;
-    const instalSec = Number(raw.plnb_instel_tijd) || 0;
+    const duurSec = Number(raw.plnb_duur) || 0;              // kalendertijd (inclusief nachten/weekenden)
+    const instalSec = Number(raw.plnb_instel_tijd) || 0;     // insteltijd in seconden
     const besteedSec = Number(raw.plnb_tijd_besteed) || 0;
+    const tijdPerStuk = Number(raw.plnb_tijd_per_stuk) || 0; // seconden per stuk
+    const aantal = Number(raw.plnb_aantal) || 0;
+
+    // Werktijd = insteltijd + (tijd per stuk × aantal)
+    // plnb_duur is de KALENDERTIJD (doorlooptijd), niet de werktijd!
+    const werktijdSec = instalSec + (tijdPerStuk * aantal);
 
     return {
         id:                      raw.RowKey ?? `${raw.admi_num}_${raw.rsrc_num}_${raw.prdh_num}_${raw.bwrk_num}`,
@@ -308,15 +314,15 @@ const mapPlnbRecord = (raw: any): MkgPlnbRecord => {
         plnb_tijd_start:         Number(raw.plnb_tijd_start) || 0,
         plnb_tijd_eind:          Number(raw.plnb_tijd_eind) || 0,
 
-        plnb_duur:               duurSec,
-        plnb_duur_min:           Math.round(duurSec / 60),
+        plnb_duur:               duurSec,                           // kalendertijd (doorlooptijd) in sec
+        plnb_duur_min:           Math.round(werktijdSec / 60),      // WERKTIJD in minuten (instel + productie)
         plnb_instel_tijd:        instalSec,
         plnb_instel_min:         Math.round(instalSec / 60),
 
-        plnb_tijd_per_stuk:      Number(raw.plnb_tijd_per_stuk) || 0,
+        plnb_tijd_per_stuk:      tijdPerStuk,
         plnb_plan_tijd_per_stuk: Number(raw.plnb_plan_tijd_per_stuk) || 0,
 
-        plnb_aantal:             Number(raw.plnb_aantal) || 0,
+        plnb_aantal:             aantal,
         plnb_aantal_grd:         Number(raw.plnb_aantal_grd) || 0,
         plnb_start_aantal:       Number(raw.plnb_start_aantal) || 0,
         plnb_gestart:            !!raw.plnb_gestart,
