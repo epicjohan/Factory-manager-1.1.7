@@ -175,15 +175,29 @@ export const MkgPlanningWidget: React.FC<Props> = ({
     );
 
     // ── Sync ─────────────────────────────────────────────────────────────────
+    const [syncError, setSyncError] = useState('');
+
     const handleSync = async () => {
         setSyncing(true);
+        setSyncError('');
         try {
             const srv = await db.getServerSettings();
-            const result = await mkgCapaciteitService.syncFromMkg(srv.url || window.location.origin);
+            const pbUrl = srv.url || window.location.origin;
+            console.log('[MkgPlanning] Sync naar PocketBase:', pbUrl);
+
+            const result = await mkgCapaciteitService.syncFromMkg(pbUrl);
+            console.log('[MkgPlanning] Sync resultaat:', result);
+
             if (result.success) {
                 setLastSync(new Date().toLocaleTimeString('nl-NL'));
+                setSyncError('');
                 await load();
+            } else {
+                setSyncError(result.message || 'Sync mislukt');
             }
+        } catch (err) {
+            console.error('[MkgPlanning] Sync fout:', err);
+            setSyncError(String(err));
         } finally {
             setSyncing(false);
         }
@@ -253,6 +267,17 @@ export const MkgPlanningWidget: React.FC<Props> = ({
                 </div>
             </div>
 
+            {/* ── Sync foutmelding ── */}
+            {syncError && (
+                <div className="flex items-center gap-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/50 rounded-2xl px-4 py-3">
+                    <AlertTriangle size={16} className="text-red-500 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                        <p className="text-xs font-black text-red-700 dark:text-red-400">Sync fout</p>
+                        <p className="text-[10px] text-red-500/70 mt-0.5 break-all">{syncError}</p>
+                    </div>
+                    <button onClick={() => setSyncError('')} className="text-red-400 hover:text-red-600 text-lg font-bold shrink-0">×</button>
+                </div>
+            )}
             {/* ── KPI-balk ── */}
             {backlogMin > 0 && (
                 <div className="flex items-center gap-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/50 rounded-2xl px-4 py-3">
