@@ -81,6 +81,59 @@ export interface MkgPlncRecord {
   syncedAt: string;             // Tijdstip van laatste sync
 }
 
+export interface MkgPlnbRecord {
+  id: string;                      // RowKey uit MKG
+  admi_num: number;                // Administratie
+  rsrc_num: number;                // Resource/Machine ID
+  prdh_num: string;                // Productieorder nummer
+  prdr_num: number;                // Halffabricaat
+  bwrk_num: number;                // Bewerkingsnummer
+  plnb_num: number;                // Bewerking planning nummer
+  plnb_oms: string;                // Omschrijving bewerking
+
+  // Planning datums & tijden
+  plnb_dat_start: string;          // Startdatum (bijv. "2026-06-02")
+  plnb_dat_eind: string;           // Einddatum
+  plnb_wk_start: number;           // Week start
+  plnb_wk_eind: number;            // Week eind
+  plnb_tijd_start: number;         // Starttijd (seconden vanaf middernacht)
+  plnb_tijd_eind: number;          // Eindtijd
+
+  // Duur
+  plnb_duur: number;               // Duur in seconden
+  plnb_duur_min: number;           // Berekend: duur in minuten
+  plnb_instel_tijd: number;        // Insteltijd seconden
+  plnb_instel_min: number;         // Berekend: insteltijd minuten
+
+  // Tijd per stuk
+  plnb_tijd_per_stuk: number;      // Actuele tijd per stuk (sec)
+  plnb_plan_tijd_per_stuk: number; // Geplande tijd per stuk (sec)
+
+  // Aantallen & voortgang
+  plnb_aantal: number;             // Te produceren aantal
+  plnb_aantal_grd: number;         // Aantal gereed
+  plnb_start_aantal: number;       // Start aantal
+  plnb_gestart: boolean;           // Is gestart?
+  plnb_gereed: boolean;            // Is gereed?
+  plnb_forecast: boolean;          // Is forecast?
+
+  // Type bewerking
+  plnb_onbemand: boolean;          // Onbemande bewerking?
+  plnb_vast: boolean;              // Vastgezette planning?
+  plnb_uitbesteden: boolean;       // Uitbesteed?
+  cred_num: string;                // Crediteur (bij uitbesteding)
+
+  // Extra info
+  plnb_tijd_besteed: number;       // Reeds bestede tijd (sec)
+  plnb_tijd_besteed_min: number;   // Berekend: bestede tijd minuten
+  plnb_prod_fase: number;          // Productie fase
+  plnb_memo: string;               // Memo/notities
+  plnb_volgorde: number;           // Volgorde
+
+  // Meta
+  syncedAt: string;                // Laatste sync tijdstip
+}
+
 export interface DataSnapshot {
   id: string;
   timestamp: string;
