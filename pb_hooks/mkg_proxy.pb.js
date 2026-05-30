@@ -54,12 +54,13 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
     }
 
     function mkgLogin(cfg) {
-        var loginUrl = cfg.url + MKG_AUTH_PATH;
+        // MKG docs: POST {{authUrl}}/j_spring_security_check?j_username=...&j_password=...
+        // Credentials gaan als query parameters, NIET als form body
+        var loginUrl = cfg.url + MKG_AUTH_PATH
+            + "?j_username=" + encodeURIComponent(cfg.username)
+            + "&j_password=" + encodeURIComponent(cfg.password);
         try {
-            var formBody = "j_username=" + encodeURIComponent(cfg.username)
-                         + "&j_password=" + encodeURIComponent(cfg.password);
-
-            console.log("[MKG Proxy] Login URL: " + loginUrl);
+            console.log("[MKG Proxy] Login URL: " + cfg.url + MKG_AUTH_PATH + "?j_username=" + cfg.username + "&j_password=***");
 
             var loginHeaders = {
                 "Content-Type": "application/x-www-form-urlencoded",
@@ -72,7 +73,6 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
             var res = $http.send({
                 url:     loginUrl,
                 method:  "POST",
-                body:    formBody,
                 headers: loginHeaders,
                 timeout: 15
             });
