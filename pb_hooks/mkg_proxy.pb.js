@@ -251,13 +251,17 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
 
             try {
                 var fieldList = "admi_num,plnc_datum,plnc_week,plnc_maand,plnc_tijd,plnc_tijd_bemand,plnc_forecast,rsrc_num,prdh_num,prdr_num";
-                var filterParts = ["plnc_historisch = false"];
+                var filterParts = [];
                 if (body.rsrcNum)  filterParts.push("rsrc_num = " + body.rsrcNum);
                 if (body.weekFrom) filterParts.push("plnc_week >= " + body.weekFrom);
 
                 var queryParams = "?FieldList=" + encodeURIComponent(fieldList)
-                                + "&Filter="    + encodeURIComponent(filterParts.join(" AND "))
                                 + "&NumRows="   + (body.limit || 500);
+
+                // Voeg Filter alleen toe als er filteronderdelen zijn
+                if (filterParts.length > 0) {
+                    queryParams += "&Filter=" + encodeURIComponent(filterParts.join(" AND "));
+                }
 
                 var plncUrl = cfg.url + MKG_API_BASE + "/Documents/plnc/" + queryParams;
                 console.log("[MKG Proxy] SYNC_PLNC URL: " + plncUrl);
@@ -272,6 +276,12 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
                 console.log("[MKG Proxy] SYNC_PLNC response: " + plncRes.statusCode);
 
                 var plncJson = plncRes.json || null;
+
+                // Debug: log de ruwe response structuur
+                var rawStr = "";
+                try { rawStr = JSON.stringify(plncJson).substring(0, 500); } catch(x) {}
+                console.log("[MKG Proxy] SYNC_PLNC raw: " + rawStr);
+
                 var plncData = extractMkgData(plncJson, "plnc");
 
                 return e.json(200, {
