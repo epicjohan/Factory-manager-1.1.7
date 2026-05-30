@@ -328,7 +328,7 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
 
                 // ── Paginatie: MKG limiteert tot ~1000 rijen per request ──
                 var pageSize = 1000;
-                var maxPages = 10;   // veiligheid: max 10.000 records
+                var maxPages = 50;   // veiligheid: max 50.000 records
                 var allRecords = [];
 
                 for (var page = 0; page < maxPages; page++) {
