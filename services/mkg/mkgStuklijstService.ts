@@ -6,7 +6,7 @@
  */
 
 import { MkgBomData, MkgStlrRecord, MkgStlbRecord } from '../../types/system';
-import { Article, ArticleOperation, ArticleBOMItem, SetupVariant, ArticleStatus, SetupStatus, ArticleAuditEntry } from '../../types/pdm';
+import { Article, ArticleOperation, ArticleBOMItem, SetupVariant, ArticleStatus, SetupStatus, ArticleAuditEntry, PredefinedOperation } from '../../types/pdm';
 import { Machine } from '../../types/machine';
 import { generateId } from '../db/core';
 
@@ -30,6 +30,8 @@ export interface MappedBomResult {
   unknownResources: number[];
   /** Artikelcodes uit de stuklijst die nog niet in PDM bestaan */
   newArticleCodes: string[];
+  /** Nieuwe PredefinedOperations die aangemaakt moeten worden in de catalogus */
+  newPredefinedOps: PredefinedOperation[];
   auditEntry: ArticleAuditEntry;
 }
 
@@ -109,20 +111,24 @@ export const mkgStuklijstService = {
   /**
    * Map MKG BOM data naar PDM-structuren (Article velden, operations, bomItems).
    *
-   * @param bomData       Ruwe MKG BOM data (article + stlrData)
-   * @param machines      Lijst van bekende machines (voor rsrc_num → machineId koppeling)
-   * @param existingArticles  Bestaande PDM artikelen (voor BOM child-lookup)
-   * @param userName      Naam van de gebruiker die de import uitvoert
+   * @param bomData            Ruwe MKG BOM data (article + stlrData)
+   * @param machines           Lijst van bekende machines (voor rsrc_num → machineId koppeling)
+   * @param existingArticles   Bestaande PDM artikelen (voor BOM child-lookup)
+   * @param userName           Naam van de gebruiker die de import uitvoert
+   * @param mkgOperations      Catalogus van bekende bewerkingen (voor code → template koppeling)
    */
   mapToArticle: (
     bomData: MkgBomData,
     machines: Machine[],
     existingArticles: Article[],
     userName: string,
+    mkgOperations?: PredefinedOperation[],
   ): MappedBomResult => {
     const now = getNowISO();
     const unknownResources: number[] = [];
     const newArticleCodes: string[] = [];
+    const newPredefinedOps: PredefinedOperation[] = [];
+    const allMkgOps = [...(mkgOperations || [])];
 
     // ── 1. Artikel basisgegevens ───────────────────────────────────────────
     const { article, stlrData } = bomData;
@@ -137,7 +143,7 @@ export const mkgStuklijstService = {
       if (!stlr.bewerkingen || stlr.bewerkingen.length === 0) continue;
 
       for (const stlb of stlr.bewerkingen) {
-        const operation = mapStlbToOperation(stlb, machines, unknownResources);
+        const operation = mapStlbToOperation(stlb, machines, unknownResources, allMkgOps, newPredefinedOps);
         operations.push(operation);
       }
     }
@@ -183,6 +189,7 @@ export const mkgStuklijstService = {
       bomItems,
       unknownResources: Array.from(new Set(unknownResources)),
       newArticleCodes: Array.from(new Set(newArticleCodes)),
+      newPredefinedOps,
       auditEntry,
     };
   },
@@ -200,6 +207,8 @@ function mapStlbToOperation(
   stlb: MkgStlbRecord,
   machines: Machine[],
   unknownResources: number[],
+  allMkgOps: PredefinedOperation[],
+  newPredefinedOps: PredefinedOperation[],
 ): ArticleOperation {
   const machine = findMachineByRsrcNum(stlb.rsrc_num, machines);
 
@@ -207,16 +216,54 @@ function mapStlbToOperation(
     unknownResources.push(stlb.rsrc_num);
   }
 
+  // Zoek de PredefinedOperation op basis van bwrk_num
+  const bwrkStr = String(stlb.bwrk_num);
+  let predefinedOp = allMkgOps.find(
+    op => op.code === bwrkStr || op.code === bwrkStr.padStart(2, '0')
+  );
+
+  // Onbekende bewerking → automatisch nieuwe PredefinedOperation aanmaken
+  if (!predefinedOp && stlb.bwrk_num > 0) {
+    // Check of we deze al eerder in deze batch hebben aangemaakt
+    const alreadyCreated = newPredefinedOps.find(op => op.code === bwrkStr);
+    if (alreadyCreated) {
+      predefinedOp = alreadyCreated;
+    } else {
+      const newOp: PredefinedOperation = {
+        id: generateId(),
+        code: bwrkStr,
+        name: stlb.stlb_oms || `Bewerking ${bwrkStr}`,
+        category: 'MKG Import',
+        operationType: 'MACHINING',
+        defaultMachineId: machine?.id,
+      };
+      newPredefinedOps.push(newOp);
+      allMkgOps.push(newOp); // Voeg toe zodat volgende stlb records deze ook kunnen vinden
+      predefinedOp = newOp;
+      console.log(`[MkgStuklijst] Nieuwe catalogus bewerking aangemaakt: code=${bwrkStr}, naam="${newOp.name}"`);
+    }
+  }
+
+  if (predefinedOp) {
+    console.log(`[MkgStuklijst] Bewerking ${bwrkStr} gematcht aan catalogus: "${predefinedOp.name}" (${predefinedOp.id})`);
+  }
+
+  // Machine bepalen: eerst PredefinedOperation default, dan MKG rsrc_num match
+  const effectiveMachine = machine || (predefinedOp?.defaultMachineId
+    ? machines.find(m => m.id === predefinedOp.defaultMachineId)
+    : undefined);
+
   // Setup variant aanmaken
   const setupVariant: SetupVariant = {
     id: generateId(),
-    name: machine ? machine.name : `MKG Resource ${stlb.rsrc_num}`,
-    machineId: machine?.id ?? '',
-    status: machine ? SetupStatus.DRAFT : SetupStatus.REVIEW,
+    name: effectiveMachine ? effectiveMachine.name : `MKG Resource ${stlb.rsrc_num}`,
+    machineId: effectiveMachine?.id ?? '',
+    setupTemplateId: predefinedOp?.setupTemplateId || undefined,
+    status: effectiveMachine ? SetupStatus.DRAFT : SetupStatus.REVIEW,
     isDefault: true,
     version: 1,
-    setupTimeMinutes: Math.round((stlb.stlb_instel_tijd / 60) * 100) / 100,  // seconden → minuten
-    cycleTimeMinutes: Math.round((stlb.stlb_tijd_per_stuk / 60) * 100) / 100, // seconden → minuten
+    setupTimeMinutes: Math.round((stlb.stlb_instel_tijd / 60) * 100) / 100,
+    cycleTimeMinutes: Math.round((stlb.stlb_tijd_per_stuk / 60) * 100) / 100,
     steps: [],
     tools: [],
   };
@@ -224,8 +271,8 @@ function mapStlbToOperation(
   const operation: ArticleOperation = {
     id: generateId(),
     order: stlb.stlb_volgorde * 10,
-    description: stlb.stlb_oms || `Bewerking ${stlb.stlb_volgorde}`,
-    mkgOperationCode: String(stlb.bwrk_num),
+    description: predefinedOp?.name || stlb.stlb_oms || `Bewerking ${stlb.stlb_volgorde}`,
+    mkgOperationCode: predefinedOp?.id || undefined,
     setups: [setupVariant],
   };
 

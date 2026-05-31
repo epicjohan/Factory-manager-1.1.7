@@ -46,6 +46,7 @@ export const MkgBomImportModal: React.FC<MkgBomImportModalProps> = ({
 
             const machines = await db.getMachines();
             const articles = await db.getArticles();
+            const mkgOperations = await db.getMkgOperations();
             const userName = getCurrentUserName();
 
             // BOM ophalen uit MKG via proxy
@@ -57,8 +58,8 @@ export const MkgBomImportModal: React.FC<MkgBomImportModalProps> = ({
 
             setBomData(result.bomData);
 
-            // Mappen naar PDM structuur
-            const mappedResult = mkgStuklijstService.mapToArticle(result.bomData, machines, articles, userName);
+            // Mappen naar PDM structuur (incl. catalogus-koppeling)
+            const mappedResult = mkgStuklijstService.mapToArticle(result.bomData, machines, articles, userName, mkgOperations);
             setMapped(mappedResult);
 
             console.log(`[MkgBomImport] Preview geladen: ${mappedResult.operations.length} bewerkingen, ${mappedResult.bomItems.length} BOM items`);
@@ -86,6 +87,19 @@ export const MkgBomImportModal: React.FC<MkgBomImportModalProps> = ({
             const userName = getCurrentUserName();
             const now = getNowISO();
             const existingArticles = await db.getArticles();
+
+            // Stap 0: Maak onbekende bewerkingen aan in de catalogus
+            if (mapped.newPredefinedOps && mapped.newPredefinedOps.length > 0) {
+                for (const newOp of mapped.newPredefinedOps) {
+                    try {
+                        await db.addMkgOperation(newOp);
+                        console.log(`[MkgBomImport] Catalogus bewerking aangemaakt: ${newOp.code} - ${newOp.name}`);
+                    } catch (opErr) {
+                        console.warn(`[MkgBomImport] Catalogus bewerking skip: ${(opErr as Error).message}`);
+                    }
+                }
+                console.log(`[MkgBomImport] ${mapped.newPredefinedOps.length} nieuwe catalogus bewerkingen aangemaakt (template koppeling nog nodig)`);
+            }
 
             // Stap 1: Maak ontbrekende sub-artikelen aan als DRAFT
             const newChildArticles: Article[] = [];
@@ -383,6 +397,27 @@ export const MkgBomImportModal: React.FC<MkgBomImportModalProps> = ({
                                         <p className="text-[10px] text-blue-600 dark:text-blue-300 mt-1">
                                             Deze halffabricaten worden automatisch als DRAFT artikel aangemaakt in Factory Manager.
                                         </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {mapped.newPredefinedOps && mapped.newPredefinedOps.length > 0 && (
+                                <div className="flex items-start gap-3 p-4 bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800/50 rounded-xl">
+                                    <Wrench size={16} className="text-indigo-500 mt-0.5 shrink-0" />
+                                    <div>
+                                        <p className="text-xs font-bold text-indigo-700 dark:text-indigo-400">
+                                            {mapped.newPredefinedOps.length} nieuwe catalogus bewerking{mapped.newPredefinedOps.length > 1 ? 'en' : ''}
+                                        </p>
+                                        <p className="text-[10px] text-indigo-600 dark:text-indigo-300 mt-1">
+                                            Deze worden automatisch aangemaakt in de bewerkingscatalogus. De beheerder moet daarna nog de juiste template koppelen.
+                                        </p>
+                                        <div className="flex flex-wrap gap-1 mt-2">
+                                            {mapped.newPredefinedOps.map(op => (
+                                                <span key={op.id} className="text-[9px] px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded font-mono font-bold">
+                                                    {op.code}: {op.name}
+                                                </span>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                             )}
