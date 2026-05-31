@@ -525,10 +525,147 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
             }
         }
 
+        // ── FETCH_BOM ─────────────────────────────────────────────────────
+        // Haal complete stuklijst op voor een artikel
+        if (body.action === "FETCH_BOM") {
+            console.log("[MKG Proxy] FETCH_BOM voor artikel: " + body.artiCode);
+
+            if (!body.artiCode) {
+                return e.json(200, { success: false, message: "Geen artiCode meegegeven." });
+            }
+
+            var loginResult = mkgLogin(cfg);
+            if (!loginResult.success) {
+                return e.json(200, { success: false, message: loginResult.error });
+            }
+
+            try {
+                // ── Stap 1: Haal artikel op om stlh_num te vinden ──
+                var artiFields = "arti_code,arti_oms_1,arti_oms_2,arti_tekening,arti_stlh_num";
+                var artiFilter = 'arti_code = "' + body.artiCode + '"';
+                var artiUrl = cfg.url + MKG_API_BASE + "/Documents/arti/"
+                    + "?FieldList=" + encodeURIComponent(artiFields)
+                    + "&Filter="    + encodeURIComponent(artiFilter)
+                    + "&NumRows=1";
+
+                console.log("[MKG Proxy] FETCH_BOM stap 1: artikel ophalen");
+                var artiRes = $http.send({
+                    url:     artiUrl,
+                    method:  "GET",
+                    headers: mkgApiHeaders(loginResult.sessionCookie, cfg.apiKey),
+                    timeout: 30
+                });
+
+                var artiData = extractMkgData(artiRes.json, "arti");
+                if (artiData.length === 0) {
+                    return e.json(200, { success: false, message: "Artikel '" + body.artiCode + "' niet gevonden in MKG." });
+                }
+
+                var artikel = artiData[0];
+                var stlhNum = artikel.arti_stlh_num;
+                console.log("[MKG Proxy] Artikel gevonden: " + artikel.arti_code + ", stlh_num=" + stlhNum);
+
+                if (!stlhNum || stlhNum === "" || stlhNum === "0") {
+                    return e.json(200, {
+                        success: true,
+                        article: artikel,
+                        stlrData: [],
+                        message: "Artikel gevonden maar heeft geen stuklijst."
+                    });
+                }
+
+                // ── Stap 2: Haal alle stuklijstregels op ──
+                var stlrFields = "stlh_num,stlr_num,arti_code,stlr_oms_1,stlr_oms_2,stlr_oms_3,stlr_parent,stlr_pos,stlr_aantal,stlr_tekening,stlr_revisie,stlr_volgorde,eenh_code";
+                var stlrFilter = 'stlh_num = "' + stlhNum + '"';
+                var stlrUrl = cfg.url + MKG_API_BASE + "/Documents/stlr/"
+                    + "?FieldList=" + encodeURIComponent(stlrFields)
+                    + "&Filter="    + encodeURIComponent(stlrFilter)
+                    + "&NumRows=200";
+
+                console.log("[MKG Proxy] FETCH_BOM stap 2: stuklijstregels ophalen");
+                var stlrRes = $http.send({
+                    url:     stlrUrl,
+                    method:  "GET",
+                    headers: mkgApiHeaders(loginResult.sessionCookie, cfg.apiKey),
+                    timeout: 30
+                });
+
+                var stlrData = extractMkgData(stlrRes.json, "stlr");
+                console.log("[MKG Proxy] " + stlrData.length + " stuklijstregels gevonden.");
+
+                // ── Stap 3: Per stlr → bewerkingen (stlb) ophalen ──
+                var stlbFields = "stlb_num,stlb_oms,stlb_volgorde,rsrc_num,bwrk_num,stlb_instel_tijd,stlb_tijd_per_stuk,stlb_tijd_mach,stlb_tijd_man,stlb_uitbesteden,stlb_onbemand,stlb_man_per_machine";
+                var admiNum = artikel.admi_num || cfg.admiNum || "1";
+
+                for (var si = 0; si < stlrData.length; si++) {
+                    var stlr = stlrData[si];
+                    try {
+                        // Bewerkingen via verzameling: stlr/{key}/stlr_stlb
+                        var stlbUrl = cfg.url + MKG_API_BASE + "/Documents/stlr/"
+                            + admiNum + "+" + stlhNum + "+" + stlr.stlr_num
+                            + "/stlr_stlb"
+                            + "?FieldList=" + encodeURIComponent(stlbFields)
+                            + "&NumRows=50";
+
+                        var stlbRes = $http.send({
+                            url:     stlbUrl,
+                            method:  "GET",
+                            headers: mkgApiHeaders(loginResult.sessionCookie, cfg.apiKey),
+                            timeout: 15
+                        });
+
+                        stlr.bewerkingen = extractMkgData(stlbRes.json, "stlb");
+                    } catch (stlbErr) {
+                        console.warn("[MKG Proxy] stlb ophalen voor stlr " + stlr.stlr_num + " mislukt: " + String(stlbErr));
+                        stlr.bewerkingen = [];
+                    }
+
+                    try {
+                        // Materialen via verzameling: stlr/{key}/stlr_stlm
+                        var stlmFields = "stlm_num,arti_code,stlm_oms_1,stlm_oms_2,stlm_aantal,stlm_eenh";
+                        var stlmUrl = cfg.url + MKG_API_BASE + "/Documents/stlr/"
+                            + admiNum + "+" + stlhNum + "+" + stlr.stlr_num
+                            + "/stlr_stlm"
+                            + "?FieldList=" + encodeURIComponent(stlmFields)
+                            + "&NumRows=50";
+
+                        var stlmRes = $http.send({
+                            url:     stlmUrl,
+                            method:  "GET",
+                            headers: mkgApiHeaders(loginResult.sessionCookie, cfg.apiKey),
+                            timeout: 15
+                        });
+
+                        stlr.materialen = extractMkgData(stlmRes.json, "stlm");
+                    } catch (stlmErr) {
+                        console.warn("[MKG Proxy] stlm ophalen voor stlr " + stlr.stlr_num + " mislukt: " + String(stlmErr));
+                        stlr.materialen = [];
+                    }
+                }
+
+                // Tel bewerkingen
+                var totalBwrk = 0;
+                for (var ti = 0; ti < stlrData.length; ti++) {
+                    totalBwrk += (stlrData[ti].bewerkingen || []).length;
+                }
+                console.log("[MKG Proxy] FETCH_BOM klaar: " + stlrData.length + " regels, " + totalBwrk + " bewerkingen.");
+
+                return e.json(200, {
+                    success:   true,
+                    article:   artikel,
+                    stlrData:  stlrData,
+                    message:   stlrData.length + " stuklijstregels, " + totalBwrk + " bewerkingen."
+                });
+            } catch (bomErr) {
+                console.error("[MKG Proxy] FETCH_BOM fout: " + String(bomErr));
+                return e.json(200, { success: false, message: "BOM ophalen mislukt: " + String(bomErr) });
+            }
+        }
+
         // ── Onbekende actie ───────────────────────────────────────────────
         return e.json(400, {
             success: false,
-            message: "Onbekende actie '" + body.action + "'. Ondersteund: PING, REQUEST, SYNC_PLNC, SYNC_PLNB, FETCH_ARTI."
+            message: "Onbekende actie '" + body.action + "'. Ondersteund: PING, REQUEST, SYNC_PLNC, SYNC_PLNB, FETCH_ARTI, FETCH_BOM."
         });
 
     } catch (fatalErr) {

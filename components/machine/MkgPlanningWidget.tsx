@@ -8,6 +8,7 @@ import { RefreshCw, ChevronDown, ChevronRight, AlertTriangle, Clock, Wrench, Use
 import { MkgPlnbRecord } from '../../types';
 import { mkgCapaciteitService } from '../../services/mkg/mkgCapaciteitService';
 import { db } from '../../services/storage';
+import { MkgBomImportModal } from './MkgBomImportModal';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 interface Props {
@@ -73,6 +74,10 @@ export const MkgPlanningWidget: React.FC<Props> = ({
     const [syncError, setSyncError] = useState('');
     const [lastSync, setLastSync] = useState('');
     const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(new Set());
+
+    // ── Import modal state ────────────────────────────────────────────────
+    const [importModalOpen, setImportModalOpen] = useState(false);
+    const [importArtiCode, setImportArtiCode] = useState('');
 
     const now = currentWeekNum();
     const capacityMin = capacityHoursPerWeek * 60;
@@ -169,6 +174,23 @@ export const MkgPlanningWidget: React.FC<Props> = ({
             return next;
         });
     };
+
+    // ── Artikel klik — check of het bestaat in FM ─────────────────────────
+    const handleArticleClick = useCallback(async (artiCode: string) => {
+        if (!artiCode) return;
+        const articles = await db.getArticles();
+        const exists = articles.find(
+            a => a.articleCode.toLowerCase() === artiCode.toLowerCase()
+        );
+        if (exists) {
+            // Artikel bestaat al — TODO: navigeer naar PDM
+            alert(`Artikel "${artiCode}" bestaat al in Factory Manager (revisie ${exists.revision}).`);
+        } else {
+            // Artikel onbekend — open import modal
+            setImportArtiCode(artiCode);
+            setImportModalOpen(true);
+        }
+    }, []);
 
     // ── Max duur voor bar scaling ──────────────────────────────────────────
     const maxDuurMin = useMemo(() =>
@@ -349,9 +371,17 @@ export const MkgPlanningWidget: React.FC<Props> = ({
                                                             </span>
                                                         </td>
                                                         <td className="px-3 py-2">
-                                                            <span className="font-mono text-[11px] text-indigo-600 dark:text-indigo-400 font-bold">
-                                                                {r.arti_code || '—'}
-                                                            </span>
+                                                            {r.arti_code ? (
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); handleArticleClick(r.arti_code); }}
+                                                                    className="font-mono text-[11px] text-indigo-600 dark:text-indigo-400 font-bold hover:text-indigo-800 dark:hover:text-indigo-200 hover:underline transition-colors cursor-pointer"
+                                                                    title={`Klik om artikel ${r.arti_code} te openen of importeren`}
+                                                                >
+                                                                    {r.arti_code}
+                                                                </button>
+                                                            ) : (
+                                                                <span className="font-mono text-[11px] text-slate-400">—</span>
+                                                            )}
                                                         </td>
                                                         <td className="px-3 py-2">
                                                             <span className="text-[11px] text-slate-600 dark:text-slate-300 font-mono">
@@ -414,6 +444,17 @@ export const MkgPlanningWidget: React.FC<Props> = ({
                     </div>
                 );
             })}
+
+            {/* ── Import Modal ── */}
+            <MkgBomImportModal
+                isOpen={importModalOpen}
+                onClose={() => setImportModalOpen(false)}
+                artiCode={importArtiCode}
+                onImportComplete={() => {
+                    setImportModalOpen(false);
+                    load(); // Herlaad data
+                }}
+            />
         </div>
     );
 };
