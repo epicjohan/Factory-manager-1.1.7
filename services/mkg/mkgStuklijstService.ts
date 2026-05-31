@@ -47,6 +47,57 @@ const findMachineByRsrcNum = (rsrcNum: number, machines: Machine[]): Machine | u
   return machines.find(m => m.mkgResourceCode === rsrcNum);
 };
 
+/**
+ * Zoek een PredefinedOperation via meerdere match-strategieën:
+ * 1. Exacte code match op bwrk_num
+ * 2. Exacte code match op rsrc_num  
+ * 3. Numerieke vergelijking (code "500" === bwrk_num 500)
+ * 4. Machine-gekoppelde operatie (defaultMachineId === gevonden machine)
+ */
+const findPredefinedOp = (
+  ops: PredefinedOperation[],
+  bwrkStr: string,
+  rsrcStr: string,
+  machine: Machine | undefined,
+): PredefinedOperation | undefined => {
+  // 1. Exacte code match op bwrk_num
+  let match = ops.find(op => op.code === bwrkStr);
+  if (match) return match;
+
+  // 2. Exacte code match op rsrc_num (processtappen gebruiken rsrc_num als code)
+  match = ops.find(op => op.code === rsrcStr);
+  if (match) return match;
+
+  // 3. Numerieke vergelijking (voor "500" === "0500" etc.)
+  const bwrkNum = Number(bwrkStr);
+  const rsrcNum = Number(rsrcStr);
+  if (bwrkNum > 0) {
+    match = ops.find(op => Number(op.code) === bwrkNum);
+    if (match) return match;
+  }
+  if (rsrcNum > 0) {
+    match = ops.find(op => Number(op.code) === rsrcNum);
+    if (match) return match;
+  }
+
+  // 4. Case-insensitive code match
+  const bwrkLower = bwrkStr.toLowerCase().trim();
+  const rsrcLower = rsrcStr.toLowerCase().trim();
+  match = ops.find(op => {
+    const codeLower = op.code.toLowerCase().trim();
+    return codeLower === bwrkLower || codeLower === rsrcLower;
+  });
+  if (match) return match;
+
+  // 5. Machine-gekoppelde operatie (als machine gevonden is, zoek catalogus entry met die machine)
+  if (machine) {
+    match = ops.find(op => op.defaultMachineId === machine.id);
+    if (match) return match;
+  }
+
+  return undefined;
+};
+
 // ─── Service ───────────────────────────────────────────────────────────────────
 
 export const mkgStuklijstService = {
@@ -216,36 +267,40 @@ function mapStlbToOperation(
     unknownResources.push(stlb.rsrc_num);
   }
 
-  // Zoek de PredefinedOperation op basis van bwrk_num
+  // Zoek de PredefinedOperation — meerdere match-strategieën
   const bwrkStr = String(stlb.bwrk_num);
-  let predefinedOp = allMkgOps.find(
-    op => op.code === bwrkStr || op.code === bwrkStr.padStart(2, '0')
-  );
+  const rsrcStr = String(stlb.rsrc_num);
+
+  let predefinedOp = findPredefinedOp(allMkgOps, bwrkStr, rsrcStr, machine);
+
+  if (predefinedOp) {
+    console.log(`[MkgStuklijst] Bewerking bwrk=${bwrkStr} rsrc=${rsrcStr} gematcht aan catalogus: "${predefinedOp.name}" (${predefinedOp.id})`);
+  }
 
   // Onbekende bewerking → automatisch nieuwe PredefinedOperation aanmaken
-  if (!predefinedOp && stlb.bwrk_num > 0) {
-    // Check of we deze al eerder in deze batch hebben aangemaakt
-    const alreadyCreated = newPredefinedOps.find(op => op.code === bwrkStr);
+  if (!predefinedOp && (stlb.bwrk_num > 0 || stlb.rsrc_num > 0)) {
+    // Check of we deze al eerder in deze batch hebben aangemaakt (op bwrk_num of rsrc_num)
+    const alreadyCreated = newPredefinedOps.find(
+      op => op.code === bwrkStr || op.code === rsrcStr
+    );
     if (alreadyCreated) {
       predefinedOp = alreadyCreated;
     } else {
+      // Bepaal of dit een proces of machine bewerking is
+      const isProcess = !machine && stlb.rsrc_num > 0;
       const newOp: PredefinedOperation = {
         id: generateId(),
-        code: bwrkStr,
+        code: bwrkStr !== '0' ? bwrkStr : rsrcStr,
         name: stlb.stlb_oms || `Bewerking ${bwrkStr}`,
         category: 'MKG Import',
-        operationType: 'MACHINING',
+        operationType: isProcess ? 'PROCESS' : 'MACHINING',
         defaultMachineId: machine?.id,
       };
       newPredefinedOps.push(newOp);
-      allMkgOps.push(newOp); // Voeg toe zodat volgende stlb records deze ook kunnen vinden
+      allMkgOps.push(newOp);
       predefinedOp = newOp;
-      console.log(`[MkgStuklijst] Nieuwe catalogus bewerking aangemaakt: code=${bwrkStr}, naam="${newOp.name}"`);
+      console.log(`[MkgStuklijst] Nieuwe catalogus bewerking aangemaakt: code=${newOp.code}, type=${newOp.operationType}, naam="${newOp.name}"`);
     }
-  }
-
-  if (predefinedOp) {
-    console.log(`[MkgStuklijst] Bewerking ${bwrkStr} gematcht aan catalogus: "${predefinedOp.name}" (${predefinedOp.id})`);
   }
 
   // Machine bepalen: eerst PredefinedOperation default, dan MKG rsrc_num match
