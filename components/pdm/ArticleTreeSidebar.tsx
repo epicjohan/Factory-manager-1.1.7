@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Article, ArticleStatus, SetupStatus } from '../../types';
 import {
     ChevronRight, ChevronDown, FileText, Monitor, Box,
-    Plus, MessageSquare
+    Plus, MessageSquare, ArrowUp, ArrowDown
 } from '../../icons';
 
 interface ArticleTreeSidebarProps {
@@ -12,14 +12,20 @@ interface ArticleTreeSidebarProps {
     onSelect: (type: 'ARTICLE' | 'OPERATION' | 'SETUP', id: string, parentId?: string) => void;
     onAddOperation: () => void;
     onOpenNotes: (opId: string) => void;
+    onReorderOperation?: (opId: string, newOrder: number) => void;
+    onSwapOperations?: (opId: string, direction: 'up' | 'down') => void;
     isLocked: boolean;
     canAddOperation?: boolean;
 }
 
 export const ArticleTreeSidebar: React.FC<ArticleTreeSidebarProps> = ({
-    article, selectedId, onSelect, onAddOperation, onOpenNotes, isLocked, canAddOperation = false
+    article, selectedId, onSelect, onAddOperation, onOpenNotes,
+    onReorderOperation, onSwapOperations,
+    isLocked, canAddOperation = false
 }) => {
     const [expandedIds, setExpandedIds] = useState<string[]>([article.id]);
+    const [editingOrderOpId, setEditingOrderOpId] = useState<string | null>(null);
+    const [editOrderValue, setEditOrderValue] = useState('');
 
     const toggleExpand = (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -30,6 +36,30 @@ export const ArticleTreeSidebar: React.FC<ArticleTreeSidebarProps> = ({
 
     const isExpanded = (id: string) => expandedIds.includes(id);
     const isSelected = (id: string) => selectedId === id;
+
+    const sortedOps = [...article.operations].sort((a, b) => a.order - b.order);
+
+    const startEditOrder = (opId: string, currentOrder: number, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (isLocked) return;
+        setEditingOrderOpId(opId);
+        setEditOrderValue(String(currentOrder));
+    };
+
+    const commitEditOrder = () => {
+        if (editingOrderOpId && onReorderOperation) {
+            const newOrder = parseInt(editOrderValue, 10);
+            if (!isNaN(newOrder) && newOrder > 0) {
+                onReorderOperation(editingOrderOpId, newOrder);
+            }
+        }
+        setEditingOrderOpId(null);
+    };
+
+    const handleSwap = (opId: string, direction: 'up' | 'down', e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (onSwapOperations) onSwapOperations(opId, direction);
+    };
 
     const StatusDot = ({ status }: { status?: string }) => {
         let color = 'bg-slate-300';
@@ -72,21 +102,67 @@ export const ArticleTreeSidebar: React.FC<ArticleTreeSidebarProps> = ({
                 {/* CHILDREN: OPERATIONS */}
                 {isExpanded(article.id) && (
                     <div className="ml-4 pl-2 border-l border-slate-200 dark:border-slate-700 space-y-1 mt-1">
-                        {article.operations.sort((a, b) => a.order - b.order).map(op => (
+                        {sortedOps.map((op, opIndex) => (
                             <div key={op.id}>
                                 <div
                                     onClick={() => onSelect('OPERATION', op.id)}
-                                    className={`flex items-center gap-2 p-2 rounded-[2rem] cursor-pointer transition-all border group ${isSelected(op.id) ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800' : 'border-transparent hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
+                                    className={`flex items-center gap-1.5 p-2 rounded-[2rem] cursor-pointer transition-all border group ${isSelected(op.id) ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800' : 'border-transparent hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
                                 >
-                                    <button onClick={(e) => toggleExpand(op.id, e)} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 rounded">
+                                    <button onClick={(e) => toggleExpand(op.id, e)} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 rounded shrink-0">
                                         {isExpanded(op.id) ? <ChevronDown size={14} className="text-slate-400" /> : <ChevronRight size={14} className="text-slate-400" />}
                                     </button>
-                                    <div className="flex items-center justify-center w-5 h-5 rounded bg-slate-100 dark:bg-slate-800 text-[9px] font-black text-slate-500">
-                                        {op.order}
-                                    </div>
+
+                                    {/* ORDER BADGE — editable on click */}
+                                    {editingOrderOpId === op.id ? (
+                                        <input
+                                            type="number"
+                                            autoFocus
+                                            className="w-10 h-5 text-center text-[9px] font-black rounded bg-white dark:bg-slate-900 border-2 border-blue-400 outline-none text-blue-600 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                            value={editOrderValue}
+                                            onChange={e => setEditOrderValue(e.target.value)}
+                                            onBlur={commitEditOrder}
+                                            onKeyDown={e => { if (e.key === 'Enter') commitEditOrder(); if (e.key === 'Escape') setEditingOrderOpId(null); }}
+                                            onClick={e => e.stopPropagation()}
+                                        />
+                                    ) : (
+                                        <div
+                                            onClick={(e) => startEditOrder(op.id, op.order, e)}
+                                            className={`flex items-center justify-center min-w-[24px] h-5 px-1 rounded text-[9px] font-black shrink-0 transition-all ${
+                                                isLocked
+                                                    ? 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-blue-100 hover:text-blue-600 dark:hover:bg-blue-900/30 dark:hover:text-blue-400 cursor-text'
+                                            }`}
+                                            title={isLocked ? `Volgorde: ${op.order}` : `Klik om volgorde ${op.order} aan te passen`}
+                                        >
+                                            {op.order}
+                                        </div>
+                                    )}
+
                                     <span className={`text-xs font-bold truncate flex-1 ${isSelected(op.id) ? 'text-orange-700 dark:text-orange-300' : 'text-slate-700 dark:text-slate-300'}`}>
                                         {op.description || 'Bewerking'}
                                     </span>
+
+                                    {/* Up/Down arrows — visible on hover, not when locked */}
+                                    {!isLocked && onSwapOperations && (
+                                        <div className="opacity-0 group-hover:opacity-100 flex gap-0.5 transition-opacity shrink-0">
+                                            <button
+                                                onClick={(e) => handleSwap(op.id, 'up', e)}
+                                                disabled={opIndex === 0}
+                                                className="p-0.5 rounded hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-400 hover:text-slate-700 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                                                title="Omhoog"
+                                            >
+                                                <ArrowUp size={12} />
+                                            </button>
+                                            <button
+                                                onClick={(e) => handleSwap(op.id, 'down', e)}
+                                                disabled={opIndex === sortedOps.length - 1}
+                                                className="p-0.5 rounded hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-400 hover:text-slate-700 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                                                title="Omlaag"
+                                            >
+                                                <ArrowDown size={12} />
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* GRANDCHILDREN: SETUPS */}

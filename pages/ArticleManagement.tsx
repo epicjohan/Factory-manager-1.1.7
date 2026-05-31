@@ -346,6 +346,8 @@ export const ArticleManagement: React.FC = () => {
                                 onSelect={handleTreeSelect}
                                 onAddOperation={() => { if (actions.canAddOperation) setShowAddOpModal(true); }}
                                 onOpenNotes={(opId) => setNotesModal({ isOpen: true, opId })}
+                                onReorderOperation={actions.handleReorderOperation}
+                                onSwapOperations={actions.handleSwapOperations}
                                 isLocked={actions.isLocked}
                                 canAddOperation={actions.canAddOperation}
                             />
