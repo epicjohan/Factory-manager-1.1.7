@@ -177,7 +177,7 @@ export const SupportDashboard: React.FC = () => {
     );
 
     return (
-        <div className="max-w-6xl mx-auto pb-20 space-y-8 text-left">
+        <div className="px-6 pb-20 space-y-8 text-left">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 bg-white dark:bg-slate-800 p-8 rounded-[3rem] border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-8 opacity-5">
                     <Megaphone size={160} />

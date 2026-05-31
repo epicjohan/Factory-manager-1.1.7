@@ -24,7 +24,7 @@ export const AdminDashboard: React.FC = () => {
   );
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 pb-20">
+    <div className="px-6 space-y-8 pb-20">
       <div className="flex justify-between items-end">
         <div>
             <h2 className="text-3xl font-bold text-slate-900 dark:text-white">Admin Dashboard</h2>

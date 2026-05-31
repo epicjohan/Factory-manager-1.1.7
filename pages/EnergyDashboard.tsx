@@ -8,7 +8,7 @@ export const EnergyDashboard: React.FC = () => {
     const [activeView, setActiveView] = useState<'SITE' | 'ASSETS'>('SITE');
 
     return (
-        <div className="max-w-7xl mx-auto pb-20 text-left">
+        <div className="px-6 pb-20 text-left">
             <div className="flex justify-center mb-8">
                 <div className="bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700 inline-flex shadow-sm">
                     <button 

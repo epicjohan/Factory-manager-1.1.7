@@ -325,7 +325,7 @@ export const ProductionDashboard: React.FC = () => {
             {noJobView ? (
             <div className="w-full h-full p-8 flex flex-col items-center custom-scrollbar overflow-y-auto">
                 {/* Header for No Job State */}
-                <div className="w-full max-w-5xl flex justify-between items-center mb-10">
+                <div className="w-full flex justify-between items-center mb-10">
                     <button onClick={() => navigate(`/machine/${id}`)} className="p-3 bg-white hover:bg-slate-100 border border-slate-200 rounded-2xl text-slate-500 transition-colors flex items-center gap-2 shadow-sm">
                         <ArrowLeft size={20} /> <span className="font-bold text-sm tracking-widest uppercase text-slate-600">Machine Overzicht</span>
                     </button>
@@ -354,7 +354,7 @@ export const ProductionDashboard: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-20">
+                <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-20">
                     {availableJobs.map((opt, idx) => (
                         <div key={idx} className="bg-white p-6 rounded-[2rem] border border-slate-200 hover:border-blue-500 transition-all group shadow-sm flex flex-col cursor-pointer hover:shadow-md" onClick={(e) => handleStartJob(e, opt)}>
                             <div className="flex flex-col gap-2 mb-6 pointer-events-none w-full">

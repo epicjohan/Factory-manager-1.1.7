@@ -74,7 +74,7 @@ export const QuestionsDashboard: React.FC = () => {
     const displayList = viewMode === 'PENDING' ? pendingRequests : historyRequests;
 
     return (
-        <div className="max-w-5xl mx-auto space-y-8 pb-20 text-left animate-in fade-in duration-500">
+        <div className="px-6 space-y-8 pb-20 text-left animate-in fade-in duration-500">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
                 <div>
                     <h2 className="text-4xl font-black text-slate-900 dark:text-white flex items-center gap-4 uppercase italic tracking-tighter">

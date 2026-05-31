@@ -48,7 +48,7 @@ export const SystemUpdate: React.FC = () => {
     };
 
     return (
-        <div className="max-w-4xl mx-auto space-y-8 pb-20 text-left">
+        <div className="px-6 space-y-8 pb-20 text-left">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                 <div>
                     <button onClick={() => navigate('/admin')} className="flex items-center gap-2 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 mb-4 transition-colors">

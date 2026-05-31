@@ -40,7 +40,7 @@ export const Settings: React.FC = () => {
   ];
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 pb-20 text-left">
+    <div className="px-6 space-y-6 pb-20 text-left">
       <div className="flex justify-between items-center gap-4">
         <div>
           <button onClick={() => navigate('/admin')} className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-blue-500 dark:text-slate-400 dark:hover:text-blue-400 mb-2 transition-colors">
