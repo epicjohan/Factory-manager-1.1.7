@@ -141,7 +141,7 @@ export const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, isLocked,
                 </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-8 max-w-5xl">
+            <form onSubmit={handleSubmit} className="space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-slate-50 dark:bg-slate-900/50 p-8 rounded-[2rem] border dark:border-slate-700 shadow-sm relative overflow-hidden">
                     {isReadOnly && <div className="absolute top-0 right-0 p-4 opacity-10"><Lock size={120} /></div>}
 

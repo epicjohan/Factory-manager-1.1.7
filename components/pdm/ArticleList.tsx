@@ -207,7 +207,7 @@ export const ArticleList: React.FC<ArticleListProps> = ({
     }, [selectedIds, articles, confirm, addNotification, onRefresh]);
 
     return (
-        <div className="max-w-7xl mx-auto pb-20 text-left animate-in fade-in duration-300">
+        <div className="px-6 pb-20 text-left animate-in fade-in duration-300">
 
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
