@@ -389,11 +389,63 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
 
                 console.log("[MKG Proxy] SYNC_PLNB totaal: " + allRecords.length + " records in " + (page + 1) + " pagina's.");
 
+                // ── Artikelgegevens ophalen voor unieke arti_codes ──
+                var artiMap = {};
+                try {
+                    // Verzamel unieke arti_codes uit plnb records
+                    var uniqueCodes = {};
+                    for (var ri = 0; ri < allRecords.length; ri++) {
+                        var code = allRecords[ri].arti_code;
+                        if (code && code !== "") uniqueCodes[code] = true;
+                    }
+                    var codeKeys = [];
+                    for (var k in uniqueCodes) codeKeys.push(k);
+                    
+                    if (codeKeys.length > 0) {
+                        console.log("[MKG Proxy] Ophalen artikeldata voor " + codeKeys.length + " unieke codes...");
+                        
+                        var artiFields = "arti_code,arti_oms_1,arti_oms_2,arti_tekening";
+                        var codeFilters = [];
+                        for (var aci = 0; aci < codeKeys.length; aci++) {
+                            codeFilters.push('arti_code = "' + codeKeys[aci] + '"');
+                        }
+                        var artiFilter = codeFilters.join(" OR ");
+                        
+                        var artiParams = "?FieldList=" + encodeURIComponent(artiFields)
+                                       + "&Filter="    + encodeURIComponent(artiFilter)
+                                       + "&NumRows="   + codeKeys.length;
+                        
+                        var artiUrl = cfg.url + MKG_API_BASE + "/Documents/arti/" + artiParams;
+                        var artiRes = $http.send({
+                            url:     artiUrl,
+                            method:  "GET",
+                            headers: mkgApiHeaders(loginResult.sessionCookie, cfg.apiKey),
+                            timeout: 30
+                        });
+                        
+                        var artiData = extractMkgData(artiRes.json, "arti");
+                        console.log("[MKG Proxy] Artikeldata: " + artiData.length + " artikelen opgehaald.");
+                        
+                        // Bouw lookup map
+                        for (var ai = 0; ai < artiData.length; ai++) {
+                            var a = artiData[ai];
+                            artiMap[a.arti_code] = {
+                                arti_oms_1:   a.arti_oms_1 || "",
+                                arti_oms_2:   a.arti_oms_2 || "",
+                                arti_tekening: a.arti_tekening || ""
+                            };
+                        }
+                    }
+                } catch (artiErr) {
+                    console.warn("[MKG Proxy] Artikeldata ophalen mislukt (niet fataal): " + String(artiErr));
+                }
+
                 return e.json(200, {
                     success:     true,
                     statusCode:  200,
                     message:     "plnb opgehaald: " + allRecords.length + " records (" + (page + 1) + " pagina's)",
                     data:        allRecords,
+                    artiMap:     artiMap,
                     pages:       page + 1
                 });
             } catch (plnbErr) {
