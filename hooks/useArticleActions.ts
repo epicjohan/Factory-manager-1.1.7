@@ -16,7 +16,7 @@ import { useAuth } from '../contexts/AuthContext';
 import {
     Article, ArticleStatus, ArticleFile, ArticleOperation, Permission,
     SetupVariant, SetupStatus, SetupVerificationStatus, SetupChangeEntry,
-    Machine, PredefinedOperation, SetupTemplate, OperationNote, FileRole
+    Machine, PredefinedOperation, SetupTemplate, OperationNote, FileRole, UserRole
 } from '../types';
 
 interface UseArticleActionsProps {
@@ -329,6 +329,32 @@ export const useArticleActions = ({
         }
     };
 
+    // --- DELETE (ADMIN ONLY, DRAFT ONLY) ---
+
+    const handleDeleteArticle = async (): Promise<boolean> => {
+        if (!editingArticle) return false;
+        if (editingArticle.status !== ArticleStatus.DRAFT) {
+            addNotification('WARNING', 'Niet toegestaan', 'Alleen artikelen met status DRAFT kunnen verwijderd worden.');
+            return false;
+        }
+        if (user?.role !== UserRole.ADMIN) {
+            addNotification('WARNING', 'Geen rechten', 'Alleen een Administrator kan artikelen verwijderen.');
+            return false;
+        }
+        const ok = await confirm({
+            title: 'Artikel permanent verwijderen',
+            message: `Weet je zeker dat je artikel "${editingArticle.articleCode}" permanent wilt verwijderen? Dit kan niet ongedaan worden gemaakt.`
+        });
+        if (ok) {
+            await articleService.deleteArticle(editingArticle.id);
+            setEditingArticle(null);
+            refreshArticles();
+            addNotification('SUCCESS', 'Verwijderd', `Artikel "${editingArticle.articleCode}" is permanent verwijderd.`);
+            return true;
+        }
+        return false;
+    };
+
     // --- NOTES ---
 
     const handleAddNote = async (opId: string, note: OperationNote) => {
@@ -383,6 +409,7 @@ export const useArticleActions = ({
         handleCreateSetupRevision,
         confirmDuplicateSetup,
         handleArchiveArticle,
+        handleDeleteArticle,
         handleAddNote,
         handleUpdateNote,
         handleChangeStatus,
