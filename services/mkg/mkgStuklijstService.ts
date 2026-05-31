@@ -8,6 +8,7 @@
 import { MkgBomData, MkgStlrRecord, MkgStlbRecord } from '../../types/system';
 import { Article, ArticleOperation, ArticleBOMItem, SetupVariant, ArticleStatus, SetupStatus, ArticleAuditEntry } from '../../types/pdm';
 import { Machine } from '../../types/machine';
+import { generateId } from '../db/core';
 
 // ─── Result Types ──────────────────────────────────────────────────────────────
 
@@ -167,7 +168,7 @@ export const mkgStuklijstService = {
 
     // ── 5. Audit entry ────────────────────────────────────────────────────
     const auditEntry: ArticleAuditEntry = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       timestamp: now,
       user: userName,
       action: `MKG stuklijst geïmporteerd (${operations.length} bewerkingen, ${bomItems.length} BOM-items)`,
@@ -208,7 +209,7 @@ function mapStlbToOperation(
 
   // Setup variant aanmaken
   const setupVariant: SetupVariant = {
-    id: crypto.randomUUID(),
+    id: generateId(),
     name: machine ? machine.name : `MKG Resource ${stlb.rsrc_num}`,
     machineId: machine?.id ?? '',
     status: machine ? SetupStatus.DRAFT : SetupStatus.REVIEW,
@@ -221,7 +222,7 @@ function mapStlbToOperation(
   };
 
   const operation: ArticleOperation = {
-    id: crypto.randomUUID(),
+    id: generateId(),
     order: stlb.stlb_volgorde * 10,
     description: stlb.stlb_oms || `Bewerking ${stlb.stlb_volgorde}`,
     mkgOperationCode: String(stlb.bwrk_num),
@@ -248,7 +249,7 @@ function mapStlrToBomItem(
   }
 
   const bomItem: ArticleBOMItem = {
-    id: crypto.randomUUID(),
+    id: generateId(),
     childArticleId: existingArticle?.id ?? '',
     childArticleName: stlr.stlr_oms_1 || undefined,
     childArticleCode: stlr.arti_code,
