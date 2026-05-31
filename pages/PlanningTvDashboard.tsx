@@ -190,7 +190,7 @@ export const PlanningTvDashboard: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="fixed inset-0 bg-[#020617] flex items-center justify-center">
+            <div className="fixed inset-0 z-50 bg-[#020617] flex items-center justify-center">
                 <div className="text-center">
                     <Loader2 size={48} className="text-blue-500 animate-spin mx-auto mb-4" />
                     <p className="text-slate-400 text-xl font-bold">Planning laden...</p>
@@ -201,7 +201,7 @@ export const PlanningTvDashboard: React.FC = () => {
 
     if (error || !group) {
         return (
-            <div className="fixed inset-0 bg-[#020617] flex items-center justify-center">
+            <div className="fixed inset-0 z-50 bg-[#020617] flex items-center justify-center">
                 <div className="text-center">
                     <AlertTriangle size={48} className="text-amber-500 mx-auto mb-4" />
                     <p className="text-white text-2xl font-bold mb-2">{error || 'Groep niet gevonden'}</p>
@@ -213,7 +213,7 @@ export const PlanningTvDashboard: React.FC = () => {
 
     if (machines.length === 0) {
         return (
-            <div className="fixed inset-0 bg-[#020617] flex items-center justify-center">
+            <div className="fixed inset-0 z-50 bg-[#020617] flex items-center justify-center">
                 <div className="text-center">
                     <Monitor size={48} className="text-slate-600 mx-auto mb-4" />
                     <p className="text-white text-2xl font-bold mb-2">Geen machines geconfigureerd</p>
@@ -224,7 +224,7 @@ export const PlanningTvDashboard: React.FC = () => {
     }
 
     return (
-        <div ref={containerRef} className="fixed inset-0 bg-[#020617] text-white flex flex-col select-none overflow-hidden">
+        <div ref={containerRef} className="fixed inset-0 z-50 bg-[#020617] text-white flex flex-col select-none overflow-hidden">
 
             {/* ── HEADER ── */}
             <header className="flex items-center justify-between px-8 py-4 border-b border-slate-800/80 shrink-0">
@@ -239,7 +239,7 @@ export const PlanningTvDashboard: React.FC = () => {
                 </div>
 
                 <div className="text-center">
-                    <h2 className="text-xl font-black uppercase tracking-[0.2em] text-slate-300">{group.name}</h2>
+                    <h2 className="text-3xl font-black uppercase tracking-[0.2em] text-slate-300">{group.name}</h2>
                 </div>
 
                 <div className="flex items-center gap-6">
