@@ -199,6 +199,17 @@ export interface MkgBomData {
   stlrData: MkgStlrRecord[];
 }
 
+// ─── TV Planning Dashboard Groepen ─────────────────────────────────────────────
+export interface PlanningTvGroup {
+  id: string;
+  name: string;                    // "Freesafdeling"
+  machineIds: string[];            // FM machine IDs in de groep
+  scrollIntervalSeconds: number;   // Auto-scroll interval (default 15)
+  autoFullscreen: boolean;         // Auto-fullscreen bij laden
+  created: string;
+  createdBy: string;
+}
+
 export interface DataSnapshot {
   id: string;
   timestamp: string;
@@ -274,4 +285,5 @@ export interface AppState {
   materialCategories?: MaterialCategory[];
   storageLocations?: StorageLocation[];
   mkgPlncRecords?: MkgPlncRecord[];
+  planningTvGroups?: PlanningTvGroup[];
 }
