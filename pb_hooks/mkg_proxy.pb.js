@@ -144,7 +144,7 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
         var body = {
             action: "", endpoint: "", method: "GET",
             requestBody: null, rsrcNum: null, weekFrom: null,
-            limit: null, admiNum: null
+            limit: null, admiNum: null, artiCode: null, codesStr: null
         };
 
         try {
@@ -159,6 +159,8 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
                 if (parsed.weekFrom    != null) body.weekFrom    = parsed.weekFrom;
                 if (parsed.limit       != null) body.limit       = parsed.limit;
                 if (parsed.admiNum     != null) body.admiNum     = parsed.admiNum;
+                if (parsed.artiCode    != null) body.artiCode    = String(parsed.artiCode);
+                if (parsed.codesStr    != null) body.codesStr    = String(parsed.codesStr);
             }
         } catch (bodyErr) {
             return e.json(400, { success: false, message: "Ongeldige JSON body: " + String(bodyErr) });
