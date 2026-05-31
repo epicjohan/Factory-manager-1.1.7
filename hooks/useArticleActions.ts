@@ -203,6 +203,39 @@ export const useArticleActions = ({
         return { opId: newOpId, setupId: newSetupId };
     };
 
+    // --- REORDER OPERATIONS ---
+
+    const handleReorderOperation = (opId: string, newOrder: number) => {
+        updateCurrentArticle(art => ({
+            ...art,
+            operations: art.operations.map(op =>
+                op.id === opId ? { ...op, order: newOrder } : op
+            )
+        }), `Volgorde bewerking gewijzigd naar ${newOrder}.`);
+    };
+
+    const handleSwapOperations = (opId: string, direction: 'up' | 'down') => {
+        if (!editingArticle) return;
+        const sorted = [...editingArticle.operations].sort((a, b) => a.order - b.order);
+        const idx = sorted.findIndex(op => op.id === opId);
+        if (idx === -1) return;
+        const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+        if (swapIdx < 0 || swapIdx >= sorted.length) return;
+
+        const currentOp = sorted[idx];
+        const swapOp = sorted[swapIdx];
+        const tempOrder = currentOp.order;
+
+        updateCurrentArticle(art => ({
+            ...art,
+            operations: art.operations.map(op => {
+                if (op.id === currentOp.id) return { ...op, order: swapOp.order };
+                if (op.id === swapOp.id) return { ...op, order: tempOrder };
+                return op;
+            })
+        }), `Bewerking ${currentOp.order} ↔ ${swapOp.order} verwisseld.`);
+    };
+
     // --- REVISIONS ---
 
     const handleArticleRevision = async (reason: string) => {
@@ -405,6 +438,8 @@ export const useArticleActions = ({
         handleSetDefaultSetup,
         handleDeleteSetup,
         confirmAddOperation,
+        handleReorderOperation,
+        handleSwapOperations,
         handleArticleRevision,
         handleCreateSetupRevision,
         confirmDuplicateSetup,

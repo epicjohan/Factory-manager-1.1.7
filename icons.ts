@@ -352,3 +352,5 @@ import { LockKeyOpen as _LockKeyOpen } from "@phosphor-icons/react"; export { _L
 import { DotsSixVertical as _DotsSixVertical } from "@phosphor-icons/react"; export const GripVertical = _DotsSixVertical;
 import { House as _House } from "@phosphor-icons/react"; export const Home = _House;
 import { Scissors as _Scissors } from "@phosphor-icons/react"; export const Scissors = _Scissors;
+import { ArrowUp as _ArrowUp } from "@phosphor-icons/react"; export const ArrowUp = _ArrowUp;
+import { ArrowDown as _ArrowDown } from "@phosphor-icons/react"; export const ArrowDown = _ArrowDown;

@@ -330,7 +330,7 @@ function mapStlbToOperation(
 
   const operation: ArticleOperation = {
     id: generateId(),
-    order: stlb.stlb_volgorde * 10,
+    order: stlb.stlb_volgorde || 10,
     description: predefinedOp?.name || stlb.stlb_oms || `Bewerking ${stlb.stlb_volgorde}`,
     mkgOperationCode: predefinedOp?.id || undefined,
     setups: [setupVariant],
