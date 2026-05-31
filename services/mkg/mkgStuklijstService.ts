@@ -80,10 +80,13 @@ export const mkgStuklijstService = {
         return { success: false, message: msg };
       }
 
-      // De proxy geeft bomData terug met article + stlrData
-      const bomData: MkgBomData | undefined = result.data ?? result.bomData;
+      // De proxy geeft article + stlrData direct op het root-object terug
+      const bomData: MkgBomData = {
+        article: result.article,
+        stlrData: result.stlrData || [],
+      };
 
-      if (!bomData || !bomData.article || !bomData.stlrData) {
+      if (!bomData.article) {
         console.warn('[MkgStuklijst] Onverwacht data-formaat:', result);
         return { success: false, message: 'Onverwacht data-formaat van MKG — geen stuklijstdata gevonden' };
       }
