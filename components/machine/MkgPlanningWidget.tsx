@@ -4,8 +4,9 @@
  */
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { RefreshCw, ChevronDown, ChevronRight, AlertTriangle, Clock, Wrench, User, Settings, Package, ExternalLink } from 'lucide-react';
-import { MkgPlnbRecord } from '../../types';
+import { MkgPlnbRecord, Article } from '../../types';
 import { mkgCapaciteitService } from '../../services/mkg/mkgCapaciteitService';
 import { db } from '../../services/storage';
 import { MkgBomImportModal } from './MkgBomImportModal';
@@ -78,6 +79,11 @@ export const MkgPlanningWidget: React.FC<Props> = ({
     // ── Import modal state ────────────────────────────────────────────────
     const [importModalOpen, setImportModalOpen] = useState(false);
     const [importArtiCode, setImportArtiCode] = useState('');
+
+    // ── Bestaand artikel modal state ──────────────────────────────────────
+    const [existingArticle, setExistingArticle] = useState<Article | null>(null);
+
+    const navigate = useNavigate();
 
     const now = currentWeekNum();
     const capacityMin = capacityHoursPerWeek * 60;
@@ -183,8 +189,8 @@ export const MkgPlanningWidget: React.FC<Props> = ({
             a => a.articleCode.toLowerCase() === artiCode.toLowerCase()
         );
         if (exists) {
-            // Artikel bestaat al — TODO: navigeer naar PDM
-            alert(`Artikel "${artiCode}" bestaat al in Factory Manager (revisie ${exists.revision}).`);
+            // Artikel bestaat al — toon navigatie modal
+            setExistingArticle(exists);
         } else {
             // Artikel onbekend — open import modal
             setImportArtiCode(artiCode);
@@ -455,6 +461,78 @@ export const MkgPlanningWidget: React.FC<Props> = ({
                     load(); // Herlaad data
                 }}
             />
+
+            {/* ── Bestaand Artikel Modal ── */}
+            {existingArticle && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+                    <div className="bg-white dark:bg-slate-800 rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700 animate-in zoom-in-95 duration-200">
+                        <div className="p-8">
+                            <div className="flex items-center gap-4 mb-6">
+                                <div className="p-3 bg-emerald-100 dark:bg-emerald-900/40 rounded-2xl">
+                                    <Package size={24} className="text-emerald-600 dark:text-emerald-400" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-black text-slate-800 dark:text-white">Artikel Bekend</h3>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400">Dit artikel bestaat al in Factory Manager</p>
+                                </div>
+                            </div>
+
+                            <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-5 mb-6 border border-slate-200 dark:border-slate-700">
+                                <div className="grid grid-cols-2 gap-3 text-sm">
+                                    <div>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Artikelcode</p>
+                                        <p className="font-mono font-bold text-blue-600 dark:text-blue-400">{existingArticle.articleCode}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Revisie</p>
+                                        <p className="font-bold text-slate-700 dark:text-slate-200">{existingArticle.revision || 'A'}</p>
+                                    </div>
+                                    <div className="col-span-2">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Naam</p>
+                                        <p className="font-bold text-slate-700 dark:text-slate-200 truncate">{existingArticle.name || '—'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Status</p>
+                                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase ${
+                                            existingArticle.status === 'LOCKED' 
+                                                ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' 
+                                                : existingArticle.status === 'OBSOLETE'
+                                                    ? 'bg-slate-200 dark:bg-slate-700 text-slate-500'
+                                                    : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
+                                        }`}>
+                                            {existingArticle.status || 'DRAFT'}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Bewerkingen</p>
+                                        <p className="font-bold text-slate-700 dark:text-slate-200">{existingArticle.operations?.length || 0}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setExistingArticle(null)}
+                                    className="flex-1 py-3.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 rounded-xl font-bold transition-colors"
+                                >
+                                    Sluiten
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        const articleId = existingArticle.id;
+                                        setExistingArticle(null);
+                                        navigate(`/articles?id=${articleId}`);
+                                    }}
+                                    className="flex-[2] py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black shadow-lg shadow-blue-500/25 transition-all active:scale-95 flex items-center justify-center gap-2"
+                                >
+                                    <Settings size={16} />
+                                    Ga naar Setup Module
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
