@@ -308,13 +308,18 @@ function mapStlbToOperation(
     ? machines.find(m => m.id === predefinedOp.defaultMachineId)
     : undefined);
 
+  // Status: DRAFT als machine OF catalogus-entry gevonden, anders REVIEW
+  const isKnown = !!effectiveMachine || (!!predefinedOp && !newPredefinedOps.includes(predefinedOp));
+
   // Setup variant aanmaken
   const setupVariant: SetupVariant = {
     id: generateId(),
-    name: effectiveMachine ? effectiveMachine.name : `MKG Resource ${stlb.rsrc_num}`,
+    name: effectiveMachine
+      ? effectiveMachine.name
+      : predefinedOp?.name || `MKG Resource ${stlb.rsrc_num}`,
     machineId: effectiveMachine?.id ?? '',
     setupTemplateId: predefinedOp?.setupTemplateId || undefined,
-    status: effectiveMachine ? SetupStatus.DRAFT : SetupStatus.REVIEW,
+    status: isKnown ? SetupStatus.DRAFT : SetupStatus.REVIEW,
     isDefault: true,
     version: 1,
     setupTimeMinutes: Math.round((stlb.stlb_instel_tijd / 60) * 100) / 100,
