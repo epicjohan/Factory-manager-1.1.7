@@ -139,6 +139,66 @@ export interface MkgPlnbRecord {
   syncedAt: string;                // Laatste sync tijdstip
 }
 
+// ── MKG Stuklijst (BOM) types ──────────────────────────────────────────
+
+/** Stuklijst regel (halffabricaat) */
+export interface MkgStlrRecord {
+  stlh_num: string;              // Stuklijst header nummer
+  stlr_num: number;              // Halffabricaat nummer (1 = eindproduct)
+  arti_code: string;             // Artikelcode
+  stlr_oms_1: string;            // Omschrijving 1
+  stlr_oms_2: string;            // Omschrijving 2
+  stlr_oms_3: string;            // Omschrijving 3
+  stlr_parent: number;           // Parent regel (0 = root)
+  stlr_pos: string;              // Positie
+  stlr_aantal: number;           // Aantal
+  stlr_tekening: string;         // Tekening
+  stlr_revisie: string;          // Revisie
+  stlr_volgorde: number;         // Volgorde
+  eenh_code: string;             // Eenheid
+  // Sub-collecties (gevuld door proxy)
+  bewerkingen?: MkgStlbRecord[];
+  materialen?: MkgStlmRecord[];
+}
+
+/** Stuklijst bewerking */
+export interface MkgStlbRecord {
+  stlb_num: number;              // Bewerkingsnummer
+  stlb_oms: string;              // Omschrijving bewerking
+  stlb_volgorde: number;         // Volgorde
+  rsrc_num: number;              // Resource/Machine ID
+  bwrk_num: number;              // Bewerkingscode
+  stlb_instel_tijd: number;      // Insteltijd (seconden)
+  stlb_tijd_per_stuk: number;    // Bewerkingstijd per stuk (seconden)
+  stlb_tijd_mach: number;        // Machinetijd (seconden)
+  stlb_tijd_man: number;         // Mantijd (seconden)
+  stlb_uitbesteden: boolean;     // Uitbesteden?
+  stlb_onbemand: boolean;        // Onbemand?
+  stlb_man_per_machine: number;  // Man per machine
+}
+
+/** Stuklijst materiaal */
+export interface MkgStlmRecord {
+  stlm_num: number;              // Materiaalnummer
+  arti_code: string;             // Artikelcode materiaal
+  stlm_oms_1: string;            // Omschrijving 1
+  stlm_oms_2: string;            // Omschrijving 2
+  stlm_aantal: number;           // Aantal
+  stlm_eenh: string;             // Eenheid
+}
+
+/** Gecombineerde BOM data (proxy response) */
+export interface MkgBomData {
+  article: {
+    arti_code: string;
+    arti_oms_1: string;
+    arti_oms_2: string;
+    arti_tekening: string;
+    arti_stlh_num: string;
+  };
+  stlrData: MkgStlrRecord[];
+}
+
 export interface DataSnapshot {
   id: string;
   timestamp: string;
