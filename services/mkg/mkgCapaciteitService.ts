@@ -299,7 +299,7 @@ export const mkgCapaciteitService = {
                     const artiResponse = await fetch(`${pbUrl}/api/mkg-proxy`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ action: 'FETCH_ARTI', codes: uniqueCodes }),
+                        body: JSON.stringify({ action: 'FETCH_ARTI', codesStr: uniqueCodes.join(',') }),
                     });
                     const artiResult = await artiResponse.json();
                     

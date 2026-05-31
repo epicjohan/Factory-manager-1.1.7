@@ -403,20 +403,22 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
         }
 
         // ── FETCH_ARTI ────────────────────────────────────────────────────
-        // Haal artikelgegevens op voor een lijst van arti_codes
+        // Haal artikelgegevens op voor een lijst van arti_codes (komma-gescheiden string)
         if (body.action === "FETCH_ARTI") {
-            console.log("[MKG Proxy] FETCH_ARTI aanvraag, body.codes type: " + typeof body.codes + ", value: " + JSON.stringify(body.codes));
+            console.log("[MKG Proxy] FETCH_ARTI aanvraag, codesStr: " + (body.codesStr ? body.codesStr.substring(0, 100) : "LEEG"));
 
-            // Goja (PocketBase JS) kent Array.isArray niet altijd, gebruik duck-typing
+            // PocketBase body parser geeft geen arrays door — gebruik komma-gescheiden string
             var codesList = [];
-            if (body.codes && body.codes.length > 0) {
-                for (var ci = 0; ci < body.codes.length; ci++) {
-                    codesList.push(String(body.codes[ci]));
+            if (body.codesStr && typeof body.codesStr === "string") {
+                var parts = body.codesStr.split(",");
+                for (var ci = 0; ci < parts.length; ci++) {
+                    var trimmed = parts[ci].trim();
+                    if (trimmed) codesList.push(trimmed);
                 }
             }
 
             if (codesList.length === 0) {
-                return e.json(200, { success: false, message: "Geen 'codes' array meegegeven of leeg. Type: " + typeof body.codes });
+                return e.json(200, { success: false, message: "Geen codes meegegeven. codesStr: " + typeof body.codesStr });
             }
 
             console.log("[MKG Proxy] FETCH_ARTI: " + codesList.length + " codes ontvangen.");
