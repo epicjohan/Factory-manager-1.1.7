@@ -357,6 +357,7 @@ export const MachineDetail: React.FC = () => {
                         <MkgPlanningWidget
                             rsrcNum={parseInt(machine.machineNumber)}
                             machineName={machine.name}
+                            machineId={machine.id}
                         />
                     </div>
                 )}

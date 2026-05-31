@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RefreshCw, ChevronDown, ChevronRight, AlertTriangle, Clock, Wrench, User, Settings, Package, ExternalLink } from 'lucide-react';
+import { RefreshCw, ChevronDown, ChevronRight, AlertTriangle, Clock, Wrench, User, Settings, Package, ExternalLink, Briefcase, PlayCircle } from 'lucide-react';
 import { MkgPlnbRecord, Article } from '../../types';
 import { mkgCapaciteitService } from '../../services/mkg/mkgCapaciteitService';
 import { db } from '../../services/storage';
@@ -15,6 +15,7 @@ import { MkgBomImportModal } from './MkgBomImportModal';
 interface Props {
     rsrcNum: number;
     machineName: string;
+    machineId?: string;
     capacityHoursPerWeek?: number;
 }
 
@@ -67,6 +68,7 @@ const weekLabel = (week: number): string => `Week ${week}`;
 export const MkgPlanningWidget: React.FC<Props> = ({
     rsrcNum,
     machineName,
+    machineId,
     capacityHoursPerWeek = 40
 }) => {
     const [allRecords, setAllRecords] = useState<MkgPlnbRecord[]>([]);
@@ -510,23 +512,36 @@ export const MkgPlanningWidget: React.FC<Props> = ({
                                 </div>
                             </div>
 
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => setExistingArticle(null)}
-                                    className="flex-1 py-3.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 rounded-xl font-bold transition-colors"
-                                >
-                                    Sluiten
-                                </button>
+                            <div className="space-y-3">
+                                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Wat wil je doen met dit artikel?</p>
                                 <button
                                     onClick={() => {
                                         const articleId = existingArticle.id;
                                         setExistingArticle(null);
                                         navigate(`/articles?id=${articleId}`);
                                     }}
-                                    className="flex-[2] py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black shadow-lg shadow-blue-500/25 transition-all active:scale-95 flex items-center justify-center gap-2"
+                                    className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black shadow-lg shadow-blue-500/25 transition-all active:scale-95 flex items-center justify-center gap-3"
                                 >
-                                    <Settings size={16} />
+                                    <Settings size={18} />
                                     Ga naar Setup Module
+                                </button>
+                                {machineId && (
+                                    <button
+                                        onClick={() => {
+                                            setExistingArticle(null);
+                                            navigate(`/production/machine/${machineId}`);
+                                        }}
+                                        className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black shadow-lg shadow-emerald-500/25 transition-all active:scale-95 flex items-center justify-center gap-3"
+                                    >
+                                        <PlayCircle size={18} />
+                                        Opstarten in Werkorder Dashboard
+                                    </button>
+                                )}
+                                <button
+                                    onClick={() => setExistingArticle(null)}
+                                    className="w-full py-3 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-500 dark:text-slate-400 rounded-xl font-bold transition-colors text-sm"
+                                >
+                                    Sluiten
                                 </button>
                             </div>
                         </div>
