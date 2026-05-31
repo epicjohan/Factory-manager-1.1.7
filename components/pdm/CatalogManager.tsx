@@ -49,7 +49,7 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({ mkgOperations, m
             name: catName,
             category: catCategory,
             operationType: catOpType,
-            setupTemplateId: catOpType === 'PROCESS' ? catTemplateId : undefined,
+            setupTemplateId: catTemplateId || undefined,
             defaultMachineId: catOpType === 'MACHINING' ? catMachineId : undefined,
             defaultMachineType: catMachineType
         };
@@ -113,20 +113,27 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({ mkgOperations, m
                                         {machines.map(m => <option key={m.id} value={m.id}>{m.name} ({m.machineNumber})</option>)}
                                     </select>
                                 </div>
-                            ) : (
-                                <div>
-                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1 italic">Koppel Proces Sjabloon</label>
-                                    <select
-                                        className="w-full p-4 rounded-2xl border-2 border-orange-100 dark:border-orange-900/50 bg-white dark:bg-slate-800 font-bold outline-none focus:ring-4 focus:ring-orange-500/10 shadow-sm transition-all"
-                                        value={catTemplateId}
-                                        onChange={e => setCatTemplateId(e.target.value)}
-                                    >
-                                        <option value="">-- Selecteer Sjabloon --</option>
-                                        {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                                    </select>
-                                    <p className="text-[10px] text-slate-400 mt-2 ml-1">Kiest de velden (bijv. "Doos type") die de operator moet invullen.</p>
-                                </div>
-                            )}
+                            ) : null}
+
+                            {/* Template selector — voor zowel MACHINING als PROCESS */}
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1 italic">
+                                    {catOpType === 'PROCESS' ? 'Koppel Proces Sjabloon' : 'Koppel Setup Sjabloon (optioneel)'}
+                                </label>
+                                <select
+                                    className={`w-full p-4 rounded-2xl border-2 ${catOpType === 'PROCESS' ? 'border-orange-100 dark:border-orange-900/50 focus:ring-orange-500/10' : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500/10'} bg-white dark:bg-slate-800 font-bold outline-none focus:ring-4 shadow-sm transition-all`}
+                                    value={catTemplateId}
+                                    onChange={e => setCatTemplateId(e.target.value)}
+                                >
+                                    <option value="">-- Selecteer Sjabloon --</option>
+                                    {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                                </select>
+                                <p className="text-[10px] text-slate-400 mt-2 ml-1">
+                                    {catOpType === 'PROCESS'
+                                        ? 'Kiest de velden (bijv. "Doos type") die de operator moet invullen.'
+                                        : 'Overschrijft het standaard machine-sjabloon voor deze specifieke bewerking.'}
+                                </p>
+                            </div>
 
                             <div>
                                 <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">MKG Code *</label>
@@ -157,6 +164,7 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({ mkgOperations, m
                                     <th className="px-8 py-5">Code</th>
                                     <th className="px-6 py-5">Omschrijving</th>
                                     <th className="px-6 py-5">Koppeling</th>
+                                    <th className="px-6 py-5">Sjabloon</th>
                                     <th className="px-8 py-5 text-right">Actie</th>
                                 </tr>
                             </thead>
@@ -181,6 +189,15 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({ mkgOperations, m
                                                 ) : <span className="text-slate-300">-</span>
                                             )}
                                         </td>
+                                        <td className="px-6 py-5">
+                                            {mo.setupTemplateId ? (
+                                                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-2.5 py-1 rounded-full border border-emerald-100 dark:border-emerald-800/50">
+                                                    {templates.find(t => t.id === mo.setupTemplateId)?.name || 'Onbekend'}
+                                                </span>
+                                            ) : (
+                                                <span className="text-[10px] text-slate-400 italic">Geen</span>
+                                            )}
+                                        </td>
                                         <td className="px-8 py-5 text-right">
                                             <div className="flex justify-end gap-2">
                                                 <button onClick={() => handleEdit(mo)} className="p-3 bg-slate-50 dark:bg-slate-900 rounded-[2rem] text-slate-400 hover:text-blue-500 transition-all shadow-sm"><Edit size={18} /></button>
@@ -190,7 +207,7 @@ export const CatalogManager: React.FC<CatalogManagerProps> = ({ mkgOperations, m
                                     </tr>
                                 ))}
                                 {mkgOperations.length === 0 && (
-                                    <tr><td colSpan={4} className="py-32 text-center text-slate-400 italic font-medium">De catalogus is leeg. Voeg bewerkingen toe om deze te kunnen selecteren in de routing.</td></tr>
+                                    <tr><td colSpan={5} className="py-32 text-center text-slate-400 italic font-medium">De catalogus is leeg. Voeg bewerkingen toe om deze te kunnen selecteren in de routing.</td></tr>
                                 )}
                             </tbody>
                         </table>
