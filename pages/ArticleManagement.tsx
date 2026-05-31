@@ -294,7 +294,7 @@ export const ArticleManagement: React.FC = () => {
 
     if (view === 'CATALOG') {
         return (
-            <div className="max-w-7xl mx-auto pb-20">
+            <div className="px-6 pb-20">
                 <button onClick={() => setView('LIST')} className="flex items-center gap-2 mb-6 text-slate-500 hover:text-slate-800 dark:text-slate-400"><ArrowLeft size={18} /> Terug</button>
                 <CatalogManager
                     mkgOperations={mkgOperations}

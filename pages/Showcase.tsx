@@ -466,7 +466,7 @@ export const Showcase: React.FC = () => {
 
       {/* FOOTER */}
       <footer className="bg-slate-950 text-white py-24 text-center print:hidden">
-          <div className="max-w-4xl mx-auto px-6">
+          <div className="px-6">
               <div className="inline-flex p-6 bg-blue-600 rounded-3xl mb-8 shadow-2xl transform rotate-3 hover:rotate-0 transition-all">
                   <Database size={48} />
               </div>

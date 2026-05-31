@@ -57,7 +57,7 @@ export const DeveloperGuide: React.FC = () => {
     );
 
     return (
-        <div className="max-w-6xl mx-auto pb-20 text-left flex flex-col md:flex-row gap-10">
+        <div className="px-6 pb-20 text-left flex flex-col md:flex-row gap-10">
             {/* SIDEBAR NAVIGATION */}
             <aside className="w-full md:w-64 shrink-0 space-y-2 sticky top-8 h-fit">
                 <button onClick={() => navigate('/admin')} className="flex items-center gap-2 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 mb-6 transition-colors">

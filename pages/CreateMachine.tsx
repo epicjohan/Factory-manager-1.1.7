@@ -165,7 +165,7 @@ export const CreateMachine: React.FC = () => {
     }
 
     return (
-        <div className="max-w-4xl mx-auto pb-10">
+        <div className="px-6 pb-10">
             <div className="flex justify-between items-center mb-6">
                 <button
                     onClick={() => navigate(-1)}

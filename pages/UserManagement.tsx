@@ -232,7 +232,7 @@ export const UserManagement: React.FC = () => {
     }, [machines]);
 
     return (
-        <div className="max-w-7xl mx-auto space-y-6 pb-20 text-left">
+        <div className="px-6 space-y-6 pb-20 text-left">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <button onClick={() => navigate('/admin')} className="flex items-center gap-2 text-slate-500 hover:text-slate-800 dark:text-slate-400 mb-2">

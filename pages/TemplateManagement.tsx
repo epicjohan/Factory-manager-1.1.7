@@ -378,7 +378,7 @@ export const TemplateManagement: React.FC = () => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto pb-20 text-left h-[calc(100vh-100px)] flex flex-col">
+        <div className="px-6 pb-20 text-left h-[calc(100vh-100px)] flex flex-col">
             <div className="flex justify-between items-center mb-6 shrink-0">
                 <div>
                     <button onClick={() => navigate('/admin')} className="flex items-center gap-2 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 mb-2 transition-colors">

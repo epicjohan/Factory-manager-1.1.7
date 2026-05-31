@@ -271,7 +271,7 @@ export const InventoryManagement: React.FC = () => {
     }, [allParts]);
 
     return (
-        <div className="max-w-7xl mx-auto pb-10 space-y-6 text-left">
+        <div className="px-6 pb-10 space-y-6 text-left">
             <div>
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
                     <div>

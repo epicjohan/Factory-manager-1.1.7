@@ -42,14 +42,14 @@ export const ComplianceDetail: React.FC = () => {
 
     if (!framework) {
         return (
-            <div className="max-w-6xl mx-auto pb-20 p-8 text-center text-slate-500">
+            <div className="px-6 pb-20 p-8 text-center text-slate-500">
                 Laden of dossier niet gevonden...
             </div>
         );
     }
 
     return (
-        <div className="max-w-6xl mx-auto pb-20 space-y-8 text-left">
+        <div className="px-6 pb-20 space-y-8 text-left">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 bg-white dark:bg-slate-800 p-8 rounded-[3rem] border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-8 opacity-5 transition-transform duration-700 hover:scale-110 hover:rotate-6 origin-bottom-right">
                     <BookOpen size={240} />
