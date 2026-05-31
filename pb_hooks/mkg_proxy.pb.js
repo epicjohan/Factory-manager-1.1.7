@@ -405,11 +405,21 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
         // ── FETCH_ARTI ────────────────────────────────────────────────────
         // Haal artikelgegevens op voor een lijst van arti_codes
         if (body.action === "FETCH_ARTI") {
-            console.log("[MKG Proxy] FETCH_ARTI aanvraag");
+            console.log("[MKG Proxy] FETCH_ARTI aanvraag, body.codes type: " + typeof body.codes + ", value: " + JSON.stringify(body.codes));
 
-            if (!body.codes || !Array.isArray(body.codes) || body.codes.length === 0) {
-                return e.json(200, { success: false, message: "Geen 'codes' array meegegeven." });
+            // Goja (PocketBase JS) kent Array.isArray niet altijd, gebruik duck-typing
+            var codesList = [];
+            if (body.codes && body.codes.length > 0) {
+                for (var ci = 0; ci < body.codes.length; ci++) {
+                    codesList.push(String(body.codes[ci]));
+                }
             }
+
+            if (codesList.length === 0) {
+                return e.json(200, { success: false, message: "Geen 'codes' array meegegeven of leeg. Type: " + typeof body.codes });
+            }
+
+            console.log("[MKG Proxy] FETCH_ARTI: " + codesList.length + " codes ontvangen.");
 
             var loginResult = mkgLogin(cfg);
             if (!loginResult.success) {
@@ -421,14 +431,14 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
 
                 // Bouw filter: arti_code = "X" OR arti_code = "Y" ...
                 var codeFilters = [];
-                for (var ci = 0; ci < body.codes.length; ci++) {
-                    codeFilters.push('arti_code = "' + body.codes[ci] + '"');
+                for (var ci = 0; ci < codesList.length; ci++) {
+                    codeFilters.push('arti_code = "' + codesList[ci] + '"');
                 }
                 var artiFilter = codeFilters.join(" OR ");
 
                 var artiParams = "?FieldList=" + encodeURIComponent(artiFields)
                                + "&Filter="    + encodeURIComponent(artiFilter)
-                               + "&NumRows="   + body.codes.length;
+                               + "&NumRows="   + codesList.length;
 
                 var artiUrl = cfg.url + MKG_API_BASE + "/Documents/arti/" + artiParams;
                 console.log("[MKG Proxy] FETCH_ARTI URL: " + artiUrl);
