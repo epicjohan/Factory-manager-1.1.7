@@ -291,43 +291,20 @@ export const mkgCapaciteitService = {
             const open = mapped.filter(r => !r.plnb_gereed);
             console.log(`[MkgPlnb] Totaal: ${mapped.length}, niet-gereed: ${open.length}, gereed (verwijderd): ${mapped.length - open.length}`);
 
-            // ── Artikelgegevens ophalen via arti endpoint ──
-            const uniqueCodes = [...new Set(open.map(r => r.arti_code).filter(c => c && c !== ''))];
-            if (uniqueCodes.length > 0) {
-                console.log(`[MkgPlnb] Ophalen artikelgegevens voor ${uniqueCodes.length} unieke codes...`);
-                try {
-                    const artiResponse = await fetch(`${pbUrl}/api/mkg-proxy`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ action: 'FETCH_ARTI', codesStr: uniqueCodes.join(',') }),
-                    });
-                    const artiResult = await artiResponse.json();
-                    
-                    if (artiResult.success && Array.isArray(artiResult.data)) {
-                        // Bouw lookup map: arti_code → { oms_1, tekening }
-                        const artiMap = new Map<string, { oms1: string; tekening: string }>();
-                        for (const a of artiResult.data) {
-                            artiMap.set(String(a.arti_code), {
-                                oms1:     String(a.arti_oms_1 ?? ''),
-                                tekening: String(a.arti_tekening ?? ''),
-                            });
-                        }
-                        console.log(`[MkgPlnb] ${artiMap.size} artikelen opgehaald, verrijken...`);
-                        
-                        // Verrijk plnb records met artikeldata
-                        for (const r of open) {
-                            const artInfo = artiMap.get(r.arti_code);
-                            if (artInfo) {
-                                r.arti_oms1 = artInfo.oms1;
-                                r.arti_tek_num = artInfo.tekening;
-                            }
-                        }
-                    } else {
-                        console.warn('[MkgPlnb] Artikelgegevens ophalen mislukt:', artiResult.message);
+            // ── Artikelgegevens verrijken via artiMap uit proxy response ──
+            const artiMap = result.artiMap || {};
+            const artiKeys = Object.keys(artiMap);
+            if (artiKeys.length > 0) {
+                console.log(`[MkgPlnb] ${artiKeys.length} artikelen ontvangen van proxy, verrijken...`);
+                for (const r of open) {
+                    const artInfo = artiMap[r.arti_code];
+                    if (artInfo) {
+                        r.arti_oms1 = String(artInfo.arti_oms_1 || '');
+                        r.arti_tek_num = String(artInfo.arti_tekening || '');
                     }
-                } catch (artiErr) {
-                    console.warn('[MkgPlnb] Artikelgegevens ophalen fout (niet fataal):', artiErr);
                 }
+            } else {
+                console.log('[MkgPlnb] Geen artikeldata in proxy response.');
             }
 
             if (rsrcNum) {
