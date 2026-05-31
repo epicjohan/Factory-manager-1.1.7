@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { Settings, Save, Lock, LockOpen, ArrowRight, CornerUpRight, AlertTriangle, Archive, Layers } from '../../icons';
-import { Article, ArticleStatus, User, MaterialType, MaterialProfile } from '../../types';
+import { Settings, Save, Lock, LockOpen, ArrowRight, CornerUpRight, AlertTriangle, Archive, Layers, Trash2 } from '../../icons';
+import { Article, ArticleStatus, User, UserRole, MaterialType, MaterialProfile } from '../../types';
 import { useConfirm } from '../../contexts/ConfirmContext';
 import { useTable } from '../../hooks/useTable';
 import { KEYS } from '../../services/db/core';
@@ -17,9 +17,10 @@ interface ArticleHeaderProps {
     onChangeStatus?: (status: ArticleStatus) => void;
     onRevise?: () => void;
     onObsolete?: () => void;
+    onDelete?: () => void;
 }
 
-export const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, isLocked, canEdit, canRelease, canManageLock = false, onSave, onChangeStatus, onRevise, onObsolete }) => {
+export const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, isLocked, canEdit, canRelease, canManageLock = false, onSave, user, onChangeStatus, onRevise, onObsolete, onDelete }) => {
     const confirm = useConfirm();
     const { data: materialTypes } = useTable<MaterialType>(KEYS.MATERIAL_TYPES);
     const { data: materialProfiles } = useTable<MaterialProfile>(KEYS.MATERIAL_PROFILES);
@@ -266,6 +267,13 @@ export const ArticleHeader: React.FC<ArticleHeaderProps> = ({ article, isLocked,
                                     <CornerUpRight size={14} /> Nieuwe Revisie
                                 </button>
                             </>
+                        )}
+
+                        {/* Verwijderen — alleen ADMIN + DRAFT */}
+                        {currentStatus === ArticleStatus.DRAFT && user?.role === UserRole.ADMIN && onDelete && (
+                            <button type="button" onClick={onDelete} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-black uppercase shadow-lg shadow-red-500/30 flex items-center gap-2 transition-all active:scale-95 text-[10px] tracking-widest">
+                                <Trash2 size={14} /> Verwijderen
+                            </button>
                         )}
                     </div>
                 </div>

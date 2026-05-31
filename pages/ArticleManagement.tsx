@@ -184,6 +184,10 @@ export const ArticleManagement: React.FC = () => {
                         onChangeStatus={actions.handleChangeStatus}
                         onRevise={() => setArticleRevisionModal(true)}
                         onObsolete={actions.handleArchiveArticle}
+                        onDelete={async () => {
+                            const deleted = await actions.handleDeleteArticle();
+                            if (deleted) setView('LIST');
+                        }}
                     />
                     <div className={`grid grid-cols-1 gap-8 ${showContextPanel ? '' : 'xl:grid-cols-2'}`}>
                         <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-3xl border border-slate-200 dark:border-slate-700">
