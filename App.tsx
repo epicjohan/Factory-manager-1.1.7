@@ -47,6 +47,8 @@ import { ProductionDashboard } from './pages/ProductionDashboard';
 import { ToolPreparation } from './pages/ToolPreparation';
 import { TicketDashboard } from './pages/TicketDashboard';
 import { RawMaterialManagement } from './pages/RawMaterialManagement';
+import { PlanningTvDashboard } from './pages/PlanningTvDashboard';
+import { PlanningTvConfig } from './pages/PlanningTvConfig';
 import { UserRole, AssetType, AppModule, FocasLiveStats } from './types';
 
 const ModuleGuard: React.FC<{ module: AppModule, children: React.ReactNode }> = ({ module, children }) => {
@@ -218,6 +220,8 @@ const App: React.FC = () => {
                                     <Route path="/admin/update" element={<ProtectedRoute><GhostAdminRoute><SystemUpdate /></GhostAdminRoute></ProtectedRoute>} />
                                     <Route path="/admin/energy-config" element={<ProtectedRoute><AdminRoute><ModuleGuard module={AppModule.ENERGY}><EnergyManagement /></ModuleGuard></AdminRoute></ProtectedRoute>} />
                                     <Route path="/settings" element={<ProtectedRoute><AdminRoute><Settings /></AdminRoute></ProtectedRoute>} />
+                                    <Route path="/admin/tv-planning" element={<ProtectedRoute><AdminRoute><PlanningTvConfig /></AdminRoute></ProtectedRoute>} />
+                                    <Route path="/tv-planning/:groupId" element={<ProtectedRoute><PlanningTvDashboard /></ProtectedRoute>} />
                                     <Route path="/showcase" element={<Showcase />} />
                                     <Route path="*" element={<Navigate to="/" replace />} />
                                 </Routes>

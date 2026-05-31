@@ -1,7 +1,7 @@
 
 import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { PlusCircle, Users, Settings, ArrowRight, BarChart2, RefreshCw, BookOpen, Presentation, Terminal, Shield, Activity, Beaker, Briefcase, Code, Archive, Box, Info, Cpu, Zap, Layers, PlayCircle, ClipboardList, FileJson, LayoutTemplate } from '../icons';
+import { PlusCircle, Users, Settings, ArrowRight, BarChart2, RefreshCw, BookOpen, Presentation, Terminal, Shield, Activity, Beaker, Briefcase, Code, Archive, Box, Info, Cpu, Zap, Layers, PlayCircle, ClipboardList, FileJson, LayoutTemplate, Monitor } from '../icons';
 import { useAuth } from '../contexts/AuthContext';
 import { Machine, AppModule } from '../types';
 import { APP_INFO } from '../services/appInfo';
@@ -115,6 +115,19 @@ export const AdminDashboard: React.FC = () => {
                 </Link>
             )}
 
+            <Link to="/admin/tv-planning" className="group relative bg-white dark:bg-slate-800 rounded-[2rem] p-8 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all duration-300">
+                <div className="bg-cyan-100 dark:bg-cyan-900/30 w-14 h-14 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <Monitor size={24} className="text-cyan-600 dark:text-cyan-400" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">TV Planning</h3>
+                <p className="text-slate-500 dark:text-slate-400 text-xs mb-4 min-h-[2.5em]">
+                    Configureer planning dashboards voor TV's op de productievloer.
+                </p>
+                <div className="flex items-center text-cyan-600 dark:text-cyan-400 text-xs font-bold uppercase tracking-wide">
+                    <span>Configureren</span>
+                    <ArrowRight size={14} className="ml-2 group-hover:translate-x-1 transition-transform" />
+                </div>
+            </Link>
 
         </div>
 
