@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { KEYS, loadTable } from '../services/db/core';
 import {
     Article, ArticleFile, Machine, PredefinedOperation, SetupTemplate,
@@ -82,6 +83,23 @@ export const ArticleManagement: React.FC = () => {
         isOpen: false, opId: null
     });
     const [importModalOpen, setImportModalOpen] = useState(false);
+
+    // URL param: auto-open artikel via ?id=xxx (bijv. vanuit planning widget)
+    const [searchParams, setSearchParams] = useSearchParams();
+    useEffect(() => {
+        const articleId = searchParams.get('id');
+        if (articleId && articles.length > 0) {
+            const article = articles.find(a => a.id === articleId);
+            if (article) {
+                actions.setEditingArticle(article);
+                setView('EXPLORER');
+                setSelectedType('ARTICLE');
+                setSelectedId(article.id);
+                // Verwijder de ?id= param zodat het niet opnieuw triggert
+                setSearchParams({}, { replace: true });
+            }
+        }
+    }, [searchParams, articles]);
 
     const canViewPdm = hasPermission(Permission.PDM_VIEW) || hasPermission(Permission.MANAGE_ARTICLES);
 
