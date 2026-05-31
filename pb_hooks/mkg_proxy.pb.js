@@ -402,10 +402,69 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
             }
         }
 
+        // ── FETCH_ARTI ────────────────────────────────────────────────────
+        // Haal artikelgegevens op voor een lijst van arti_codes
+        if (body.action === "FETCH_ARTI") {
+            console.log("[MKG Proxy] FETCH_ARTI aanvraag");
+
+            if (!body.codes || !Array.isArray(body.codes) || body.codes.length === 0) {
+                return e.json(200, { success: false, message: "Geen 'codes' array meegegeven." });
+            }
+
+            var loginResult = mkgLogin(cfg);
+            if (!loginResult.success) {
+                return e.json(200, { success: false, message: loginResult.error });
+            }
+
+            try {
+                var artiFields = "arti_code,arti_oms_1,arti_oms_2,arti_tekening";
+
+                // Bouw filter: arti_code = "X" OR arti_code = "Y" ...
+                var codeFilters = [];
+                for (var ci = 0; ci < body.codes.length; ci++) {
+                    codeFilters.push('arti_code = "' + body.codes[ci] + '"');
+                }
+                var artiFilter = codeFilters.join(" OR ");
+
+                var artiParams = "?FieldList=" + encodeURIComponent(artiFields)
+                               + "&Filter="    + encodeURIComponent(artiFilter)
+                               + "&NumRows="   + body.codes.length;
+
+                var artiUrl = cfg.url + MKG_API_BASE + "/Documents/arti/" + artiParams;
+                console.log("[MKG Proxy] FETCH_ARTI URL: " + artiUrl);
+
+                var artiRes = $http.send({
+                    url:     artiUrl,
+                    method:  "GET",
+                    headers: mkgApiHeaders(loginResult.sessionCookie, cfg.apiKey),
+                    timeout: 30
+                });
+
+                console.log("[MKG Proxy] FETCH_ARTI response: " + artiRes.statusCode);
+
+                var artiJson = artiRes.json || null;
+                var artiRaw = "";
+                try { artiRaw = JSON.stringify(artiJson).substring(0, 500); } catch(x) {}
+                console.log("[MKG Proxy] FETCH_ARTI raw: " + artiRaw);
+
+                var artiData = extractMkgData(artiJson, "arti");
+
+                return e.json(200, {
+                    success:     (artiRes.statusCode >= 200 && artiRes.statusCode < 300),
+                    statusCode:  artiRes.statusCode,
+                    data:        artiData,
+                    message:     artiData.length + " artikelen opgehaald."
+                });
+            } catch (artiErr) {
+                console.error("[MKG Proxy] FETCH_ARTI fout: " + String(artiErr));
+                return e.json(200, { success: false, message: "arti ophalen mislukt: " + String(artiErr) });
+            }
+        }
+
         // ── Onbekende actie ───────────────────────────────────────────────
         return e.json(400, {
             success: false,
-            message: "Onbekende actie '" + body.action + "'. Ondersteund: PING, REQUEST, SYNC_PLNC, SYNC_PLNB."
+            message: "Onbekende actie '" + body.action + "'. Ondersteund: PING, REQUEST, SYNC_PLNC, SYNC_PLNB, FETCH_ARTI."
         });
 
     } catch (fatalErr) {
