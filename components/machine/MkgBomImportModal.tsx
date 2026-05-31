@@ -4,9 +4,9 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Package, Wrench, AlertTriangle, Check, X, Loader2, Plus, Settings } from 'lucide-react';
+import { Package, Wrench, AlertTriangle, Check, X, Loader2, FileText, Plus } from 'lucide-react';
 import { db } from '../../services/storage';
-import { mkgStuklijstService } from '../../services/mkg/mkgStuklijstService';
+import { mkgStuklijstService, MappedBomResult } from '../../services/mkg/mkgStuklijstService';
 import { Article, ArticleStatus, ArticleAuditEntry } from '../../types/pdm';
 import { MkgBomData } from '../../types/system';
 import { generateId, getNowISO, getCurrentUserName } from '../../services/db/core';
@@ -29,7 +29,7 @@ export const MkgBomImportModal: React.FC<MkgBomImportModalProps> = ({
     const [importing, setImporting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [bomData, setBomData] = useState<MkgBomData | null>(null);
-    const [mapped, setMapped] = useState<any | null>(null);
+    const [mapped, setMapped] = useState<MappedBomResult | null>(null);
 
     // ── Fetch BOM data wanneer modal opent ──────────────────────────────────
     const fetchData = useCallback(async () => {
@@ -42,17 +42,26 @@ export const MkgBomImportModal: React.FC<MkgBomImportModalProps> = ({
         try {
             const serverConfig = await db.getServerSettings();
             const pbUrl = serverConfig.url;
-            if (!pbUrl) throw new Error('Server URL niet geconfigureerd.');
+            if (!pbUrl) throw new Error('Server URL niet geconfigureerd. Ga naar Instellingen → Server.');
 
             const machines = await db.getMachines();
             const articles = await db.getArticles();
-            const userName = await getCurrentUserName();
+            const userName = getCurrentUserName();
 
-            const data = await mkgStuklijstService.fetchBomFromMkg(pbUrl, artiCode);
-            setBomData(data);
+            // BOM ophalen uit MKG via proxy
+            const result = await mkgStuklijstService.fetchBomFromMkg(pbUrl, artiCode);
 
-            const result = await mkgStuklijstService.mapToArticle(data, machines, articles, userName);
-            setMapped(result);
+            if (!result.success || !result.bomData) {
+                throw new Error(result.message || 'Onbekende fout bij ophalen stuklijst');
+            }
+
+            setBomData(result.bomData);
+
+            // Mappen naar PDM structuur
+            const mappedResult = mkgStuklijstService.mapToArticle(result.bomData, machines, articles, userName);
+            setMapped(mappedResult);
+
+            console.log(`[MkgBomImport] Preview geladen: ${mappedResult.operations.length} bewerkingen, ${mappedResult.bomItems.length} BOM items`);
         } catch (err) {
             console.error('[MkgBomImport] Fout:', err);
             setError(err instanceof Error ? err.message : String(err));
@@ -74,15 +83,19 @@ export const MkgBomImportModal: React.FC<MkgBomImportModalProps> = ({
         setError(null);
 
         try {
-            const userName = await getCurrentUserName();
+            const userName = getCurrentUserName();
             const now = getNowISO();
             const existingArticles = await db.getArticles();
 
+            // Stap 1: Maak ontbrekende sub-artikelen aan als DRAFT
             const newChildArticles: Article[] = [];
             for (const code of mapped.newArticleCodes) {
+                // Check of al aangemaakt in deze batch
                 if (newChildArticles.some(a => a.articleCode.toLowerCase() === code.toLowerCase())) continue;
+                // Check of al bestaat
                 if (existingArticles.some(a => a.articleCode.toLowerCase() === code.toLowerCase())) continue;
 
+                // Vind bijbehorende stlr voor extra info
                 const stlr = bomData.stlrData.find(s => s.arti_code?.toLowerCase() === code.toLowerCase());
 
                 const childArticle: Article = {
@@ -111,16 +124,20 @@ export const MkgBomImportModal: React.FC<MkgBomImportModalProps> = ({
                 newChildArticles.push(childArticle);
             }
 
+            // Sla sub-artikelen op
             for (const child of newChildArticles) {
                 try {
                     await db.addArticle(child);
+                    console.log(`[MkgBomImport] Sub-artikel aangemaakt: ${child.articleCode}`);
                 } catch (addErr) {
+                    // Kan voorkomen als artikel intussen al is aangemaakt
                     console.warn(`[MkgBomImport] Sub-artikel skip: ${(addErr as Error).message}`);
                 }
             }
 
-            const updatedBomItems = mapped.bomItems.map((item: any) => {
-                if (item.childArticleId) return item;
+            // Stap 2: Update BOM items met childArticleId van nieuw aangemaakte artikelen
+            const updatedBomItems = mapped.bomItems.map(item => {
+                if (item.childArticleId) return item; // Al gekoppeld
                 const newChild = newChildArticles.find(
                     a => a.articleCode.toLowerCase() === (item.childArticleCode || '').toLowerCase()
                 );
@@ -130,18 +147,19 @@ export const MkgBomImportModal: React.FC<MkgBomImportModalProps> = ({
                 return item;
             });
 
+            // Stap 3: Maak het hoofdartikel aan
             const mainArticle: Article = {
                 id: generateId(),
-                articleCode: mapped.article.articleCode || artiCode,
-                name: mapped.article.name || '',
-                description2: mapped.article.description2 || '',
-                drawingNumber: mapped.article.drawingNumber || '',
+                articleCode: mapped.articleCode || artiCode,
+                name: mapped.articleName || '',
+                description2: mapped.description2 || '',
+                drawingNumber: mapped.drawingNumber || '',
                 revision: 'A',
                 status: ArticleStatus.DRAFT,
                 operations: mapped.operations,
                 bomItems: updatedBomItems,
                 files: [],
-                auditTrail: [auditEntry],
+                auditTrail: [mapped.auditEntry],
                 createdBy: userName,
                 updatedBy: userName,
                 created: now,
@@ -170,7 +188,7 @@ export const MkgBomImportModal: React.FC<MkgBomImportModalProps> = ({
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
             {/* Modal */}
-            <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-[720px] max-h-[85vh] flex flex-col overflow-hidden">
+            <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-[700px] max-h-[85vh] flex flex-col overflow-hidden">
 
                 {/* ── Header ── */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30">
@@ -187,6 +205,7 @@ export const MkgBomImportModal: React.FC<MkgBomImportModalProps> = ({
                     </div>
                     <button
                         onClick={onClose}
+                        disabled={importing}
                         className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors"
                     >
                         <X size={18} className="text-slate-500" />
@@ -225,15 +244,15 @@ export const MkgBomImportModal: React.FC<MkgBomImportModalProps> = ({
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
                                         <p className="text-[10px] text-slate-400 font-bold">Artikelcode</p>
-                                        <p className="text-sm font-black text-slate-800 dark:text-white font-mono">{mapped.article.articleCode}</p>
+                                        <p className="text-sm font-black text-slate-800 dark:text-white font-mono">{mapped.articleCode}</p>
                                     </div>
                                     <div>
                                         <p className="text-[10px] text-slate-400 font-bold">Tekening</p>
-                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200 font-mono">{mapped.article.drawingNumber || '—'}</p>
+                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200 font-mono">{mapped.drawingNumber || '—'}</p>
                                     </div>
                                     <div className="col-span-2">
                                         <p className="text-[10px] text-slate-400 font-bold">Omschrijving</p>
-                                        <p className="text-sm text-slate-700 dark:text-slate-200">{mapped.article.name || '—'}</p>
+                                        <p className="text-sm text-slate-700 dark:text-slate-200">{mapped.articleName || '—'}</p>
                                     </div>
                                 </div>
                             </div>
@@ -290,12 +309,17 @@ export const MkgBomImportModal: React.FC<MkgBomImportModalProps> = ({
                             {mapped.bomItems.length > 0 && (
                                 <div>
                                     <div className="flex items-center gap-2 mb-3">
-                                        <Settings size={14} className="text-indigo-500" />
+                                        <Package size={14} className="text-indigo-500" />
                                         <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider">
                                             Halffabricaten ({mapped.bomItems.length})
                                         </p>
+                                        {mapped.newArticleCodes.length > 0 && (
+                                            <span className="text-[9px] px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full font-bold">
+                                                {mapped.newArticleCodes.length} nieuw
+                                            </span>
+                                        )}
                                     </div>
-                                    <div className="space-y-1">
+                                    <div className="space-y-1 max-h-52 overflow-y-auto">
                                         {mapped.bomItems.map(item => {
                                             const isNew = !item.childArticleId;
                                             return (
@@ -339,9 +363,9 @@ export const MkgBomImportModal: React.FC<MkgBomImportModalProps> = ({
                                             Deze bewerkingen worden met status "Review" aangemaakt. Koppel de juiste machine handmatig in de PDM module.
                                         </p>
                                         <div className="flex flex-wrap gap-1 mt-2">
-                                            {mapped.unknownResources.map(ur => (
-                                                <span key={ur.rsrcNum} className="text-[9px] px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded font-mono font-bold">
-                                                    #{ur.rsrcNum}
+                                            {mapped.unknownResources.map(rsrc => (
+                                                <span key={rsrc} className="text-[9px] px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded font-mono font-bold">
+                                                    #{rsrc}
                                                 </span>
                                             ))}
                                         </div>
@@ -363,7 +387,7 @@ export const MkgBomImportModal: React.FC<MkgBomImportModalProps> = ({
                                 </div>
                             )}
 
-                            {!mapped.hasStuklijst && (
+                            {mapped.operations.length === 0 && mapped.bomItems.length === 0 && (
                                 <div className="flex items-start gap-3 p-4 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl">
                                     <FileText size={16} className="text-slate-400 mt-0.5 shrink-0" />
                                     <div>
