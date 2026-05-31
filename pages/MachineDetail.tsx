@@ -202,7 +202,7 @@ export const MachineDetail: React.FC = () => {
     };
 
     return (
-        <div className="pb-20 max-w-7xl mx-auto text-left animate-in fade-in duration-500">
+        <div className="pb-20 max-w-[1730px] mx-auto text-left animate-in fade-in duration-500">
             {machine.isArchived && (
                 <div className="bg-orange-600 text-white p-6 rounded-[2rem] mb-6 flex items-center gap-4 shadow-lg border border-orange-500 animate-in slide-in-from-top-4">
                     <Archive size={36} className="shrink-0" />
