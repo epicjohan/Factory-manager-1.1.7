@@ -312,7 +312,7 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
                 var plnbFields = [
                     "admi_num","prdh_num","prdr_num","rsrc_num","bwrk_num",
                     "plnb_num","plnb_oms",
-                    "plnb_dat_start","plnb_dat_eind",
+                    "plnb_dat_start","plnb_dat_eind","plnb_dat_gestart",
                     "plnb_wk_start","plnb_wk_eind",
                     "plnb_tijd_start","plnb_tijd_eind",
                     "plnb_duur","plnb_instel_tijd",

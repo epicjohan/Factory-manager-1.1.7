@@ -94,6 +94,7 @@ export interface MkgPlnbRecord {
   // Planning datums & tijden
   plnb_dat_start: string;          // Startdatum (bijv. "2026-06-02")
   plnb_dat_eind: string;           // Einddatum
+  plnb_dat_gestart: string;        // Datum waarop daadwerkelijk gestart
   plnb_wk_start: number;           // Week start
   plnb_wk_eind: number;            // Week eind
   plnb_tijd_start: number;         // Starttijd (seconden vanaf middernacht)
