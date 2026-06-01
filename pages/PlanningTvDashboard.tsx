@@ -3,6 +3,8 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { useParams } from 'react-router-dom';
 import { Clock, Monitor, ChevronLeft, ChevronRight, RefreshCw, AlertTriangle, CheckCircle2, Play, Calendar, Package, Loader2 } from 'lucide-react';
 import { KEYS, loadTable } from '../services/db/core';
+import { mkgCapaciteitService } from '../services/mkg/mkgCapaciteitService';
+import { db } from '../services/storage';
 import { PlanningTvGroup, MkgPlnbRecord } from '../types';
 import { Machine } from '../types';
 
@@ -111,10 +113,37 @@ export const PlanningTvDashboard: React.FC = () => {
 
     useEffect(() => { loadData(); }, [loadData]);
 
-    // Auto-refresh every 5 min
+    // Auto-sync MKG data op het ingestelde interval
     useEffect(() => {
-        const iv = setInterval(loadData, 5 * 60 * 1000);
-        return () => clearInterval(iv);
+        let iv: ReturnType<typeof setInterval> | null = null;
+
+        const startAutoSync = async () => {
+            const intervalMin = await db.getMkgSyncInterval();
+            if (intervalMin <= 0) {
+                // Geen auto-sync, maar wel elke 2 min lokale cache herladen
+                iv = setInterval(loadData, 2 * 60 * 1000);
+                return;
+            }
+
+            const doSync = async () => {
+                try {
+                    const srv = await db.getServerSettings();
+                    const pbUrl = srv.url || window.location.origin;
+                    console.log(`[TV Dashboard] Auto-sync MKG (elke ${intervalMin} min)...`);
+                    await mkgCapaciteitService.syncPlnbFromMkg(pbUrl);
+                    await loadData(); // Herlaad lokale cache na sync
+                } catch (err) {
+                    console.error('[TV Dashboard] Auto-sync fout:', err);
+                }
+            };
+
+            // Eerste sync direct uitvoeren
+            doSync();
+            iv = setInterval(doSync, intervalMin * 60 * 1000);
+        };
+
+        startAutoSync();
+        return () => { if (iv) clearInterval(iv); };
     }, [loadData]);
 
     // Clock

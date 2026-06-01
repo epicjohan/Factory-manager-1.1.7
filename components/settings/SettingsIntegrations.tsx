@@ -3,10 +3,11 @@ import React, { useState, useEffect } from 'react';
 import {
     ShieldCheck, Link, Mail, Lock, RefreshCw, UserCheck, Network,
     Server, Info, MessageSquare, Zap, CheckCircle2, XCircle,
-    Globe, Plug
+    Globe, Plug, AlertTriangle
 } from '../../icons';
 import { db } from '../../services/storage';
 import { SyncService } from '../../services/sync';
+import { mkgCapaciteitService } from '../../services/mkg/mkgCapaciteitService';
 import { useNotifications } from '../../contexts/NotificationContext';
 
 // ─── Typen ────────────────────────────────────────────────────────────────────
@@ -103,6 +104,9 @@ export const SettingsIntegrations: React.FC = () => {
     const [mkgTestStatus, setMkgTestStatus] = useState<TestStatus>('idle');
     const [mkgTestError, setMkgTestError] = useState<string | null>(null);
     const [mkgSaveMsg, setMkgSaveMsg] = useState('');
+    const [mkgSyncInterval, setMkgSyncInterval] = useState<number>(0);
+    const [mkgFullSyncing, setMkgFullSyncing] = useState(false);
+    const [mkgSyncResult, setMkgSyncResult] = useState('');
 
     // ── Laden ──
     useEffect(() => {
@@ -121,6 +125,9 @@ export const SettingsIntegrations: React.FC = () => {
             setMkgApiKey(mkg.apiKey || '');
             setMkgUsername(mkg.username || '');
             setMkgPassword(mkg.password || '');
+
+            const interval = await db.getMkgSyncInterval();
+            setMkgSyncInterval(interval);
         };
         load();
     }, []);
@@ -206,6 +213,37 @@ export const SettingsIntegrations: React.FC = () => {
         } catch (e) {
             setMkgTestStatus('fail');
             setMkgTestError(`Netwerkfout: ${e instanceof Error ? e.message : String(e)}`);
+        }
+    };
+
+    const handleSyncIntervalChange = async (val: number) => {
+        setMkgSyncInterval(val);
+        await db.setMkgSyncInterval(val);
+        addNotification('SUCCESS', 'Sync Interval', val === 0
+            ? 'Automatische synchronisatie uitgeschakeld.'
+            : `Automatische synchronisatie ingesteld op elke ${val} minuten.`);
+    };
+
+    const handleFullSync = async () => {
+        setMkgFullSyncing(true);
+        setMkgSyncResult('');
+        try {
+            const srv = await db.getServerSettings();
+            const pbUrl = srv.url || window.location.origin;
+            const result = await mkgCapaciteitService.syncPlnbFromMkg(pbUrl);
+            if (result.success) {
+                setMkgSyncResult(`✓ ${result.count} bewerkingen gesynchroniseerd`);
+                addNotification('SUCCESS', 'MKG Sync', result.message);
+            } else {
+                setMkgSyncResult(`✗ ${result.message}`);
+                addNotification('ERROR', 'MKG Sync', result.message);
+            }
+        } catch (err) {
+            setMkgSyncResult(`✗ ${String(err)}`);
+            addNotification('ERROR', 'MKG Sync', String(err));
+        } finally {
+            setMkgFullSyncing(false);
+            setTimeout(() => setMkgSyncResult(''), 8000);
         }
     };
 
@@ -417,6 +455,58 @@ export const SettingsIntegrations: React.FC = () => {
                         <span>{mkgTestError}</span>
                     </div>
                 )}
+
+                {/* ── Synchronisatie Instellingen ── */}
+                <div className="border-t border-slate-200 dark:border-slate-700 pt-6 mt-2">
+                    <div className="flex items-center gap-3 mb-4">
+                        <RefreshCw size={18} className="text-emerald-500" />
+                        <h4 className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest">Planning Synchronisatie</h4>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Interval selector */}
+                        <div className="space-y-1.5">
+                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Auto-Sync Interval</label>
+                            <div className="relative">
+                                <div className="absolute left-4 top-4 text-slate-400 pointer-events-none"><RefreshCw size={18} /></div>
+                                <select
+                                    value={mkgSyncInterval}
+                                    onChange={e => handleSyncIntervalChange(Number(e.target.value))}
+                                    className="w-full pl-12 p-4 rounded-2xl border border-slate-300 dark:border-slate-600 bg-transparent dark:text-white text-sm font-medium focus:ring-2 focus:ring-emerald-500 outline-none transition-all shadow-sm appearance-none cursor-pointer"
+                                >
+                                    <option value={0}>Uitgeschakeld</option>
+                                    <option value={1}>Elke 1 minuut</option>
+                                    <option value={2}>Elke 2 minuten</option>
+                                    <option value={5}>Elke 5 minuten</option>
+                                    <option value={10}>Elke 10 minuten</option>
+                                    <option value={15}>Elke 15 minuten</option>
+                                    <option value={30}>Elke 30 minuten</option>
+                                    <option value={60}>Elk uur</option>
+                                </select>
+                            </div>
+                            <p className="text-[10px] font-bold text-slate-400 ml-1">Hoe vaak planning data automatisch wordt opgehaald uit MKG.</p>
+                        </div>
+
+                        {/* Handmatige sync knop */}
+                        <div className="space-y-1.5">
+                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Handmatig Synchroniseren</label>
+                            <button
+                                onClick={handleFullSync}
+                                disabled={mkgFullSyncing || !mkgUrl}
+                                className="flex items-center gap-2 w-full px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-md shadow-emerald-500/30 transition-all active:scale-95 disabled:opacity-60 justify-center"
+                            >
+                                {mkgFullSyncing ? <RefreshCw size={16} className="animate-spin" /> : <RefreshCw size={16} />}
+                                {mkgFullSyncing ? 'Synchroniseren...' : 'Alles Synchroniseren'}
+                            </button>
+                            <p className="text-[10px] font-bold text-slate-400 ml-1">Haalt alle planning bewerkingen in één keer op uit MKG.</p>
+                            {mkgSyncResult && (
+                                <p className={`text-xs font-bold ml-1 ${mkgSyncResult.startsWith('✓') ? 'text-emerald-600' : 'text-red-500'}`}>
+                                    {mkgSyncResult}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                </div>
 
                 {/* Status info rij */}
                 <div className="grid grid-cols-3 gap-4 pt-2">
