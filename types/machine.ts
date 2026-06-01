@@ -60,6 +60,11 @@ export interface ActiveJob {
     setupName: string;
     startTime: string;
     operator: string;
+    // MKG Planning koppeling (optioneel — alleen als gestart vanuit MKG)
+    mkgPlnbRecordId?: string;    // RowKey van het actieve MKG plnb record
+    mkgPrdhNum?: string;         // Productieordernummer
+    mkgBwrkNum?: number;         // Bewerkingsnummer
+    mkgAantal?: number;          // Te produceren aantal
 }
 
 export interface Machine {

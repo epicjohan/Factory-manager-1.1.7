@@ -5,11 +5,12 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RefreshCw, ChevronDown, ChevronRight, AlertTriangle, Clock, Wrench, User, Settings, Package, ExternalLink, Briefcase, PlayCircle, CheckCircle2, Play, Loader2, X } from 'lucide-react';
+import { RefreshCw, ChevronDown, ChevronRight, AlertTriangle, Clock, Wrench, User, Settings, Package, ExternalLink, Briefcase, PlayCircle, CheckCircle2, Play, Loader2 } from 'lucide-react';
 import { MkgPlnbRecord, Article } from '../../types';
 import { mkgCapaciteitService } from '../../services/mkg/mkgCapaciteitService';
 import { db } from '../../services/storage';
 import { MkgBomImportModal } from './MkgBomImportModal';
+import { MkgActionModal } from './MkgActionModal';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 interface Props {
@@ -82,11 +83,7 @@ export const MkgPlanningWidget: React.FC<Props> = ({
     const [actionModal, setActionModal] = useState<{
         type: 'start' | 'gereed';
         record: MkgPlnbRecord;
-        aantal: number;
-        markeerGereed: boolean;
-        gebruikerNaam: string;
     } | null>(null);
-    const [actionError, setActionError] = useState('');
 
     const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(new Set());
 
@@ -447,8 +444,8 @@ export const MkgPlanningWidget: React.FC<Props> = ({
                                                                         disabled={actionLoading === r.id}
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
-                                                                            setActionError('');
-                                                                            setActionModal({ type: 'start', record: r, aantal: r.plnb_aantal, markeerGereed: false, gebruikerNaam: localStorage.getItem('fm_operator_naam') || '' });
+                                                                            // Error state is nu in MkgActionModal
+                                                                            setActionModal({ type: 'start', record: r });
                                                                         }}
                                                                         className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-700 rounded-lg text-[9px] font-bold hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors"
                                                                         title="Start bewerking in MKG"
@@ -462,8 +459,8 @@ export const MkgPlanningWidget: React.FC<Props> = ({
                                                                         disabled={actionLoading === r.id}
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
-                                                                            setActionError('');
-                                                                            setActionModal({ type: 'gereed', record: r, aantal: r.plnb_aantal, markeerGereed: true, gebruikerNaam: localStorage.getItem('fm_operator_naam') || '' });
+                                                                            // Error state is nu in MkgActionModal
+                                                                            setActionModal({ type: 'gereed', record: r });
                                                                         }}
                                                                         className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 rounded-lg text-[9px] font-bold hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
                                                                         title="Meld bewerking gereed in MKG"
@@ -505,228 +502,13 @@ export const MkgPlanningWidget: React.FC<Props> = ({
 
             {/* ── Actie Modal (Start / Gereedmeld) ── */}
             {actionModal && (
-                <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-150"
-                     onClick={() => !actionLoading && setActionModal(null)}>
-                    <div className="bg-white dark:bg-slate-800 rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700 animate-in zoom-in-95 duration-200"
-                         onClick={e => e.stopPropagation()}>
-
-                        {/* Header */}
-                        <div className={`px-8 py-5 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between ${
-                            actionModal.type === 'start'
-                                ? 'bg-emerald-50 dark:bg-emerald-900/20'
-                                : 'bg-blue-50 dark:bg-blue-900/20'
-                        }`}>
-                            <div className="flex items-center gap-3">
-                                <div className={`p-2.5 rounded-xl ${
-                                    actionModal.type === 'start'
-                                        ? 'bg-emerald-100 dark:bg-emerald-900/40'
-                                        : 'bg-blue-100 dark:bg-blue-900/40'
-                                }`}>
-                                    {actionModal.type === 'start'
-                                        ? <Play size={20} className="text-emerald-600 dark:text-emerald-400" />
-                                        : <CheckCircle2 size={20} className="text-blue-600 dark:text-blue-400" />
-                                    }
-                                </div>
-                                <div>
-                                    <h3 className="text-lg font-black text-slate-800 dark:text-white">
-                                        {actionModal.type === 'start' ? 'Bewerking Starten' : 'Bewerking Gereedmelden'}
-                                    </h3>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                                        Wordt direct doorgevoerd in MKG
-                                    </p>
-                                </div>
-                            </div>
-                            <button
-                                onClick={() => !actionLoading && setActionModal(null)}
-                                className="p-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                                disabled={!!actionLoading}
-                            >
-                                <X size={18} className="text-slate-400" />
-                            </button>
-                        </div>
-
-                        {/* Body */}
-                        <div className="p-8 space-y-5">
-                            {/* Order info */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Order nr</p>
-                                    <p className="text-lg font-black font-mono text-slate-800 dark:text-white">{actionModal.record.prdh_num}</p>
-                                </div>
-                                <div>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Artikel</p>
-                                    <p className="text-sm font-bold font-mono text-slate-600 dark:text-slate-300">{actionModal.record.arti_code || '—'}</p>
-                                </div>
-                                <div>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Bewerking</p>
-                                    <p className="text-sm text-slate-600 dark:text-slate-300">{actionModal.record.plnb_oms || `Bew. ${actionModal.record.bwrk_num}`}</p>
-                                </div>
-                                <div>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Omschrijving</p>
-                                    <p className="text-sm text-slate-600 dark:text-slate-300 truncate" title={actionModal.record.arti_oms1}>{actionModal.record.arti_oms1 || '—'}</p>
-                                </div>
-                            </div>
-
-                            {/* Aantal invoer (alleen bij gereedmelden) */}
-                            {actionModal.type === 'gereed' && (
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-widest mb-2">
-                                        Aantal gereed
-                                    </label>
-                                    <div className="flex items-center gap-3">
-                                        <input
-                                            type="number"
-                                            min={0}
-                                            max={actionModal.record.plnb_aantal * 2}
-                                            value={actionModal.aantal}
-                                            onChange={e => {
-                                                const val = Number(e.target.value);
-                                                setActionModal(prev => prev ? {
-                                                    ...prev,
-                                                    aantal: val,
-                                                    markeerGereed: val >= prev.record.plnb_aantal
-                                                } : null);
-                                            }}
-                                            className="flex-1 px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-lg font-bold font-mono text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-center"
-                                        />
-                                        <span className="text-sm text-slate-400 dark:text-slate-500 whitespace-nowrap">
-                                            van {actionModal.record.plnb_aantal}
-                                        </span>
-                                    </div>
-                                    {actionModal.record.plnb_aantal_grd > 0 && (
-                                        <p className="text-[10px] text-slate-400 mt-1.5">
-                                            Reeds gereed gemeld: <span className="font-bold text-emerald-500">{actionModal.record.plnb_aantal_grd}</span>
-                                        </p>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* Gereed checkbox */}
-                            {actionModal.type === 'gereed' && (
-                                <div
-                                    className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-colors ${
-                                        actionModal.markeerGereed
-                                            ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-300 dark:border-emerald-700'
-                                            : 'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-700'
-                                    }`}
-                                    onClick={() => setActionModal(prev => prev ? { ...prev, markeerGereed: !prev.markeerGereed } : null)}
-                                >
-                                    <input
-                                        type="checkbox"
-                                        checked={actionModal.markeerGereed}
-                                        readOnly
-                                        className="w-5 h-5 rounded border-2 border-slate-300 dark:border-slate-600 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
-                                    />
-                                    <div className="flex-1">
-                                        <p className={`text-sm font-bold ${
-                                            actionModal.markeerGereed
-                                                ? 'text-emerald-700 dark:text-emerald-300'
-                                                : 'text-amber-700 dark:text-amber-300'
-                                        }`}>
-                                            Bewerking gereed melden
-                                        </p>
-                                        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
-                                            {actionModal.markeerGereed
-                                                ? 'De bewerking wordt als afgerond gemarkeerd in MKG.'
-                                                : 'Alleen het aantal wordt bijgewerkt — de bewerking blijft open.'
-                                            }
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Operator naam */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-widest mb-2">
-                                    Uitgevoerd door
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="Naam operator..."
-                                    value={actionModal.gebruikerNaam}
-                                    onChange={e => {
-                                        const val = e.target.value;
-                                        setActionModal(prev => prev ? { ...prev, gebruikerNaam: val } : null);
-                                        localStorage.setItem('fm_operator_naam', val);
-                                    }}
-                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                />
-                                <p className="text-[10px] text-slate-400 mt-1">Wordt gelogd in de productieorder memo intern.</p>
-                            </div>
-
-                            {/* Start info */}
-                            {actionModal.type === 'start' && (
-                                <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700 rounded-xl px-4 py-3">
-                                    <p className="text-xs text-emerald-700 dark:text-emerald-300">
-                                        <span className="font-bold">Startdatum:</span> {new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}
-                                    </p>
-                                    <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
-                                        Aantal stuks: <span className="font-bold">{actionModal.record.plnb_aantal}</span>
-                                    </p>
-                                </div>
-                            )}
-
-                            {/* Error */}
-                            {actionError && (
-                                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-xl px-4 py-3">
-                                    <p className="text-xs text-red-600 dark:text-red-400 font-bold">{actionError}</p>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Footer */}
-                        <div className="px-8 py-5 border-t border-slate-200 dark:border-slate-700 flex items-center justify-end gap-3">
-                            <button
-                                onClick={() => setActionModal(null)}
-                                disabled={!!actionLoading}
-                                className="px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors"
-                            >
-                                Annuleren
-                            </button>
-                            <button
-                                disabled={!!actionLoading}
-                                onClick={async () => {
-                                    const rec = actionModal.record;
-                                    setActionLoading(rec.id);
-                                    setActionError('');
-                                    try {
-                                        const srv = await db.getServerSettings();
-                                        const pbUrl = srv.url || window.location.origin;
-                                        let result;
-                                        if (actionModal.type === 'start') {
-                                            result = await mkgCapaciteitService.startBewerking(pbUrl, rec, actionModal.gebruikerNaam || undefined);
-                                        } else {
-                                            result = await mkgCapaciteitService.gereedmeldBewerking(pbUrl, rec, actionModal.aantal, actionModal.markeerGereed, actionModal.gebruikerNaam || undefined);
-                                        }
-                                        if (result.success) {
-                                            setActionModal(null);
-                                            load();
-                                        } else {
-                                            setActionError(result.message);
-                                        }
-                                    } catch (err) {
-                                        setActionError(String(err));
-                                    } finally {
-                                        setActionLoading(null);
-                                    }
-                                }}
-                                className={`inline-flex items-center gap-2 px-6 py-2.5 text-xs font-bold uppercase tracking-widest text-white rounded-xl transition-colors shadow-sm ${
-                                    actionModal.type === 'start'
-                                        ? 'bg-emerald-600 hover:bg-emerald-700'
-                                        : 'bg-blue-600 hover:bg-blue-700'
-                                } disabled:opacity-50`}
-                            >
-                                {actionLoading ? (
-                                    <><Loader2 size={14} className="animate-spin" /> Verwerken...</>
-                                ) : actionModal.type === 'start' ? (
-                                    <><Play size={14} /> Bewerking Starten</>
-                                ) : (
-                                    <><CheckCircle2 size={14} /> Gereedmelden</>
-                                )}
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <MkgActionModal
+                    isOpen={true}
+                    type={actionModal.type}
+                    record={actionModal.record}
+                    onClose={() => setActionModal(null)}
+                    onSuccess={() => { setActionModal(null); load(); }}
+                />
             )}
 
             {/* ── Import Modal ── */}
