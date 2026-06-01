@@ -28,6 +28,20 @@ const getWeekDateRange = (): string => {
     return `${fmt(monday)} — ${fmt(sunday)}`;
 };
 
+/** Returns [mondayISO, sundayISO] for the current week, e.g. ["2026-06-01", "2026-06-07"] */
+const getCurrentWeekBounds = (): [string, string] => {
+    const now = new Date();
+    const dayOfWeek = now.getDay() || 7;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - dayOfWeek + 1);
+    monday.setHours(0, 0, 0, 0);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23, 59, 59, 999);
+    const toISO = (d: Date) => d.toISOString().slice(0, 10);
+    return [toISO(monday), toISO(sunday)];
+};
+
 type OrderStatus = 'GEREED' | 'ACTIEF' | 'ACHTERSTAND' | 'GEPLAND';
 
 const getStatus = (r: MkgPlnbRecord): OrderStatus => {
@@ -80,6 +94,7 @@ export const PlanningTvDashboard: React.FC = () => {
 
     const currentWeek = useMemo(() => getCurrentWeek(), []);
     const weekRange = useMemo(() => getWeekDateRange(), []);
+    const weekBounds = useMemo(() => getCurrentWeekBounds(), []);
 
     // Load data
     const loadData = useCallback(async () => {
@@ -99,17 +114,35 @@ export const PlanningTvDashboard: React.FC = () => {
                 .filter(Boolean) as Machine[];
             setMachines(groupMachines);
 
-            // Filter plnb: huidige week
-            const weekRecords = allPlnb.filter(r =>
-                r.plnb_wk_start <= currentWeek && r.plnb_wk_eind >= currentWeek
-            );
+            const [weekStart, weekEnd] = weekBounds;
+            const todayISO = new Date().toISOString().slice(0, 10);
+
+            // Filter plnb: datum-gebaseerd (voorkomt 2023-orders die matchen op weeknr)
+            // Een order is relevant als: de geplande periode overlapt met deze week
+            // OF de order in achterstand is (start < vandaag en niet gereed)
+            const weekRecords = allPlnb.filter(r => {
+                // Gereedgemelde orders uitsluiten
+                if (r.plnb_gereed) return false;
+
+                const datStart = r.plnb_dat_start?.slice(0, 10) || '';
+                const datEind = r.plnb_dat_eind?.slice(0, 10) || '';
+
+                // Order overlapt met huidige week
+                if (datStart <= weekEnd && datEind >= weekStart) return true;
+
+                // Order in achterstand: had klaar moeten zijn maar is niet gereed
+                if (datEind && datEind < todayISO && !r.plnb_gereed) return true;
+
+                return false;
+            });
+
             setPlnbRecords(weekRecords);
             setLoading(false);
         } catch (e) {
             setError('Fout bij laden van data');
             setLoading(false);
         }
-    }, [groupId, currentWeek]);
+    }, [groupId, currentWeek, weekBounds]);
 
     useEffect(() => { loadData(); }, [loadData]);
 
