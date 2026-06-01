@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTable } from '../hooks/useTable';
 import { machineService } from '../services/db/machineService';
 import { KEYS } from '../services/db/core';
-import { Machine, Article, SetupVariant, SupportType, SupportStatus, ArticleFile, ArticleTool, NotificationTrigger, SupportRequest } from '../types';
+import { Machine, Article, SetupVariant, SupportType, SupportStatus, ArticleFile, ArticleTool, NotificationTrigger, SupportRequest, MkgPlnbRecord } from '../types';
 import { db } from '../services/storage';
 import { documentService } from '../services/db/documentService';
 import { useAuth } from '../contexts/AuthContext';
@@ -19,8 +19,11 @@ import {
     Image as ImageIcon, FileText, Maximize, Minimize,
     Wrench, Info, Truck, Box, Expand, Shrink,
     ClipboardList, Hammer, ScanEye, Container, RefreshCw, AlertTriangle, Loader2,
-    X, Ruler, Binary, Thermometer, Recycle, Droplet, Search, Briefcase, PlayCircle, ArrowRight
+    X, Ruler, Binary, Thermometer, Recycle, Droplet, Search, Briefcase, PlayCircle, ArrowRight,
+    CheckCircle2, Calendar, Package
 } from '../icons';
+import { MkgActionModal } from '../components/machine/MkgActionModal';
+import { mkgCapaciteitService } from '../services/mkg/mkgCapaciteitService';
 
 type DashboardTab = 'INFO' | 'FIXTURE' | 'TOOLS' | 'INSTRUCTION';
 
@@ -53,10 +56,21 @@ export const ProductionDashboard: React.FC = () => {
 
     const [checkedSteps, setCheckedSteps] = useState<Record<string, boolean>>({});
 
+    // --- MKG STATE ---
+    const [mkgActionModal, setMkgActionModal] = useState<{ type: 'start' | 'gereed'; record: MkgPlnbRecord } | null>(null);
+    const [showMkgOrderModal, setShowMkgOrderModal] = useState(false);
+    const [mkgOrders, setMkgOrders] = useState<MkgPlnbRecord[]>([]);
+    const [mkgOrderSearch, setMkgOrderSearch] = useState('');
+    const [mkgSyncing, setMkgSyncing] = useState(false);
+
     const dashboardRef = useRef<HTMLDivElement>(null);
 
     // --- DERIVED DATA ---
     const machine = useMemo(() => machines.find(m => m.id === id), [machines, id]);
+
+    // MKG resource nummer (na machine declaratie)
+    const rsrcNum = machine ? (machine.mkgResourceCode || (machine.machineNumber && !isNaN(parseInt(machine.machineNumber)) ? parseInt(machine.machineNumber) : 0)) : 0;
+    const hasMkgResource = rsrcNum > 0;
 
     const activeJobData = useMemo(() => {
         if (!machine?.activeJob) return null;
@@ -311,6 +325,65 @@ export const ProductionDashboard: React.FC = () => {
         setActiveSupportType(type);
     };
 
+    // --- MKG HANDLERS ---
+    const loadMkgOrders = async () => {
+        if (!hasMkgResource) return;
+        const records = await mkgCapaciteitService.getPlnbForResource(rsrcNum);
+        const open = records.filter((r: MkgPlnbRecord) => !r.plnb_gereed);
+        open.sort((a: MkgPlnbRecord, b: MkgPlnbRecord) => (a.plnb_dat_start || '').localeCompare(b.plnb_dat_start || ''));
+        setMkgOrders(open);
+    };
+
+    const syncMkgOrders = async () => {
+        if (!hasMkgResource) return;
+        setMkgSyncing(true);
+        try {
+            const srv = await db.getServerSettings();
+            const pbUrl = srv.url || window.location.origin;
+            await mkgCapaciteitService.syncPlnbFromMkg(pbUrl, rsrcNum);
+            await loadMkgOrders();
+        } catch (err) {
+            console.error('[ProductionDashboard] MKG sync fout:', err);
+        } finally {
+            setMkgSyncing(false);
+        }
+    };
+
+    const handleMkgStartSuccess = async () => {
+        if (!mkgActionModal || !machine || !user) return;
+        const rec = mkgActionModal.record;
+        const operatorName = localStorage.getItem('fm_operator_naam') || user.name || 'Onbekend';
+        const job = {
+            articleId: '',
+            articleName: rec.arti_oms1 || rec.plnb_oms || 'MKG Order',
+            articleCode: rec.arti_code || rec.prdh_num,
+            setupId: '',
+            setupName: rec.plnb_oms || `Bew. ${rec.bwrk_num}`,
+            startTime: new Date().toISOString(),
+            operator: operatorName,
+            mkgPlnbRecordId: rec.id,
+            mkgPrdhNum: rec.prdh_num,
+            mkgBwrkNum: rec.bwrk_num,
+            mkgAantal: rec.plnb_aantal,
+        };
+        await machineService.assignJob(machine.id, job);
+        setMkgActionModal(null);
+        setShowMkgOrderModal(false);
+        await loadMkgOrders();
+    };
+
+    const handleMkgGereedSuccess = async () => {
+        setMkgActionModal(null);
+        if (machine) await machineService.clearJob(machine.id);
+        await loadMkgOrders();
+    };
+
+    const handleMkgGereedmelden = () => {
+        if (!machine?.activeJob?.mkgPlnbRecordId) return;
+        const rec = mkgOrders.find(r => r.id === machine.activeJob!.mkgPlnbRecordId);
+        if (rec) setMkgActionModal({ type: 'gereed', record: rec });
+    };
+
     // --- RENDERING ---
     if (!machine) return <div className="bg-white text-slate-800 h-screen flex items-center justify-center">Laden...</div>;
 
@@ -341,6 +414,16 @@ export const ProductionDashboard: React.FC = () => {
                     </div>
                     <h3 className="text-3xl font-black text-slate-800 uppercase tracking-tight italic mb-2">Setup Selecteren</h3>
                     <p className="text-slate-500 max-w-md mx-auto mb-8 font-medium">Zoek en selecteer een setup om de productie-omgeving voor deze machine te starten.</p>
+                    
+                    {/* MKG Order Selectie Knop */}
+                    {hasMkgResource && (
+                        <button
+                            onClick={() => { setShowMkgOrderModal(true); loadMkgOrders(); }}
+                            className="w-full max-w-2xl mx-auto mb-6 py-5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-blue-500/20 flex items-center justify-center gap-3 transition-all hover:scale-[1.02]"
+                        >
+                            <ClipboardList size={22} /> Order Selecteren uit MKG Planning
+                        </button>
+                    )}
                     
                     <div className="relative w-full max-w-2xl mx-auto z-10">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
@@ -463,6 +546,17 @@ export const ProductionDashboard: React.FC = () => {
                     >
                         <RefreshCw size={18} /> <span className="hidden lg:inline">Wissel Order</span>
                     </button>
+
+                    {/* MKG Gereedmelden (alleen bij MKG orders) */}
+                    {machine.activeJob?.mkgPlnbRecordId && (
+                        <button
+                            onClick={() => { loadMkgOrders().then(() => handleMkgGereedmelden()); }}
+                            className="flex items-center gap-2 px-5 py-3 rounded-full font-bold uppercase text-xs tracking-widest border transition-all active:scale-95 bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-600 shadow-sm shadow-emerald-500/20"
+                            title="Bewerking gereedmelden in MKG"
+                        >
+                            <CheckCircle2 size={18} /> <span className="hidden lg:inline">Gereedmelden</span>
+                        </button>
+                    )}
 
                     <button onClick={handleStopClick} className="flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-500 text-white rounded-full font-black uppercase text-xs tracking-widest shadow-lg shadow-red-500/30 transition-all active:scale-95 ml-4">
                         <StopCircle size={20} /> <span className="hidden lg:inline">Order Beëindigen</span>
@@ -879,6 +973,84 @@ export const ProductionDashboard: React.FC = () => {
 
             <SupportRequestModals activeType={activeSupportType} onClose={() => setActiveSupportModal(null)} onSubmit={handleSupportRequest} />
             <FilePreviewModal file={previewFile} onClose={() => setPreviewFile(null)} />
+
+            {/* MKG Order Selectie Modal */}
+            {showMkgOrderModal && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-150"
+                     onClick={() => setShowMkgOrderModal(false)}>
+                    <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-200 flex flex-col"
+                         onClick={e => e.stopPropagation()}>
+                        <div className="px-8 py-5 border-b border-slate-200 bg-blue-50 flex items-center justify-between shrink-0">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2.5 rounded-xl bg-blue-100"><ClipboardList size={20} className="text-blue-600" /></div>
+                                <div>
+                                    <h3 className="text-lg font-black text-slate-800">MKG Planning Orders</h3>
+                                    <p className="text-xs text-slate-500">{machine?.name} — {mkgOrders.length} bewerkingen gepland</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button onClick={(e) => { e.stopPropagation(); syncMkgOrders(); }} disabled={mkgSyncing} className="p-2.5 rounded-xl hover:bg-blue-100 transition-colors">
+                                    <RefreshCw size={16} className={`text-blue-600 ${mkgSyncing ? 'animate-spin' : ''}`} />
+                                </button>
+                                <button onClick={() => setShowMkgOrderModal(false)} className="p-2 rounded-xl hover:bg-slate-200 transition-colors">
+                                    <X size={18} className="text-slate-400" />
+                                </button>
+                            </div>
+                        </div>
+                        <div className="px-8 py-4 border-b border-slate-100 shrink-0">
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                                <input type="text" placeholder="Zoek op ordernr, artikelcode, omschrijving..." value={mkgOrderSearch} onChange={e => setMkgOrderSearch(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm font-bold outline-none focus:border-blue-500 transition-all" autoFocus />
+                            </div>
+                        </div>
+                        <div className="overflow-y-auto flex-1 px-6 py-4 space-y-3">
+                            {(mkgOrderSearch ? mkgOrders.filter(r => r.prdh_num.toLowerCase().includes(mkgOrderSearch.toLowerCase()) || (r.arti_code||'').toLowerCase().includes(mkgOrderSearch.toLowerCase()) || (r.arti_oms1||'').toLowerCase().includes(mkgOrderSearch.toLowerCase())) : mkgOrders).length === 0 ? (
+                                <div className="text-center py-16 text-slate-400">
+                                    <Package size={48} className="mx-auto mb-4 opacity-30" />
+                                    <p className="text-sm font-bold">Geen orders gevonden</p>
+                                </div>
+                            ) : (
+                                (mkgOrderSearch ? mkgOrders.filter(r => r.prdh_num.toLowerCase().includes(mkgOrderSearch.toLowerCase()) || (r.arti_code||'').toLowerCase().includes(mkgOrderSearch.toLowerCase()) || (r.arti_oms1||'').toLowerCase().includes(mkgOrderSearch.toLowerCase())) : mkgOrders).map(r => (
+                                    <button key={r.id} onClick={() => { setShowMkgOrderModal(false); setMkgActionModal({ type: 'start', record: r }); }}
+                                        className="w-full text-left bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-400 rounded-2xl p-5 transition-all group">
+                                        <div className="flex items-start justify-between gap-4">
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <span className="text-lg font-black font-mono text-slate-800">{r.prdh_num}</span>
+                                                    {r.plnb_gestart && <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-600 text-[9px] font-black uppercase"><span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span> Gestart</span>}
+                                                </div>
+                                                <p className="text-sm font-bold text-slate-600 truncate">{r.arti_code && <span className="font-mono mr-2">{r.arti_code}</span>}{r.arti_oms1 || r.plnb_oms || '—'}</p>
+                                            </div>
+                                            <div className="text-right shrink-0">
+                                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Stuks</p>
+                                                <p className="text-lg font-black font-mono text-blue-600">{r.plnb_aantal}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-4 mt-3 text-[10px] text-slate-400">
+                                            <span className="flex items-center gap-1"><Calendar size={10} />{r.plnb_dat_start ? new Date(r.plnb_dat_start).toLocaleDateString('nl-NL', { day: '2-digit', month: 'short' }) : '—'}</span>
+                                            <span>Bew. {r.bwrk_num}</span>
+                                            <span>{r.plnb_oms || '—'}</span>
+                                            <ArrowRight size={14} className="ml-auto text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        </div>
+                                    </button>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* MKG Actie Modal */}
+            {mkgActionModal && (
+                <MkgActionModal
+                    isOpen={true}
+                    type={mkgActionModal.type}
+                    record={mkgActionModal.record}
+                    onClose={() => setMkgActionModal(null)}
+                    onSuccess={mkgActionModal.type === 'start' ? handleMkgStartSuccess : handleMkgGereedSuccess}
+                />
+            )}
         </div>
     );
 };
