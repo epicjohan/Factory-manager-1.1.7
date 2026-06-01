@@ -249,6 +249,18 @@ export const settingsService = {
         });
     },
 
+    getMkgSyncInterval: async (): Promise<number> => {
+        const sys = await settingsService.getSystemSettings();
+        return sys.mkgSyncIntervalMinutes || 0;
+    },
+    setMkgSyncInterval: async (minutes: number) => {
+        const current = await settingsService.getSystemSettings();
+        await settingsService.setSystemSettings({
+            ...current,
+            mkgSyncIntervalMinutes: minutes,
+        });
+    },
+
     getEnergyLive: () => loadTable<EnergyLiveData[] | undefined>(KEYS.ENERGY_LIVE, undefined),
     setEnergyLive: (d: EnergyLiveData) => saveTable(KEYS.ENERGY_LIVE, [d]),
     getSnapshots: () => loadTable<DataSnapshot[]>(KEYS.SNAPSHOTS, []),

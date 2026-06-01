@@ -60,6 +60,7 @@ export interface SystemSettings {
   mkgApiKey?: string;
   mkgUsername?: string;
   mkgPassword?: string;
+  mkgSyncIntervalMinutes?: number;  // Auto-sync interval (0 = uitgeschakeld, standaard 0)
 }
 
 
