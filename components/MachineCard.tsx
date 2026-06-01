@@ -45,7 +45,7 @@ export const MachineCard: React.FC<MachineCardProps> = ({ machine }) => {
           </div>
         )}
 
-        <div className="relative h-48 overflow-hidden bg-slate-100 dark:bg-slate-900">
+        <div className="relative aspect-video overflow-hidden bg-slate-100 dark:bg-slate-900">
           {imageUrl ? (
             <img
               src={imageUrl}
