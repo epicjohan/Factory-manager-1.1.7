@@ -412,6 +412,7 @@ const mapPlnbRecord = (raw: any): MkgPlnbRecord => {
 
         plnb_dat_start:          String(raw.plnb_dat_start ?? ''),
         plnb_dat_eind:           String(raw.plnb_dat_eind ?? ''),
+        plnb_dat_gestart:        String(raw.plnb_dat_gestart ?? ''),
         plnb_wk_start:           Number(raw.plnb_wk_start) || 0,
         plnb_wk_eind:            Number(raw.plnb_wk_eind) || 0,
         plnb_tijd_start:         Number(raw.plnb_tijd_start) || 0,
