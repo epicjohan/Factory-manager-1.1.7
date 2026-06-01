@@ -383,6 +383,103 @@ export const mkgCapaciteitService = {
             return { success: false, count: 0, message: String(err) };
         }
     },
+
+    /**
+     * Generieke update van een plnb record in MKG.
+     * @param pbUrl PocketBase URL
+     * @param rowKey MKG RowKey (hex) van het plnb record
+     * @param fields Velden om bij te werken, bijv. { plnb_gereed: true }
+     */
+    updatePlnbInMkg: async (pbUrl: string, rowKey: string, fields: Record<string, any>): Promise<{ success: boolean; message: string }> => {
+        try {
+            const response = await fetch(`${pbUrl}/api/mkg-proxy`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'UPDATE_PLNB',
+                    rowKey,
+                    fields
+                }),
+            });
+
+            if (!response.ok) {
+                return { success: false, message: `HTTP ${response.status}` };
+            }
+
+            const result = await response.json();
+            return { success: result.success, message: result.message || 'Onbekende fout' };
+        } catch (err) {
+            console.error('[MkgPlnb] Update fout:', err);
+            return { success: false, message: String(err) };
+        }
+    },
+
+    /**
+     * Meld een bewerking gereed in MKG en werk de lokale cache bij.
+     * @param pbUrl PocketBase URL
+     * @param record Het plnb record om gereed te melden
+     * @param aantalGereed Optioneel: specifiek aantal gereedmelden (default = plnb_aantal)
+     */
+    gereedmeldBewerking: async (pbUrl: string, record: MkgPlnbRecord, aantalGereed?: number): Promise<{ success: boolean; message: string }> => {
+        const rowKey = record.id;
+        if (!rowKey || rowKey.indexOf('_') > -1) {
+            // Geen echte RowKey (is een fallback ID), kan niet updaten
+            return { success: false, message: 'Geen geldige MKG RowKey — record kan niet worden bijgewerkt via de API.' };
+        }
+
+        const fields: Record<string, any> = {
+            plnb_gereed: true,
+            plnb_aantal_grd: aantalGereed ?? record.plnb_aantal
+        };
+
+        console.log(`[MkgPlnb] Gereedmelden bewerking ${record.prdh_num} bwrk ${record.bwrk_num} (RowKey: ${rowKey})`);
+        const result = await mkgCapaciteitService.updatePlnbInMkg(pbUrl, rowKey, fields);
+
+        if (result.success) {
+            // Lokale cache bijwerken
+            const allRecords = await loadTable<MkgPlnbRecord[]>(KEYS.MKG_PLNB, []);
+            const updated = allRecords.filter(r => r.id !== rowKey);
+            await saveTable(KEYS.MKG_PLNB, updated);
+            console.log(`[MkgPlnb] Gereedmelding OK — record verwijderd uit lokale cache.`);
+        }
+
+        return result;
+    },
+
+    /**
+     * Start een bewerking in MKG en werk de lokale cache bij.
+     * @param pbUrl PocketBase URL
+     * @param record Het plnb record om te starten
+     */
+    startBewerking: async (pbUrl: string, record: MkgPlnbRecord): Promise<{ success: boolean; message: string }> => {
+        const rowKey = record.id;
+        if (!rowKey || rowKey.indexOf('_') > -1) {
+            return { success: false, message: 'Geen geldige MKG RowKey — record kan niet worden bijgewerkt via de API.' };
+        }
+
+        const today = new Date().toISOString().slice(0, 10);
+        const fields: Record<string, any> = {
+            plnb_gestart: true,
+            plnb_dat_gestart: today
+        };
+
+        console.log(`[MkgPlnb] Starten bewerking ${record.prdh_num} bwrk ${record.bwrk_num} (RowKey: ${rowKey})`);
+        const result = await mkgCapaciteitService.updatePlnbInMkg(pbUrl, rowKey, fields);
+
+        if (result.success) {
+            // Lokale cache bijwerken
+            const allRecords = await loadTable<MkgPlnbRecord[]>(KEYS.MKG_PLNB, []);
+            const updated = allRecords.map(r =>
+                r.id === rowKey
+                    ? { ...r, plnb_gestart: true, plnb_dat_gestart: today }
+                    : r
+            );
+            await saveTable(KEYS.MKG_PLNB, updated);
+            console.log(`[MkgPlnb] Start OK — lokale cache bijgewerkt.`);
+        }
+
+        return result;
+    },
 };
 
 /**

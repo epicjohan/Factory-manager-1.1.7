@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RefreshCw, ChevronDown, ChevronRight, AlertTriangle, Clock, Wrench, User, Settings, Package, ExternalLink, Briefcase, PlayCircle } from 'lucide-react';
+import { RefreshCw, ChevronDown, ChevronRight, AlertTriangle, Clock, Wrench, User, Settings, Package, ExternalLink, Briefcase, PlayCircle, CheckCircle2, Play, Loader2 } from 'lucide-react';
 import { MkgPlnbRecord, Article } from '../../types';
 import { mkgCapaciteitService } from '../../services/mkg/mkgCapaciteitService';
 import { db } from '../../services/storage';
@@ -76,6 +76,7 @@ export const MkgPlanningWidget: React.FC<Props> = ({
     const [syncing, setSyncing] = useState(false);
     const [syncError, setSyncError] = useState('');
     const [lastSync, setLastSync] = useState('');
+    const [actionLoading, setActionLoading] = useState<string | null>(null); // RowKey die bezig is
     const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(new Set());
 
     // ── Import modal state ────────────────────────────────────────────────
@@ -368,6 +369,7 @@ export const MkgPlanningWidget: React.FC<Props> = ({
                                                     <th className="px-3 py-2 text-right font-black text-[10px] text-slate-500 uppercase">Instel</th>
                                                     <th className="px-3 py-2 text-center font-black text-[10px] text-slate-500 uppercase">Type</th>
                                                     <th className="px-3 py-2 text-center font-black text-[10px] text-slate-500 uppercase">Status</th>
+                                                    <th className="px-3 py-2 text-center font-black text-[10px] text-slate-500 uppercase">Acties</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -426,6 +428,59 @@ export const MkgPlanningWidget: React.FC<Props> = ({
                                                         </td>
                                                         <td className="px-3 py-2 text-center">
                                                             <StatusBadge record={r} />
+                                                        </td>
+                                                        <td className="px-3 py-2 text-center">
+                                                            <div className="flex items-center justify-center gap-1">
+                                                                {!r.plnb_gestart && !r.plnb_gereed && (
+                                                                    <button
+                                                                        disabled={actionLoading === r.id}
+                                                                        onClick={async (e) => {
+                                                                            e.stopPropagation();
+                                                                            if (!window.confirm(`Bewerking ${r.plnb_oms || r.bwrk_num} van order ${r.prdh_num} starten?`)) return;
+                                                                            setActionLoading(r.id);
+                                                                            try {
+                                                                                const srv = await db.getServerSettings();
+                                                                                const pbUrl = srv.url || window.location.origin;
+                                                                                const result = await mkgCapaciteitService.startBewerking(pbUrl, r);
+                                                                                if (result.success) { load(); }
+                                                                                else { alert('Fout: ' + result.message); }
+                                                                            } catch (err) { alert('Fout: ' + String(err)); }
+                                                                            finally { setActionLoading(null); }
+                                                                        }}
+                                                                        className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-700 rounded-lg text-[9px] font-bold hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors"
+                                                                        title="Start bewerking in MKG"
+                                                                    >
+                                                                        {actionLoading === r.id ? <Loader2 size={10} className="animate-spin" /> : <Play size={10} />}
+                                                                        Start
+                                                                    </button>
+                                                                )}
+                                                                {r.plnb_gestart && !r.plnb_gereed && (
+                                                                    <button
+                                                                        disabled={actionLoading === r.id}
+                                                                        onClick={async (e) => {
+                                                                            e.stopPropagation();
+                                                                            if (!window.confirm(`Bewerking ${r.plnb_oms || r.bwrk_num} van order ${r.prdh_num} gereedmelden?\n\nAantal: ${r.plnb_aantal}`)) return;
+                                                                            setActionLoading(r.id);
+                                                                            try {
+                                                                                const srv = await db.getServerSettings();
+                                                                                const pbUrl = srv.url || window.location.origin;
+                                                                                const result = await mkgCapaciteitService.gereedmeldBewerking(pbUrl, r);
+                                                                                if (result.success) { load(); }
+                                                                                else { alert('Fout: ' + result.message); }
+                                                                            } catch (err) { alert('Fout: ' + String(err)); }
+                                                                            finally { setActionLoading(null); }
+                                                                        }}
+                                                                        className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 rounded-lg text-[9px] font-bold hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+                                                                        title="Meld bewerking gereed in MKG"
+                                                                    >
+                                                                        {actionLoading === r.id ? <Loader2 size={10} className="animate-spin" /> : <CheckCircle2 size={10} />}
+                                                                        Gereed
+                                                                    </button>
+                                                                )}
+                                                                {r.plnb_gereed && (
+                                                                    <span className="text-[9px] text-slate-400 italic">Afgerond</span>
+                                                                )}
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 ))}
