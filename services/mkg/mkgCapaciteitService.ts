@@ -330,6 +330,59 @@ export const mkgCapaciteitService = {
             return { success: false, count: 0, message: String(err) };
         }
     },
+
+    /**
+     * Synchroniseer ALLE resources apart (voorkomt dataverlies bij bulk sync).
+     * Loopt elke machine met een mkgResourceCode na en synct per resource.
+     * Machines zonder mkgResourceCode worden overgeslagen maar gebruiken machineNumber als fallback.
+     */
+    syncAllResources: async (pbUrl: string): Promise<{ success: boolean; count: number; message: string }> => {
+        try {
+            const machines = await loadTable<any[]>(KEYS.MACHINES, []);
+            
+            // Verzamel unieke resource nummers
+            const resourceNums = new Set<number>();
+            for (const m of machines) {
+                const rsrc = m.mkgResourceCode || parseInt(m.machineNumber);
+                if (rsrc && rsrc > 0 && !isNaN(rsrc)) {
+                    resourceNums.add(rsrc);
+                }
+            }
+
+            if (resourceNums.size === 0) {
+                return { success: false, count: 0, message: 'Geen machines met MKG resource code gevonden.' };
+            }
+
+            console.log(`[MkgPlnb] Start sync voor ${resourceNums.size} resources: [${[...resourceNums].join(', ')}]`);
+            
+            let totalCount = 0;
+            let errors: string[] = [];
+
+            for (const rsrcNum of resourceNums) {
+                console.log(`[MkgPlnb] Sync resource ${rsrcNum}...`);
+                const result = await mkgCapaciteitService.syncPlnbFromMkg(pbUrl, rsrcNum);
+                if (result.success) {
+                    totalCount += result.count;
+                } else {
+                    errors.push(`Resource ${rsrcNum}: ${result.message}`);
+                    console.warn(`[MkgPlnb] Fout bij resource ${rsrcNum}: ${result.message}`);
+                }
+            }
+
+            if (errors.length > 0) {
+                return { 
+                    success: true, 
+                    count: totalCount, 
+                    message: `${totalCount} bewerkingen gesynchroniseerd (${errors.length} fouten).` 
+                };
+            }
+
+            return { success: true, count: totalCount, message: `${totalCount} bewerkingen gesynchroniseerd voor ${resourceNums.size} resources.` };
+        } catch (err) {
+            console.error('[MkgPlnb] syncAllResources fout:', err);
+            return { success: false, count: 0, message: String(err) };
+        }
+    },
 };
 
 /**

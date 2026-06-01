@@ -230,7 +230,7 @@ export const SettingsIntegrations: React.FC = () => {
         try {
             const srv = await db.getServerSettings();
             const pbUrl = srv.url || window.location.origin;
-            const result = await mkgCapaciteitService.syncPlnbFromMkg(pbUrl);
+            const result = await mkgCapaciteitService.syncAllResources(pbUrl);
             if (result.success) {
                 setMkgSyncResult(`✓ ${result.count} bewerkingen gesynchroniseerd`);
                 addNotification('SUCCESS', 'MKG Sync', result.message);

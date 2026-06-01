@@ -162,8 +162,8 @@ export const PlanningTvDashboard: React.FC = () => {
                 try {
                     const srv = await db.getServerSettings();
                     const pbUrl = srv.url || window.location.origin;
-                    console.log(`[TV Dashboard] Auto-sync MKG (elke ${intervalMin} min)...`);
-                    await mkgCapaciteitService.syncPlnbFromMkg(pbUrl);
+                    console.log(`[TV Dashboard] Auto-sync MKG per resource (elke ${intervalMin} min)...`);
+                    await mkgCapaciteitService.syncAllResources(pbUrl);
                     await loadData(); // Herlaad lokale cache na sync
                 } catch (err) {
                     console.error('[TV Dashboard] Auto-sync fout:', err);
