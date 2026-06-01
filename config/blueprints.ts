@@ -225,6 +225,16 @@ export const COLLECTIONS_BLUEPRINT: CollectionGroup[] = [
                 { name: 'shifts', type: 'JSON', desc: 'Dag/Tijd configuratie' },
                 { name: 'created', type: 'Date', desc: 'Aanmaakdatum' },
                 { name: 'updated', type: 'Date', desc: 'Laatste wijziging' }
+            ]},
+            { name: 'planning_tv_groups', desc: 'TV Dashboard Groepen', icon: Monitor, color: 'bg-blue-500', fields: [
+                { name: 'id', type: 'Text', desc: 'Systeem ID (15 tekens)', required: true },
+                { name: 'name', type: 'Text', desc: 'Groepsnaam (bijv. Freesafdeling)', required: true },
+                { name: 'machineIds', type: 'JSON', desc: 'Array met FM machine IDs' },
+                { name: 'scrollIntervalSeconds', type: 'Number', desc: 'Auto-scroll interval in seconden' },
+                { name: 'autoFullscreen', type: 'Bool', desc: 'Automatisch fullscreen openen' },
+                { name: 'createdBy', type: 'Text', desc: 'Aangemaakt door gebruiker' },
+                { name: 'created', type: 'Date', desc: 'Aanmaakdatum' },
+                { name: 'updated', type: 'Date', desc: 'Laatste wijziging' }
             ]}
         ]
     },
