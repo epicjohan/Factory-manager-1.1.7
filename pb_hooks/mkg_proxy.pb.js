@@ -145,7 +145,7 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
             action: "", endpoint: "", method: "GET",
             requestBody: null, rsrcNum: null, weekFrom: null,
             limit: null, admiNum: null, artiCode: null, codesStr: null,
-            rowKey: null, fields: null
+            rowKey: null, fields: null, prdhNum: null, memoText: null
         };
 
         try {
@@ -164,6 +164,8 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
                 if (parsed.codesStr    != null) body.codesStr    = String(parsed.codesStr);
                 if (parsed.rowKey      != null) body.rowKey      = String(parsed.rowKey);
                 if (parsed.fields      != null) body.fields      = parsed.fields;
+                if (parsed.prdhNum     != null) body.prdhNum     = String(parsed.prdhNum);
+                if (parsed.memoText    != null) body.memoText    = String(parsed.memoText);
             }
         } catch (bodyErr) {
             return e.json(400, { success: false, message: "Ongeldige JSON body: " + String(bodyErr) });
@@ -530,6 +532,95 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
             }
         }
 
+        // ── APPEND_PRDH_MEMO ──────────────────────────────────────────────
+        // Voeg tekst toe aan prdh_memo_intern van een productieorder.
+        // body.prdhNum = productieordernummer
+        // body.memoText = toe te voegen tekst
+        if (body.action === "APPEND_PRDH_MEMO") {
+            console.log("[MKG Proxy] APPEND_PRDH_MEMO voor order: " + body.prdhNum);
+
+            if (!body.prdhNum || !body.memoText) {
+                return e.json(200, { success: false, message: "prdhNum en memoText zijn verplicht." });
+            }
+
+            var loginResult = mkgLogin(cfg);
+            if (!loginResult.success) {
+                return e.json(200, { success: false, message: loginResult.error });
+            }
+
+            try {
+                // 1. Zoek prdh record op basis van prdh_num
+                var searchUrl = cfg.url + MKG_API_BASE + "/Documents/prdh/"
+                    + "?FieldList=prdh_num,prdh_memo_intern"
+                    + "&Filter=prdh_num eq '" + body.prdhNum + "'";
+
+                console.log("[MKG Proxy] PRDH zoek URL: " + searchUrl);
+
+                var searchRes = $http.send({
+                    url:     searchUrl,
+                    method:  "GET",
+                    headers: mkgApiHeaders(loginResult.sessionCookie, cfg.apiKey),
+                    timeout: 15
+                });
+
+                var searchRaw = "";
+                try { searchRaw = toString(searchRes.body); } catch(x) {}
+
+                if (searchRes.statusCode < 200 || searchRes.statusCode >= 300) {
+                    return e.json(200, { success: false, message: "Kan prdh niet ophalen (HTTP " + searchRes.statusCode + ")" });
+                }
+
+                var searchJson = JSON.parse(searchRaw);
+                var prdhRecords = extractMkgData(searchJson, "prdh");
+
+                if (!prdhRecords || !Array.isArray(prdhRecords) || prdhRecords.length === 0) {
+                    return e.json(200, { success: false, message: "Productieorder '" + body.prdhNum + "' niet gevonden in MKG." });
+                }
+
+                var prdhRecord = prdhRecords[0];
+                var prdhRowKey = prdhRecord.RowKey || "";
+
+                if (!prdhRowKey) {
+                    return e.json(200, { success: false, message: "Geen RowKey gevonden voor prdh '" + body.prdhNum + "'." });
+                }
+
+                // 2. Bestaande memo ophalen en aanvullen
+                var existingMemo = String(prdhRecord.prdh_memo_intern || "");
+                var separator = existingMemo.length > 0 ? "\n" : "";
+                var newMemo = existingMemo + separator + body.memoText;
+
+                // Begrens op 2500 tekens
+                if (newMemo.length > 2500) {
+                    newMemo = newMemo.substring(newMemo.length - 2500);
+                }
+
+                console.log("[MKG Proxy] PRDH memo update: RowKey=" + prdhRowKey + ", lengte=" + newMemo.length);
+
+                // 3. PUT update
+                var memoUpdateUrl = cfg.url + MKG_API_BASE + "/Documents/prdh/" + encodeURIComponent(prdhRowKey);
+                var memoUpdateRes = $http.send({
+                    url:     memoUpdateUrl,
+                    method:  "PUT",
+                    headers: mkgApiHeaders(loginResult.sessionCookie, cfg.apiKey),
+                    body:    JSON.stringify({ prdh_memo_intern: newMemo }),
+                    timeout: 15
+                });
+
+                console.log("[MKG Proxy] PRDH memo update status: " + memoUpdateRes.statusCode);
+
+                if (memoUpdateRes.statusCode >= 200 && memoUpdateRes.statusCode < 300) {
+                    return e.json(200, { success: true, message: "Memo intern bijgewerkt voor order " + body.prdhNum + "." });
+                } else {
+                    var memoErrRaw = "";
+                    try { memoErrRaw = toString(memoUpdateRes.body); } catch(x) {}
+                    return e.json(200, { success: false, message: "Memo update mislukt (HTTP " + memoUpdateRes.statusCode + "): " + (memoErrRaw || "").substring(0, 300) });
+                }
+            } catch (memoErr) {
+                console.error("[MKG Proxy] APPEND_PRDH_MEMO fout: " + String(memoErr));
+                return e.json(200, { success: false, message: "Memo update mislukt: " + String(memoErr) });
+            }
+        }
+
         // ── FETCH_ARTI ────────────────────────────────────────────────────
         // Haal artikelgegevens op voor een lijst van arti_codes (komma-gescheiden string)
         if (body.action === "FETCH_ARTI") {
@@ -741,7 +832,7 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
         // ── Onbekende actie ───────────────────────────────────────────────
         return e.json(400, {
             success: false,
-            message: "Onbekende actie '" + body.action + "'. Ondersteund: PING, REQUEST, SYNC_PLNC, SYNC_PLNB, UPDATE_PLNB, FETCH_ARTI, FETCH_BOM."
+            message: "Onbekende actie '" + body.action + "'. Ondersteund: PING, REQUEST, SYNC_PLNC, SYNC_PLNB, UPDATE_PLNB, APPEND_PRDH_MEMO, FETCH_ARTI, FETCH_BOM."
         });
 
     } catch (fatalErr) {

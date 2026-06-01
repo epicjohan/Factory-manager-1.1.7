@@ -420,8 +420,9 @@ export const mkgCapaciteitService = {
      * @param record Het plnb record om gereed te melden
      * @param aantalGereed Optioneel: specifiek aantal gereedmelden (default = plnb_aantal)
      * @param markeerGereed Of plnb_gereed op true gezet moet worden (default = true)
+     * @param gebruikerNaam Naam van de gebruiker die de actie uitvoert (voor memo logging)
      */
-    gereedmeldBewerking: async (pbUrl: string, record: MkgPlnbRecord, aantalGereed?: number, markeerGereed: boolean = true): Promise<{ success: boolean; message: string }> => {
+    gereedmeldBewerking: async (pbUrl: string, record: MkgPlnbRecord, aantalGereed?: number, markeerGereed: boolean = true, gebruikerNaam?: string): Promise<{ success: boolean; message: string }> => {
         const rowKey = record.id;
         if (!rowKey || rowKey.indexOf('_') > -1) {
             // Geen echte RowKey (is een fallback ID), kan niet updaten
@@ -454,17 +455,59 @@ export const mkgCapaciteitService = {
                 await saveTable(KEYS.MKG_PLNB, updated);
                 console.log(`[MkgPlnb] Aantal bijgewerkt in lokale cache (niet gereedgemeld).`);
             }
+
+            // Memo intern bijwerken op de productieorder
+            if (record.prdh_num) {
+                const nu = new Date().toLocaleString('nl-NL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                const wie = gebruikerNaam || 'Onbekend';
+                const actie = markeerGereed ? 'Gereedgemeld' : 'Aantal bijgewerkt';
+                const memoText = `[${nu}] ${actie} door ${wie} — Bew. ${record.bwrk_num}: ${fields.plnb_aantal_grd}/${record.plnb_aantal} stuks (Factory Manager)`;
+
+                const memoResult = await mkgCapaciteitService.appendPrdhMemo(pbUrl, record.prdh_num, memoText);
+                if (!memoResult.success) {
+                    console.warn(`[MkgPlnb] Memo update mislukt (niet-blokkerend): ${memoResult.message}`);
+                }
+            }
         }
 
         return result;
     },
 
     /**
+     * Voeg tekst toe aan prdh_memo_intern van een productieorder in MKG.
+     * Bestaande tekst blijft behouden, nieuwe tekst wordt eronder gezet.
+     */
+    appendPrdhMemo: async (pbUrl: string, prdhNum: string, memoText: string): Promise<{ success: boolean; message: string }> => {
+        try {
+            const response = await fetch(`${pbUrl}/api/mkg-proxy`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'APPEND_PRDH_MEMO',
+                    prdhNum,
+                    memoText
+                }),
+            });
+
+            if (!response.ok) {
+                return { success: false, message: `HTTP ${response.status}` };
+            }
+
+            const result = await response.json();
+            return { success: result.success, message: result.message || 'Onbekende fout' };
+        } catch (err) {
+            console.error('[MkgPlnb] appendPrdhMemo fout:', err);
+            return { success: false, message: String(err) };
+        }
+    },
+
+    /**
      * Start een bewerking in MKG en werk de lokale cache bij.
      * @param pbUrl PocketBase URL
      * @param record Het plnb record om te starten
+     * @param gebruikerNaam Naam van de operator
      */
-    startBewerking: async (pbUrl: string, record: MkgPlnbRecord): Promise<{ success: boolean; message: string }> => {
+    startBewerking: async (pbUrl: string, record: MkgPlnbRecord, gebruikerNaam?: string): Promise<{ success: boolean; message: string }> => {
         const rowKey = record.id;
         if (!rowKey || rowKey.indexOf('_') > -1) {
             return { success: false, message: 'Geen geldige MKG RowKey — record kan niet worden bijgewerkt via de API.' };
@@ -489,6 +532,18 @@ export const mkgCapaciteitService = {
             );
             await saveTable(KEYS.MKG_PLNB, updated);
             console.log(`[MkgPlnb] Start OK — lokale cache bijgewerkt.`);
+
+            // Memo intern bijwerken
+            if (record.prdh_num) {
+                const nu = new Date().toLocaleString('nl-NL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                const wie = gebruikerNaam || 'Onbekend';
+                const memoText = `[${nu}] Gestart door ${wie} — Bew. ${record.bwrk_num}: ${record.plnb_aantal} stuks (Factory Manager)`;
+
+                const memoResult = await mkgCapaciteitService.appendPrdhMemo(pbUrl, record.prdh_num, memoText);
+                if (!memoResult.success) {
+                    console.warn(`[MkgPlnb] Memo update mislukt (niet-blokkerend): ${memoResult.message}`);
+                }
+            }
         }
 
         return result;
