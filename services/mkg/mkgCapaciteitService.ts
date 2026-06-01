@@ -513,6 +513,20 @@ export const mkgCapaciteitService = {
             return { success: false, message: 'Geen geldige MKG RowKey — record kan niet worden bijgewerkt via de API.' };
         }
 
+        // Als de bewerking al gestart is in MKG, sla de update over
+        // (MKG geeft 422 bij dubbel starten)
+        if (record.plnb_gestart) {
+            console.log(`[MkgPlnb] Bewerking ${record.prdh_num} bwrk ${record.bwrk_num} is al gestart in MKG — API update overgeslagen.`);
+            // Memo nog wel loggen
+            if (record.prdh_num) {
+                const nu = new Date().toLocaleString('nl-NL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                const wie = gebruikerNaam || 'Onbekend';
+                const memoText = `[${nu}] Setup gestart door ${wie} — Bew. ${record.bwrk_num}: ${record.plnb_aantal} stuks (Factory Manager)`;
+                await mkgCapaciteitService.appendPrdhMemo(pbUrl, record.prdh_num, memoText).catch(() => {});
+            }
+            return { success: true, message: 'Bewerking was al gestart in MKG. Lokale job is aangemaakt.' };
+        }
+
         const today = new Date().toISOString().slice(0, 10);
         const fields: Record<string, any> = {
             plnb_gestart: true,

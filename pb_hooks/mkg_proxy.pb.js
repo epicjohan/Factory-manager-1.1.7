@@ -492,16 +492,34 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
 
             try {
                 // MKG REST API: PUT /Documents/plnb/{RowKey}
+                // MKG verwacht velden gewrapped in het tabelnaam-object
+                // en booleans als integer (1/0)
                 var updateUrl = cfg.url + MKG_API_BASE + "/Documents/plnb/" + encodeURIComponent(rowKey);
 
+                // Converteer booleans naar integers (MKG verwacht 1/0, geen true/false)
+                var mkgFields = {};
+                var fieldKeys = Object.keys(updateFields);
+                for (var fi = 0; fi < fieldKeys.length; fi++) {
+                    var fk = fieldKeys[fi];
+                    var fv = updateFields[fk];
+                    if (typeof fv === "boolean") {
+                        mkgFields[fk] = fv ? 1 : 0;
+                    } else {
+                        mkgFields[fk] = fv;
+                    }
+                }
+
+                // Probeer eerst met wrapper (MKG v3 formaat)
+                var wrappedBody = { "plnb": [mkgFields] };
+
                 console.log("[MKG Proxy] UPDATE_PLNB PUT URL: " + updateUrl);
-                console.log("[MKG Proxy] UPDATE_PLNB body: " + JSON.stringify(updateFields));
+                console.log("[MKG Proxy] UPDATE_PLNB body (wrapped): " + JSON.stringify(wrappedBody));
 
                 var updateRes = $http.send({
                     url:     updateUrl,
                     method:  "PUT",
                     headers: mkgApiHeaders(loginResult.sessionCookie, cfg.apiKey),
-                    body:    JSON.stringify(updateFields),
+                    body:    JSON.stringify(wrappedBody),
                     timeout: 15
                 });
 
