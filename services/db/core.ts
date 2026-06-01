@@ -104,7 +104,8 @@ export const JSON_FIELDS = [
     'activeModules', 'notificationEmails', 'actions',
     'usedParts', 'shifts', 'andonConfig', 'mtConnectConfig',
     'fields', 'toolFields', 'templateData', 'operations', 'bomItems', 'files', 'filesMeta', 'auditTrail',
-    'documents'
+    'documents',
+    'machineIds'
 ];
 
 export const ensureParsedData = (data: any): any => {

@@ -94,7 +94,8 @@ const TABLE_MAP: Record<string, string> = {
     [KEYS.MATERIAL_PROFILES]: 'material_profiles',
     [KEYS.RAW_MATERIALS]: 'raw_materials',
     [KEYS.MATERIAL_CATEGORIES]: 'material_categories',
-    [KEYS.STORAGE_LOCATIONS]: 'storage_locations'
+    [KEYS.STORAGE_LOCATIONS]: 'storage_locations',
+    [KEYS.PLANNING_TV_GROUPS]: 'planning_tv_groups'
 };
 
 const COLLECTION_TO_KEY = Object.fromEntries(
@@ -139,7 +140,8 @@ const STATE_KEY_MAP: Partial<Record<string, keyof AppState>> = {
     [KEYS.MATERIAL_PROFILES]: 'materialProfiles' as keyof AppState,
     [KEYS.RAW_MATERIALS]: 'rawMaterials' as keyof AppState,
     [KEYS.MATERIAL_CATEGORIES]: 'materialCategories' as keyof AppState,
-    [KEYS.STORAGE_LOCATIONS]: 'storageLocations' as keyof AppState
+    [KEYS.STORAGE_LOCATIONS]: 'storageLocations' as keyof AppState,
+    [KEYS.PLANNING_TV_GROUPS]: 'planningTvGroups' as keyof AppState
 };
 
 // created/updated meesturen veroorzaakt stille validatiefouten of onjuiste overwrite.

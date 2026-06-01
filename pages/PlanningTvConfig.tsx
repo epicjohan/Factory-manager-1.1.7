@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Monitor, Plus, Trash2, ArrowLeft, Save, ExternalLink, Copy, Check, Settings, ChevronRight } from 'lucide-react';
 import { useTable } from '../hooks/useTable';
-import { KEYS, loadTable, saveTable, generateId, getNowISO, getCurrentUserName } from '../services/db/core';
+import { KEYS, loadTable, saveTable, generateId, getNowISO, getCurrentUserName, outboxUtils } from '../services/db/core';
 import { PlanningTvGroup, Machine } from '../types';
 
 export const PlanningTvConfig: React.FC = () => {
@@ -63,6 +63,7 @@ export const PlanningTvConfig: React.FC = () => {
     };
     const updated = [...groups, newGroup];
     await saveTable(KEYS.PLANNING_TV_GROUPS, updated);
+    await outboxUtils.addToOutbox(KEYS.PLANNING_TV_GROUPS, 'INSERT', newGroup);
     setGroups(updated);
     setSelectedGroupId(newGroup.id);
   };
@@ -81,6 +82,8 @@ export const PlanningTvConfig: React.FC = () => {
         : g
     );
     await saveTable(KEYS.PLANNING_TV_GROUPS, updated);
+    const savedGroup = updated.find(g => g.id === selectedGroupId);
+    if (savedGroup) await outboxUtils.addToOutbox(KEYS.PLANNING_TV_GROUPS, 'UPDATE', savedGroup);
     setGroups(updated);
   };
 
@@ -91,6 +94,7 @@ export const PlanningTvConfig: React.FC = () => {
     if (!window.confirm(`Weet je zeker dat je "${group.name}" wilt verwijderen?`)) return;
     const updated = groups.filter(g => g.id !== selectedGroupId);
     await saveTable(KEYS.PLANNING_TV_GROUPS, updated);
+    await outboxUtils.addToOutbox(KEYS.PLANNING_TV_GROUPS, 'DELETE', { id: selectedGroupId });
     setGroups(updated);
     setSelectedGroupId(null);
   };

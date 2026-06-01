@@ -1,5 +1,5 @@
 
-import { AppState, NotificationTrigger, CommercialModule, LicenseStatus, SystemStatus, SystemAuditLog, EnergyQuarterlyLog, AssetEnergyConfig, EnergyHistoricalLog, Article, PredefinedOperation, SetupTemplate, UserRoleDefinition, DocumentCategory } from '../types';
+import { AppState, NotificationTrigger, CommercialModule, LicenseStatus, SystemStatus, SystemAuditLog, EnergyQuarterlyLog, AssetEnergyConfig, EnergyHistoricalLog, Article, PredefinedOperation, SetupTemplate, UserRoleDefinition, DocumentCategory, PlanningTvGroup } from '../types';
 import { KEYS, loadTable, saveTable, outboxUtils, ROLE_PERMISSIONS, ROLE_DEFAULT_TABS, migrateToIndexedDB, generateId, getNowISO } from './db/core';
 import { userService } from './db/userService';
 import { machineService } from './db/machineService';
@@ -83,7 +83,8 @@ export const getStore = async (): Promise<AppState> => {
         materialProfiles: await inventoryService.getMaterialProfiles(),
         rawMaterials: await inventoryService.getRawMaterials(),
         materialCategories: await inventoryService.getMaterialCategories(),
-        storageLocations: await inventoryService.getStorageLocations()
+        storageLocations: await inventoryService.getStorageLocations(),
+        planningTvGroups: await loadTable<PlanningTvGroup[]>(KEYS.PLANNING_TV_GROUPS, [])
     };
 };
 
@@ -124,7 +125,8 @@ export const setStore = async (state: AppState) => {
         state.materialProfiles ? saveTable(KEYS.MATERIAL_PROFILES, state.materialProfiles) : Promise.resolve(),
         state.rawMaterials ? saveTable(KEYS.RAW_MATERIALS, state.rawMaterials) : Promise.resolve(),
         state.materialCategories ? saveTable(KEYS.MATERIAL_CATEGORIES, state.materialCategories) : Promise.resolve(),
-        state.storageLocations ? saveTable(KEYS.STORAGE_LOCATIONS, state.storageLocations) : Promise.resolve()
+        state.storageLocations ? saveTable(KEYS.STORAGE_LOCATIONS, state.storageLocations) : Promise.resolve(),
+        state.planningTvGroups ? saveTable(KEYS.PLANNING_TV_GROUPS, state.planningTvGroups) : Promise.resolve()
     ]);
 
     await saveTable(KEYS.METADATA, {
