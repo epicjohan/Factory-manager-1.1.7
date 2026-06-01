@@ -419,8 +419,9 @@ export const mkgCapaciteitService = {
      * @param pbUrl PocketBase URL
      * @param record Het plnb record om gereed te melden
      * @param aantalGereed Optioneel: specifiek aantal gereedmelden (default = plnb_aantal)
+     * @param markeerGereed Of plnb_gereed op true gezet moet worden (default = true)
      */
-    gereedmeldBewerking: async (pbUrl: string, record: MkgPlnbRecord, aantalGereed?: number): Promise<{ success: boolean; message: string }> => {
+    gereedmeldBewerking: async (pbUrl: string, record: MkgPlnbRecord, aantalGereed?: number, markeerGereed: boolean = true): Promise<{ success: boolean; message: string }> => {
         const rowKey = record.id;
         if (!rowKey || rowKey.indexOf('_') > -1) {
             // Geen echte RowKey (is een fallback ID), kan niet updaten
@@ -428,19 +429,31 @@ export const mkgCapaciteitService = {
         }
 
         const fields: Record<string, any> = {
-            plnb_gereed: true,
+            plnb_gereed: markeerGereed,
             plnb_aantal_grd: aantalGereed ?? record.plnb_aantal
         };
 
-        console.log(`[MkgPlnb] Gereedmelden bewerking ${record.prdh_num} bwrk ${record.bwrk_num} (RowKey: ${rowKey})`);
+        console.log(`[MkgPlnb] Gereedmelden bewerking ${record.prdh_num} bwrk ${record.bwrk_num} (RowKey: ${rowKey}, gereed: ${markeerGereed}, aantal: ${fields.plnb_aantal_grd})`);
         const result = await mkgCapaciteitService.updatePlnbInMkg(pbUrl, rowKey, fields);
 
         if (result.success) {
             // Lokale cache bijwerken
             const allRecords = await loadTable<MkgPlnbRecord[]>(KEYS.MKG_PLNB, []);
-            const updated = allRecords.filter(r => r.id !== rowKey);
-            await saveTable(KEYS.MKG_PLNB, updated);
-            console.log(`[MkgPlnb] Gereedmelding OK — record verwijderd uit lokale cache.`);
+            if (markeerGereed) {
+                // Gereed → verwijder uit cache
+                const updated = allRecords.filter(r => r.id !== rowKey);
+                await saveTable(KEYS.MKG_PLNB, updated);
+                console.log(`[MkgPlnb] Gereedmelding OK — record verwijderd uit lokale cache.`);
+            } else {
+                // Alleen aantallen bijgewerkt → update in cache
+                const updated = allRecords.map(r =>
+                    r.id === rowKey
+                        ? { ...r, plnb_aantal_grd: fields.plnb_aantal_grd }
+                        : r
+                );
+                await saveTable(KEYS.MKG_PLNB, updated);
+                console.log(`[MkgPlnb] Aantal bijgewerkt in lokale cache (niet gereedgemeld).`);
+            }
         }
 
         return result;

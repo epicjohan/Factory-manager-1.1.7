@@ -83,6 +83,7 @@ export const MkgPlanningWidget: React.FC<Props> = ({
         type: 'start' | 'gereed';
         record: MkgPlnbRecord;
         aantal: number;
+        markeerGereed: boolean;
     } | null>(null);
     const [actionError, setActionError] = useState('');
 
@@ -446,7 +447,7 @@ export const MkgPlanningWidget: React.FC<Props> = ({
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
                                                                             setActionError('');
-                                                                            setActionModal({ type: 'start', record: r, aantal: r.plnb_aantal });
+                                                                            setActionModal({ type: 'start', record: r, aantal: r.plnb_aantal, markeerGereed: false });
                                                                         }}
                                                                         className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-700 rounded-lg text-[9px] font-bold hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors"
                                                                         title="Start bewerking in MKG"
@@ -461,7 +462,7 @@ export const MkgPlanningWidget: React.FC<Props> = ({
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
                                                                             setActionError('');
-                                                                            setActionModal({ type: 'gereed', record: r, aantal: r.plnb_aantal });
+                                                                            setActionModal({ type: 'gereed', record: r, aantal: r.plnb_aantal, markeerGereed: true });
                                                                         }}
                                                                         className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 rounded-lg text-[9px] font-bold hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
                                                                         title="Meld bewerking gereed in MKG"
@@ -577,7 +578,14 @@ export const MkgPlanningWidget: React.FC<Props> = ({
                                             min={0}
                                             max={actionModal.record.plnb_aantal * 2}
                                             value={actionModal.aantal}
-                                            onChange={e => setActionModal(prev => prev ? { ...prev, aantal: Number(e.target.value) } : null)}
+                                            onChange={e => {
+                                                const val = Number(e.target.value);
+                                                setActionModal(prev => prev ? {
+                                                    ...prev,
+                                                    aantal: val,
+                                                    markeerGereed: val >= prev.record.plnb_aantal
+                                                } : null);
+                                            }}
                                             className="flex-1 px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-lg font-bold font-mono text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-center"
                                         />
                                         <span className="text-sm text-slate-400 dark:text-slate-500 whitespace-nowrap">
@@ -589,6 +597,40 @@ export const MkgPlanningWidget: React.FC<Props> = ({
                                             Reeds gereed gemeld: <span className="font-bold text-emerald-500">{actionModal.record.plnb_aantal_grd}</span>
                                         </p>
                                     )}
+                                </div>
+                            )}
+
+                            {/* Gereed checkbox */}
+                            {actionModal.type === 'gereed' && (
+                                <div
+                                    className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-colors ${
+                                        actionModal.markeerGereed
+                                            ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-300 dark:border-emerald-700'
+                                            : 'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-700'
+                                    }`}
+                                    onClick={() => setActionModal(prev => prev ? { ...prev, markeerGereed: !prev.markeerGereed } : null)}
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={actionModal.markeerGereed}
+                                        readOnly
+                                        className="w-5 h-5 rounded border-2 border-slate-300 dark:border-slate-600 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                                    />
+                                    <div className="flex-1">
+                                        <p className={`text-sm font-bold ${
+                                            actionModal.markeerGereed
+                                                ? 'text-emerald-700 dark:text-emerald-300'
+                                                : 'text-amber-700 dark:text-amber-300'
+                                        }`}>
+                                            Bewerking gereed melden
+                                        </p>
+                                        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                            {actionModal.markeerGereed
+                                                ? 'De bewerking wordt als afgerond gemarkeerd in MKG.'
+                                                : 'Alleen het aantal wordt bijgewerkt — de bewerking blijft open.'
+                                            }
+                                        </p>
+                                    </div>
                                 </div>
                             )}
 
@@ -634,7 +676,7 @@ export const MkgPlanningWidget: React.FC<Props> = ({
                                         if (actionModal.type === 'start') {
                                             result = await mkgCapaciteitService.startBewerking(pbUrl, rec);
                                         } else {
-                                            result = await mkgCapaciteitService.gereedmeldBewerking(pbUrl, rec, actionModal.aantal);
+                                            result = await mkgCapaciteitService.gereedmeldBewerking(pbUrl, rec, actionModal.aantal, actionModal.markeerGereed);
                                         }
                                         if (result.success) {
                                             setActionModal(null);
