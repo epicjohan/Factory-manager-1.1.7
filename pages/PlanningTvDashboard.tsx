@@ -235,25 +235,25 @@ export const PlanningTvDashboard: React.FC = () => {
         <div ref={containerRef} className="fixed inset-0 z-50 bg-[#020617] text-white flex flex-col select-none overflow-hidden">
 
             {/* ── HEADER ── */}
-            <header className="flex items-center justify-between px-8 py-4 border-b border-slate-800/80 shrink-0">
+            <header className="flex items-center justify-between px-8 py-5 border-b border-slate-800/80 shrink-0">
                 <div className="flex items-center gap-6">
                     <div className="flex items-center gap-3">
-                        <Calendar size={24} className="text-blue-500" />
+                        <Calendar size={28} className="text-blue-500" />
                         <div>
-                            <h1 className="text-3xl font-black tracking-tight">WEEK {currentWeek}</h1>
-                            <p className="text-xs text-slate-500 font-bold tracking-wider uppercase">{weekRange}</p>
+                            <h1 className="text-4xl font-black tracking-tight">WEEK {currentWeek}</h1>
+                            <p className="text-sm text-slate-500 font-bold tracking-wider uppercase">{weekRange}</p>
                         </div>
                     </div>
                 </div>
 
                 <div className="text-center">
-                    <h2 className="text-3xl font-black uppercase tracking-[0.2em] text-slate-300">{group.name}</h2>
+                    <h2 className="text-4xl font-black uppercase tracking-[0.2em] text-slate-300">{group.name}</h2>
                 </div>
 
                 <div className="flex items-center gap-6">
                     <div className="text-right">
-                        <p className="text-3xl font-mono font-black text-slate-200 tabular-nums">{clock}</p>
-                        <p className="text-[10px] text-slate-600 font-bold uppercase tracking-widest">
+                        <p className="text-4xl font-mono font-black text-slate-200 tabular-nums">{clock}</p>
+                        <p className="text-xs text-slate-600 font-bold uppercase tracking-widest">
                             Machine {activeIndex + 1} / {machines.length}
                         </p>
                     </div>
@@ -266,15 +266,15 @@ export const PlanningTvDashboard: React.FC = () => {
                 {/* Machine header + capacity */}
                 <div className="flex items-start justify-between mb-6 shrink-0">
                     <div>
-                        <h3 className="text-4xl font-black tracking-tight text-white">
+                        <h3 className="text-5xl font-black tracking-tight text-white">
                             {activeMachine.machineNumber} — {activeMachine.name}
                         </h3>
                         <div className="flex items-center gap-4 mt-2">
                             {Object.entries(statusCounts).filter(([, c]) => c > 0).map(([status, count]) => {
                                 const cfg = STATUS_CONFIG[status as OrderStatus];
                                 return (
-                                    <span key={status} className={`flex items-center gap-1.5 text-xs font-bold ${cfg.text}`}>
-                                        <span className={`w-2 h-2 rounded-full ${cfg.dot}`} />
+                                    <span key={status} className={`flex items-center gap-1.5 text-sm font-bold ${cfg.text}`}>
+                                        <span className={`w-2.5 h-2.5 rounded-full ${cfg.dot}`} />
                                         {count} {cfg.label}
                                     </span>
                                 );
@@ -284,8 +284,8 @@ export const PlanningTvDashboard: React.FC = () => {
 
                     <div className="text-right shrink-0 min-w-[200px]">
                         <div className="flex items-center justify-end gap-2 mb-1">
-                            <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Capaciteit</span>
-                            <span className={`text-2xl font-black ${capacityPct > 100 ? 'text-red-400' : capacityPct > 80 ? 'text-amber-400' : 'text-blue-400'}`}>
+                            <span className="text-sm font-bold text-slate-500 uppercase tracking-widest">Capaciteit</span>
+                            <span className={`text-3xl font-black ${capacityPct > 100 ? 'text-red-400' : capacityPct > 80 ? 'text-amber-400' : 'text-blue-400'}`}>
                                 {capacityPct}%
                             </span>
                         </div>
@@ -295,7 +295,7 @@ export const PlanningTvDashboard: React.FC = () => {
                                 style={{ width: `${Math.min(capacityPct, 100)}%` }}
                             />
                         </div>
-                        <p className="text-xs text-slate-500 font-bold mt-1 font-mono">
+                        <p className="text-sm text-slate-500 font-bold mt-1 font-mono">
                             {formatMin(totalDuurMin)} / {formatMin(capacityMin)}
                         </p>
                     </div>
@@ -306,17 +306,17 @@ export const PlanningTvDashboard: React.FC = () => {
                     <table className="w-full">
                         <thead className="sticky top-0 bg-slate-900/95 backdrop-blur z-10">
                             <tr className="border-b border-slate-700/50">
-                                {['ORDER NR', 'ARTIKEL', 'OMSCHRIJVING', 'BEW.', 'START', 'INSTEL', 'STUKS', 'TIJD/STUK', 'TOTAAL', 'STATUS'].map(h => (
-                                    <th key={h} className="px-4 py-3 text-left text-[11px] font-black text-slate-500 uppercase tracking-[0.15em]">{h}</th>
+                                {['ORDER NR', 'ARTIKEL', 'TEKENING', 'OMSCHRIJVING', 'BEW.', 'START', 'INSTEL', 'STUKS', 'TIJD/STUK', 'TOTAAL', 'STATUS'].map(h => (
+                                    <th key={h} className="px-4 py-3.5 text-left text-[14px] font-black text-slate-500 uppercase tracking-[0.15em]">{h}</th>
                                 ))}
                             </tr>
                         </thead>
                         <tbody>
                             {machineRecords.length === 0 ? (
                                 <tr>
-                                    <td colSpan={10} className="text-center py-20 text-slate-600">
-                                        <Package size={32} className="mx-auto mb-3 opacity-40" />
-                                        <p className="text-lg font-bold">Geen orders gepland voor deze week</p>
+                                    <td colSpan={11} className="text-center py-20 text-slate-600">
+                                        <Package size={40} className="mx-auto mb-3 opacity-40" />
+                                        <p className="text-xl font-bold">Geen orders gepland voor deze week</p>
                                     </td>
                                 </tr>
                             ) : (
@@ -325,28 +325,29 @@ export const PlanningTvDashboard: React.FC = () => {
                                     const cfg = STATUS_CONFIG[status];
                                     return (
                                         <tr key={r.id || idx} className={`border-b border-slate-800/50 ${cfg.bg} ${cfg.glow} transition-colors`}>
-                                            <td className="px-4 py-3.5 text-lg font-bold font-mono text-slate-200">{r.prdh_num || '—'}</td>
-                                            <td className="px-4 py-3.5 text-sm font-mono text-slate-400">{r.arti_code || '—'}</td>
-                                            <td className="px-4 py-3.5 text-sm text-slate-300 max-w-[280px] truncate">{r.arti_oms1 || r.plnb_oms || '—'}</td>
-                                            <td className="px-4 py-3.5 text-sm font-mono text-slate-400">{r.bwrk_num || '—'}</td>
-                                            <td className="px-4 py-3.5 text-sm font-mono text-slate-400">{formatDate(r.plnb_dat_start)}</td>
-                                            <td className="px-4 py-3.5 text-sm font-bold text-slate-300">{r.plnb_instel_min ? `${Math.round(r.plnb_instel_min)}m` : '—'}</td>
-                                            <td className="px-4 py-3.5 text-sm font-bold text-slate-200">
+                                            <td className="px-4 py-4 text-xl font-bold font-mono text-slate-200">{r.prdh_num || '—'}</td>
+                                            <td className="px-4 py-4 text-base font-mono text-slate-400">{r.arti_code || '—'}</td>
+                                            <td className="px-4 py-4 text-base font-mono text-slate-400">{r.arti_tek_num || '—'}</td>
+                                            <td className="px-4 py-4 text-base text-slate-300 max-w-[360px] truncate">{r.arti_oms1 || '—'}</td>
+                                            <td className="px-4 py-4 text-base font-mono text-slate-400">{r.bwrk_num || '—'}</td>
+                                            <td className="px-4 py-4 text-base font-mono text-slate-400">{formatDate(r.plnb_dat_start)}</td>
+                                            <td className="px-4 py-4 text-base font-bold text-slate-300">{r.plnb_instel_min ? `${Math.round(r.plnb_instel_min)}m` : '—'}</td>
+                                            <td className="px-4 py-4 text-base font-bold text-slate-200">
                                                 {r.plnb_aantal_grd > 0 ? (
                                                     <span><span className="text-emerald-400">{r.plnb_aantal_grd}</span>/{r.plnb_aantal}</span>
                                                 ) : (
                                                     <span>{r.plnb_aantal || '—'}</span>
                                                 )}
                                             </td>
-                                            <td className="px-4 py-3.5 text-sm font-mono text-slate-400">
+                                            <td className="px-4 py-4 text-base font-mono text-slate-400">
                                                 {r.plnb_tijd_per_stuk ? `${(r.plnb_tijd_per_stuk / 60).toFixed(1)}m` : '—'}
                                             </td>
-                                            <td className="px-4 py-3.5 text-sm font-bold text-slate-200">
+                                            <td className="px-4 py-4 text-base font-bold text-slate-200">
                                                 {r.plnb_duur_min ? formatMin(r.plnb_duur_min) : '—'}
                                             </td>
-                                            <td className="px-4 py-3.5">
-                                                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${cfg.bg} ${cfg.border} border ${cfg.text}`}>
-                                                    <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+                                            <td className="px-4 py-4">
+                                                <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-black uppercase tracking-wider ${cfg.bg} ${cfg.border} border ${cfg.text}`}>
+                                                    <span className={`w-2 h-2 rounded-full ${cfg.dot}`} />
                                                     {cfg.label}
                                                 </span>
                                             </td>
