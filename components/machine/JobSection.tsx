@@ -26,6 +26,10 @@ export const JobSection: React.FC<JobSectionProps> = ({ machine }) => {
     const { data: articles } = useTable<Article>(KEYS.ARTICLES);
     const [searchTerm, setSearchTerm] = useState('');
 
+    // ── MKG resource nummer (met fallback naar machineNumber) ──────────────
+    const rsrcNum = machine.mkgResourceCode || (machine.machineNumber && !isNaN(parseInt(machine.machineNumber)) ? parseInt(machine.machineNumber) : 0);
+    const hasMkgResource = rsrcNum > 0;
+
     // ── MKG Order selectie modal ──────────────────────────────────────────
     const [showMkgOrderModal, setShowMkgOrderModal] = useState(false);
     const [mkgOrders, setMkgOrders] = useState<MkgPlnbRecord[]>([]);
@@ -40,25 +44,25 @@ export const JobSection: React.FC<JobSectionProps> = ({ machine }) => {
 
     // ── MKG orders laden ──────────────────────────────────────────────────
     const loadMkgOrders = useCallback(async () => {
-        if (!machine.mkgResourceCode) return;
-        const records = await mkgCapaciteitService.getPlnbForResource(machine.mkgResourceCode);
+        if (!hasMkgResource) return;
+        const records = await mkgCapaciteitService.getPlnbForResource(rsrcNum);
         const forMachine = records.filter((r: MkgPlnbRecord) => !r.plnb_gereed);
         // Sorteer op geplande startdatum
         forMachine.sort((a: MkgPlnbRecord, b: MkgPlnbRecord) => (a.plnb_dat_start || '').localeCompare(b.plnb_dat_start || ''));
         setMkgOrders(forMachine);
-    }, [machine.mkgResourceCode]);
+    }, [rsrcNum, hasMkgResource]);
 
     useEffect(() => {
         loadMkgOrders();
     }, [loadMkgOrders]);
 
     const syncMkgOrders = async () => {
-        if (!machine.mkgResourceCode) return;
+        if (!hasMkgResource) return;
         setMkgSyncing(true);
         try {
             const srv = await db.getServerSettings();
             const pbUrl = srv.url || window.location.origin;
-            await mkgCapaciteitService.syncPlnbFromMkg(pbUrl, machine.mkgResourceCode);
+            await mkgCapaciteitService.syncPlnbFromMkg(pbUrl, rsrcNum);
             await loadMkgOrders();
         } catch (err) {
             console.error('[JobSection] MKG sync fout:', err);
@@ -184,7 +188,7 @@ export const JobSection: React.FC<JobSectionProps> = ({ machine }) => {
                     <p className="text-slate-500 max-w-md mx-auto mb-8">Selecteer een vrijgegeven artikel of kies een order uit de MKG planning.</p>
                     
                     {/* MKG Order knop */}
-                    {machine.mkgResourceCode && (
+                    {hasMkgResource && (
                         <button
                             onClick={() => { setShowMkgOrderModal(true); loadMkgOrders(); }}
                             className="w-full max-w-lg mx-auto mb-6 py-5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-blue-500/20 flex items-center justify-center gap-3 transition-all hover:scale-[1.02]"
