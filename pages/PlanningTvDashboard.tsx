@@ -36,11 +36,19 @@ const getStatus = (r: MkgPlnbRecord): OrderStatus => {
     return 'GEPLAND';
 };
 
-const STATUS_CONFIG: Record<OrderStatus, { bg: string; border: string; text: string; label: string; dot: string }> = {
-    GEREED:      { bg: 'bg-emerald-500/15', border: 'border-emerald-500/20', text: 'text-emerald-400', label: 'GEREED',      dot: 'bg-emerald-400' },
-    ACTIEF:      { bg: 'bg-blue-500/15',    border: 'border-blue-500/20',    text: 'text-blue-400',    label: 'ACTIEF',      dot: 'bg-blue-400' },
-    ACHTERSTAND: { bg: 'bg-amber-500/15',   border: 'border-amber-500/20',   text: 'text-amber-400',   label: 'ACHTERSTAND', dot: 'bg-amber-400' },
-    GEPLAND:     { bg: 'bg-slate-500/10',   border: 'border-slate-600/20',   text: 'text-slate-500',   label: 'GEPLAND',     dot: 'bg-slate-500' },
+const STATUS_CONFIG: Record<OrderStatus, { bg: string; border: string; text: string; label: string; dot: string; glow: string }> = {
+    GEREED:      { bg: 'bg-emerald-500/15', border: 'border-emerald-500/20', text: 'text-emerald-400', label: 'GEREED',      dot: 'bg-emerald-400', glow: '' },
+    ACTIEF:      { bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', text: 'text-emerald-400', label: 'ACTIEF',      dot: 'bg-emerald-400', glow: 'shadow-[inset_0_0_30px_rgba(16,185,129,0.15)]' },
+    ACHTERSTAND: { bg: 'bg-red-500/10',     border: 'border-red-500/30',     text: 'text-red-400',     label: 'ACHTERSTAND', dot: 'bg-red-400',     glow: 'shadow-[inset_0_0_30px_rgba(239,68,68,0.2)]' },
+    GEPLAND:     { bg: 'bg-slate-500/10',   border: 'border-slate-600/20',   text: 'text-slate-500',   label: 'GEPLAND',     dot: 'bg-slate-500',   glow: '' },
+};
+
+const formatDate = (dateStr: string): string => {
+    if (!dateStr) return '—';
+    try {
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('nl-NL', { day: '2-digit', month: '2-digit' });
+    } catch { return dateStr; }
 };
 
 const formatMin = (min: number): string => {
@@ -172,7 +180,7 @@ export const PlanningTvDashboard: React.FC = () => {
         if (!activeMachine) return [];
         const machNr = parseInt(activeMachine.machineNumber);
         return plnbRecords
-            .filter(r => r.rsrc_num === machNr)
+            .filter(r => r.rsrc_num === machNr && !r.plnb_gereed) // Gereedgemelde orders verbergen
             .sort((a, b) => (a.plnb_volgorde || 0) - (b.plnb_volgorde || 0));
     }, [activeMachine, plnbRecords]);
 
@@ -298,7 +306,7 @@ export const PlanningTvDashboard: React.FC = () => {
                     <table className="w-full">
                         <thead className="sticky top-0 bg-slate-900/95 backdrop-blur z-10">
                             <tr className="border-b border-slate-700/50">
-                                {['ORDER NR', 'ARTIKEL', 'OMSCHRIJVING', 'BEW.', 'INSTEL', 'STUKS', 'TIJD/STUK', 'TOTAAL', 'STATUS'].map(h => (
+                                {['ORDER NR', 'ARTIKEL', 'OMSCHRIJVING', 'BEW.', 'START', 'INSTEL', 'STUKS', 'TIJD/STUK', 'TOTAAL', 'STATUS'].map(h => (
                                     <th key={h} className="px-4 py-3 text-left text-[11px] font-black text-slate-500 uppercase tracking-[0.15em]">{h}</th>
                                 ))}
                             </tr>
@@ -306,7 +314,7 @@ export const PlanningTvDashboard: React.FC = () => {
                         <tbody>
                             {machineRecords.length === 0 ? (
                                 <tr>
-                                    <td colSpan={9} className="text-center py-20 text-slate-600">
+                                    <td colSpan={10} className="text-center py-20 text-slate-600">
                                         <Package size={32} className="mx-auto mb-3 opacity-40" />
                                         <p className="text-lg font-bold">Geen orders gepland voor deze week</p>
                                     </td>
@@ -316,11 +324,12 @@ export const PlanningTvDashboard: React.FC = () => {
                                     const status = getStatus(r);
                                     const cfg = STATUS_CONFIG[status];
                                     return (
-                                        <tr key={r.id || idx} className={`border-b border-slate-800/50 ${cfg.bg} transition-colors`}>
+                                        <tr key={r.id || idx} className={`border-b border-slate-800/50 ${cfg.bg} ${cfg.glow} transition-colors`}>
                                             <td className="px-4 py-3.5 text-lg font-bold font-mono text-slate-200">{r.prdh_num || '—'}</td>
                                             <td className="px-4 py-3.5 text-sm font-mono text-slate-400">{r.arti_code || '—'}</td>
                                             <td className="px-4 py-3.5 text-sm text-slate-300 max-w-[280px] truncate">{r.arti_oms1 || r.plnb_oms || '—'}</td>
                                             <td className="px-4 py-3.5 text-sm font-mono text-slate-400">{r.bwrk_num || '—'}</td>
+                                            <td className="px-4 py-3.5 text-sm font-mono text-slate-400">{formatDate(r.plnb_dat_start)}</td>
                                             <td className="px-4 py-3.5 text-sm font-bold text-slate-300">{r.plnb_instel_min ? `${Math.round(r.plnb_instel_min)}m` : '—'}</td>
                                             <td className="px-4 py-3.5 text-sm font-bold text-slate-200">
                                                 {r.plnb_aantal_grd > 0 ? (
