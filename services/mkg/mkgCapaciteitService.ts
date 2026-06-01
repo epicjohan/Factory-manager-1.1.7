@@ -289,14 +289,17 @@ export const mkgCapaciteitService = {
             
             // Client-side filter: verwijder afgeronde bewerkingen
             const open = mapped.filter(r => !r.plnb_gereed);
-            console.log(`[MkgPlnb] Totaal: ${mapped.length}, niet-gereed: ${open.length}, gereed (verwijderd): ${mapped.length - open.length}`);
+            
+            // Dedupliceer: MKG maakt meerdere records per order+bewerking+week (tijdslots)
+            const deduplicated = deduplicatePlnbRecords(open);
+            console.log(`[MkgPlnb] Totaal: ${mapped.length}, niet-gereed: ${open.length}, na dedup: ${deduplicated.length}, gereed: ${mapped.length - open.length}`);
 
             // ── Artikelgegevens verrijken via artiMap uit proxy response ──
             const artiMap = result.artiMap || {};
             const artiKeys = Object.keys(artiMap);
             if (artiKeys.length > 0) {
                 console.log(`[MkgPlnb] ${artiKeys.length} artikelen ontvangen van proxy, verrijken...`);
-                for (const r of open) {
+                for (const r of deduplicated) {
                     const artInfo = artiMap[r.arti_code];
                     if (artInfo) {
                         r.arti_oms1 = String(artInfo.arti_oms_1 || '');
@@ -312,16 +315,16 @@ export const mkgCapaciteitService = {
                 const existing = await loadTable<MkgPlnbRecord[]>(KEYS.MKG_PLNB, []);
                 const numRsrc = Number(rsrcNum);
                 const otherRecords = existing.filter(r => Number(r.rsrc_num) !== numRsrc);
-                const merged = [...otherRecords, ...open];
+                const merged = [...otherRecords, ...deduplicated];
                 await saveTable(KEYS.MKG_PLNB, merged);
-                console.log(`[MkgPlnb] Sync resource ${rsrcNum}: ${open.length} records (cache totaal: ${merged.length})`);
+                console.log(`[MkgPlnb] Sync resource ${rsrcNum}: ${deduplicated.length} records (cache totaal: ${merged.length})`);
             } else {
                 // Volledige sync: vervang alles
-                await saveTable(KEYS.MKG_PLNB, open);
-                console.log(`[MkgPlnb] Sync voltooid: ${open.length} openstaande bewerkingen opgeslagen.`);
+                await saveTable(KEYS.MKG_PLNB, deduplicated);
+                console.log(`[MkgPlnb] Sync voltooid: ${deduplicated.length} openstaande bewerkingen opgeslagen.`);
             }
 
-            return { success: true, count: open.length, message: `${open.length} bewerkingen gesynchroniseerd.` };
+            return { success: true, count: deduplicated.length, message: `${deduplicated.length} bewerkingen gesynchroniseerd.` };
         } catch (err) {
             console.error('[MkgPlnb] Sync fout:', err);
             return { success: false, count: 0, message: String(err) };

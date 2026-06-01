@@ -324,15 +324,23 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
                     "plnb_tijd_besteed","plnb_prod_fase","plnb_memo","plnb_volgorde",
                     "arti_code","arti_oms1","arti_tek_num"
                 ].join(",");
-                // Filter: geen plnb_gereed filter — MKG boolean syntax onbekend (ja/nee vs true/false)
-                // Client-side filteren we op gereed status
+                // Filter: datum-gebaseerd om oude records uit te sluiten
+                // Haal alleen orders op waarvan de einddatum niet ouder is dan 90 dagen
                 var plnbFilter = [];
                 if (body.rsrcNum) plnbFilter.push("rsrc_num = " + body.rsrcNum);
+
+                // Datumfilter: plnb_dat_eind >= 90 dagen geleden
+                // Dit voorkomt dat duizenden oude orders uit 2023/2024 worden opgehaald
+                var cutoffDate = new Date();
+                cutoffDate.setDate(cutoffDate.getDate() - 90);
+                var cutoffStr = cutoffDate.toISOString().split("T")[0]; // "2026-03-03"
+                plnbFilter.push("plnb_dat_eind >= " + cutoffStr);
+
                 var filterStr = plnbFilter.join(" AND ");
 
                 // ── Paginatie: MKG limiteert tot ~1000 rijen per request ──
                 var pageSize = 1000;
-                var maxPages = 50;   // veiligheid: max 50.000 records
+                var maxPages = 20;   // veiligheid: max 20.000 records
                 var allRecords = [];
 
                 for (var page = 0; page < maxPages; page++) {
