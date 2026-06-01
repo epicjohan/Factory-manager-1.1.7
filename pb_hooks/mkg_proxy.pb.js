@@ -144,7 +144,8 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
         var body = {
             action: "", endpoint: "", method: "GET",
             requestBody: null, rsrcNum: null, weekFrom: null,
-            limit: null, admiNum: null, artiCode: null, codesStr: null
+            limit: null, admiNum: null, artiCode: null, codesStr: null,
+            rowKey: null, fields: null
         };
 
         try {
@@ -161,6 +162,8 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
                 if (parsed.admiNum     != null) body.admiNum     = parsed.admiNum;
                 if (parsed.artiCode    != null) body.artiCode    = String(parsed.artiCode);
                 if (parsed.codesStr    != null) body.codesStr    = String(parsed.codesStr);
+                if (parsed.rowKey      != null) body.rowKey      = String(parsed.rowKey);
+                if (parsed.fields      != null) body.fields      = parsed.fields;
             }
         } catch (bodyErr) {
             return e.json(400, { success: false, message: "Ongeldige JSON body: " + String(bodyErr) });
@@ -463,6 +466,69 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
                 return e.json(200, { success: false, message: "plnb ophalen mislukt: " + String(plnbErr) });
             }
         }
+        // ── UPDATE_PLNB ───────────────────────────────────────────────────
+        // Werk een plnb record bij in MKG (gereedmelden / starten)
+        // body.rowKey = MKG RowKey (hex)
+        // body.fields = { plnb_gereed: true, plnb_aantal_grd: 10, ... }
+        if (body.action === "UPDATE_PLNB") {
+            console.log("[MKG Proxy] UPDATE_PLNB aanvraag");
+
+            var rowKey = body.rowKey || "";
+            var updateFields = body.fields || {};
+
+            if (!rowKey) {
+                return e.json(200, { success: false, message: "rowKey is verplicht voor UPDATE_PLNB." });
+            }
+            if (Object.keys(updateFields).length === 0) {
+                return e.json(200, { success: false, message: "fields mag niet leeg zijn." });
+            }
+
+            var loginResult = mkgLogin(cfg);
+            if (!loginResult.success) {
+                return e.json(200, { success: false, message: loginResult.error });
+            }
+
+            try {
+                // MKG REST API: PUT /Documents/plnb/{RowKey}
+                var updateUrl = cfg.url + MKG_API_BASE + "/Documents/plnb/" + encodeURIComponent(rowKey);
+
+                console.log("[MKG Proxy] UPDATE_PLNB PUT URL: " + updateUrl);
+                console.log("[MKG Proxy] UPDATE_PLNB body: " + JSON.stringify(updateFields));
+
+                var updateRes = $http.send({
+                    url:     updateUrl,
+                    method:  "PUT",
+                    headers: mkgApiHeaders(loginResult.sessionCookie, cfg.apiKey),
+                    body:    JSON.stringify(updateFields),
+                    timeout: 15
+                });
+
+                console.log("[MKG Proxy] UPDATE_PLNB response status: " + updateRes.statusCode);
+
+                var updateRaw = "";
+                try { updateRaw = toString(updateRes.body); } catch(x) {}
+                console.log("[MKG Proxy] UPDATE_PLNB response: " + (updateRaw || "").substring(0, 500));
+
+                if (updateRes.statusCode >= 200 && updateRes.statusCode < 300) {
+                    return e.json(200, {
+                        success: true,
+                        message: "Bewerking succesvol bijgewerkt in MKG.",
+                        rowKey: rowKey,
+                        updatedFields: updateFields,
+                        rawResponse: updateRaw ? JSON.parse(updateRaw) : null
+                    });
+                } else {
+                    return e.json(200, {
+                        success: false,
+                        message: "MKG update mislukt (HTTP " + updateRes.statusCode + "): " + (updateRaw || "").substring(0, 300),
+                        rowKey: rowKey
+                    });
+                }
+            } catch (updateErr) {
+                console.error("[MKG Proxy] UPDATE_PLNB fout: " + String(updateErr));
+                return e.json(200, { success: false, message: "Update mislukt: " + String(updateErr) });
+            }
+        }
 
         // ── FETCH_ARTI ────────────────────────────────────────────────────
         // Haal artikelgegevens op voor een lijst van arti_codes (komma-gescheiden string)
@@ -675,7 +741,7 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
         // ── Onbekende actie ───────────────────────────────────────────────
         return e.json(400, {
             success: false,
-            message: "Onbekende actie '" + body.action + "'. Ondersteund: PING, REQUEST, SYNC_PLNC, SYNC_PLNB, FETCH_ARTI, FETCH_BOM."
+            message: "Onbekende actie '" + body.action + "'. Ondersteund: PING, REQUEST, SYNC_PLNC, SYNC_PLNB, UPDATE_PLNB, FETCH_ARTI, FETCH_BOM."
         });
 
     } catch (fatalErr) {
