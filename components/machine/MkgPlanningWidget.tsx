@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RefreshCw, ChevronDown, ChevronRight, AlertTriangle, Clock, Wrench, User, Settings, Package, ExternalLink, Briefcase, PlayCircle, CheckCircle2, Play, Loader2 } from 'lucide-react';
+import { RefreshCw, ChevronDown, ChevronRight, AlertTriangle, Clock, Wrench, User, Settings, Package, ExternalLink, Briefcase, PlayCircle, CheckCircle2, Play, Loader2, X } from 'lucide-react';
 import { MkgPlnbRecord, Article } from '../../types';
 import { mkgCapaciteitService } from '../../services/mkg/mkgCapaciteitService';
 import { db } from '../../services/storage';
@@ -76,7 +76,16 @@ export const MkgPlanningWidget: React.FC<Props> = ({
     const [syncing, setSyncing] = useState(false);
     const [syncError, setSyncError] = useState('');
     const [lastSync, setLastSync] = useState('');
-    const [actionLoading, setActionLoading] = useState<string | null>(null); // RowKey die bezig is
+    const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+    // ── Actie modal state ────────────────────────────────────────────────
+    const [actionModal, setActionModal] = useState<{
+        type: 'start' | 'gereed';
+        record: MkgPlnbRecord;
+        aantal: number;
+    } | null>(null);
+    const [actionError, setActionError] = useState('');
+
     const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(new Set());
 
     // ── Import modal state ────────────────────────────────────────────────
@@ -434,18 +443,10 @@ export const MkgPlanningWidget: React.FC<Props> = ({
                                                                 {!r.plnb_gestart && !r.plnb_gereed && (
                                                                     <button
                                                                         disabled={actionLoading === r.id}
-                                                                        onClick={async (e) => {
+                                                                        onClick={(e) => {
                                                                             e.stopPropagation();
-                                                                            if (!window.confirm(`Bewerking ${r.plnb_oms || r.bwrk_num} van order ${r.prdh_num} starten?`)) return;
-                                                                            setActionLoading(r.id);
-                                                                            try {
-                                                                                const srv = await db.getServerSettings();
-                                                                                const pbUrl = srv.url || window.location.origin;
-                                                                                const result = await mkgCapaciteitService.startBewerking(pbUrl, r);
-                                                                                if (result.success) { load(); }
-                                                                                else { alert('Fout: ' + result.message); }
-                                                                            } catch (err) { alert('Fout: ' + String(err)); }
-                                                                            finally { setActionLoading(null); }
+                                                                            setActionError('');
+                                                                            setActionModal({ type: 'start', record: r, aantal: r.plnb_aantal });
                                                                         }}
                                                                         className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-700 rounded-lg text-[9px] font-bold hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors"
                                                                         title="Start bewerking in MKG"
@@ -457,18 +458,10 @@ export const MkgPlanningWidget: React.FC<Props> = ({
                                                                 {r.plnb_gestart && !r.plnb_gereed && (
                                                                     <button
                                                                         disabled={actionLoading === r.id}
-                                                                        onClick={async (e) => {
+                                                                        onClick={(e) => {
                                                                             e.stopPropagation();
-                                                                            if (!window.confirm(`Bewerking ${r.plnb_oms || r.bwrk_num} van order ${r.prdh_num} gereedmelden?\n\nAantal: ${r.plnb_aantal}`)) return;
-                                                                            setActionLoading(r.id);
-                                                                            try {
-                                                                                const srv = await db.getServerSettings();
-                                                                                const pbUrl = srv.url || window.location.origin;
-                                                                                const result = await mkgCapaciteitService.gereedmeldBewerking(pbUrl, r);
-                                                                                if (result.success) { load(); }
-                                                                                else { alert('Fout: ' + result.message); }
-                                                                            } catch (err) { alert('Fout: ' + String(err)); }
-                                                                            finally { setActionLoading(null); }
+                                                                            setActionError('');
+                                                                            setActionModal({ type: 'gereed', record: r, aantal: r.plnb_aantal });
                                                                         }}
                                                                         className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 rounded-lg text-[9px] font-bold hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
                                                                         title="Meld bewerking gereed in MKG"
@@ -507,6 +500,172 @@ export const MkgPlanningWidget: React.FC<Props> = ({
                     </div>
                 );
             })}
+
+            {/* ── Actie Modal (Start / Gereedmeld) ── */}
+            {actionModal && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-150"
+                     onClick={() => !actionLoading && setActionModal(null)}>
+                    <div className="bg-white dark:bg-slate-800 rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700 animate-in zoom-in-95 duration-200"
+                         onClick={e => e.stopPropagation()}>
+
+                        {/* Header */}
+                        <div className={`px-8 py-5 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between ${
+                            actionModal.type === 'start'
+                                ? 'bg-emerald-50 dark:bg-emerald-900/20'
+                                : 'bg-blue-50 dark:bg-blue-900/20'
+                        }`}>
+                            <div className="flex items-center gap-3">
+                                <div className={`p-2.5 rounded-xl ${
+                                    actionModal.type === 'start'
+                                        ? 'bg-emerald-100 dark:bg-emerald-900/40'
+                                        : 'bg-blue-100 dark:bg-blue-900/40'
+                                }`}>
+                                    {actionModal.type === 'start'
+                                        ? <Play size={20} className="text-emerald-600 dark:text-emerald-400" />
+                                        : <CheckCircle2 size={20} className="text-blue-600 dark:text-blue-400" />
+                                    }
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-black text-slate-800 dark:text-white">
+                                        {actionModal.type === 'start' ? 'Bewerking Starten' : 'Bewerking Gereedmelden'}
+                                    </h3>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                                        Wordt direct doorgevoerd in MKG
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => !actionLoading && setActionModal(null)}
+                                className="p-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                                disabled={!!actionLoading}
+                            >
+                                <X size={18} className="text-slate-400" />
+                            </button>
+                        </div>
+
+                        {/* Body */}
+                        <div className="p-8 space-y-5">
+                            {/* Order info */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Order nr</p>
+                                    <p className="text-lg font-black font-mono text-slate-800 dark:text-white">{actionModal.record.prdh_num}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Artikel</p>
+                                    <p className="text-sm font-bold font-mono text-slate-600 dark:text-slate-300">{actionModal.record.arti_code || '—'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Bewerking</p>
+                                    <p className="text-sm text-slate-600 dark:text-slate-300">{actionModal.record.plnb_oms || `Bew. ${actionModal.record.bwrk_num}`}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Omschrijving</p>
+                                    <p className="text-sm text-slate-600 dark:text-slate-300 truncate" title={actionModal.record.arti_oms1}>{actionModal.record.arti_oms1 || '—'}</p>
+                                </div>
+                            </div>
+
+                            {/* Aantal invoer (alleen bij gereedmelden) */}
+                            {actionModal.type === 'gereed' && (
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-widest mb-2">
+                                        Aantal gereed
+                                    </label>
+                                    <div className="flex items-center gap-3">
+                                        <input
+                                            type="number"
+                                            min={0}
+                                            max={actionModal.record.plnb_aantal * 2}
+                                            value={actionModal.aantal}
+                                            onChange={e => setActionModal(prev => prev ? { ...prev, aantal: Number(e.target.value) } : null)}
+                                            className="flex-1 px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-lg font-bold font-mono text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-center"
+                                        />
+                                        <span className="text-sm text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                                            van {actionModal.record.plnb_aantal}
+                                        </span>
+                                    </div>
+                                    {actionModal.record.plnb_aantal_grd > 0 && (
+                                        <p className="text-[10px] text-slate-400 mt-1.5">
+                                            Reeds gereed gemeld: <span className="font-bold text-emerald-500">{actionModal.record.plnb_aantal_grd}</span>
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Start info */}
+                            {actionModal.type === 'start' && (
+                                <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700 rounded-xl px-4 py-3">
+                                    <p className="text-xs text-emerald-700 dark:text-emerald-300">
+                                        <span className="font-bold">Startdatum:</span> {new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}
+                                    </p>
+                                    <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
+                                        Aantal stuks: <span className="font-bold">{actionModal.record.plnb_aantal}</span>
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Error */}
+                            {actionError && (
+                                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-xl px-4 py-3">
+                                    <p className="text-xs text-red-600 dark:text-red-400 font-bold">{actionError}</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Footer */}
+                        <div className="px-8 py-5 border-t border-slate-200 dark:border-slate-700 flex items-center justify-end gap-3">
+                            <button
+                                onClick={() => setActionModal(null)}
+                                disabled={!!actionLoading}
+                                className="px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors"
+                            >
+                                Annuleren
+                            </button>
+                            <button
+                                disabled={!!actionLoading}
+                                onClick={async () => {
+                                    const rec = actionModal.record;
+                                    setActionLoading(rec.id);
+                                    setActionError('');
+                                    try {
+                                        const srv = await db.getServerSettings();
+                                        const pbUrl = srv.url || window.location.origin;
+                                        let result;
+                                        if (actionModal.type === 'start') {
+                                            result = await mkgCapaciteitService.startBewerking(pbUrl, rec);
+                                        } else {
+                                            result = await mkgCapaciteitService.gereedmeldBewerking(pbUrl, rec, actionModal.aantal);
+                                        }
+                                        if (result.success) {
+                                            setActionModal(null);
+                                            load();
+                                        } else {
+                                            setActionError(result.message);
+                                        }
+                                    } catch (err) {
+                                        setActionError(String(err));
+                                    } finally {
+                                        setActionLoading(null);
+                                    }
+                                }}
+                                className={`inline-flex items-center gap-2 px-6 py-2.5 text-xs font-bold uppercase tracking-widest text-white rounded-xl transition-colors shadow-sm ${
+                                    actionModal.type === 'start'
+                                        ? 'bg-emerald-600 hover:bg-emerald-700'
+                                        : 'bg-blue-600 hover:bg-blue-700'
+                                } disabled:opacity-50`}
+                            >
+                                {actionLoading ? (
+                                    <><Loader2 size={14} className="animate-spin" /> Verwerken...</>
+                                ) : actionModal.type === 'start' ? (
+                                    <><Play size={14} /> Bewerking Starten</>
+                                ) : (
+                                    <><CheckCircle2 size={14} /> Gereedmelden</>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* ── Import Modal ── */}
             <MkgBomImportModal
