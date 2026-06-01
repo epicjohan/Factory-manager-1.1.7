@@ -75,7 +75,15 @@ export const ProductionDashboard: React.FC = () => {
     const activeJobData = useMemo(() => {
         if (!machine?.activeJob) return null;
         const article = articles.find(a => a.id === machine.activeJob!.articleId);
-        if (!article) return null;
+        
+        // MKG orders hebben geen lokaal artikel — dat is OK
+        if (!article) {
+            // Als het een MKG order is, return met null article/setup
+            if (machine.activeJob.mkgPlnbRecordId) {
+                return { article: null, setup: null, opDesc: '' };
+            }
+            return null;
+        }
 
         let foundSetup: SetupVariant | null = null;
         let foundOpDesc = '';
@@ -387,7 +395,9 @@ export const ProductionDashboard: React.FC = () => {
     // --- RENDERING ---
     if (!machine) return <div className="bg-white text-slate-800 h-screen flex items-center justify-center">Laden...</div>;
 
-    const noJobView = !activeJobData || !setup || !article;
+    // MKG orders hebben geen article/setup maar zijn wél actief
+    const isMkgJob = !!machine.activeJob?.mkgPlnbRecordId;
+    const noJobView = !activeJobData && !isMkgJob;
     
     // Template fields extraction for the Instruction Tab (Safely checked)
     const displayFields = setup?.frozenFields || [];
@@ -493,7 +503,11 @@ export const ProductionDashboard: React.FC = () => {
                         <h1 className="text-2xl font-black text-slate-800 uppercase tracking-tighter shrink-0">{machine.machineNumber} - {machine.name}</h1>
                         <div className="w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0 hidden md:block"></div>
                         <div className="text-xl font-bold text-slate-600 truncate hidden md:block">
-                            {article.drawingNumber || 'Geen Tekening Nr'} / REV {article.revision || '-'} / {article.name}
+                            {article ? (
+                                <>{article.drawingNumber || 'Geen Tekening Nr'} / REV {article.revision || '-'} / {article.name}</>
+                            ) : (
+                                <>{machine.activeJob?.articleCode || ''} — {machine.activeJob?.articleName || 'MKG Order'}</>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -774,7 +788,7 @@ export const ProductionDashboard: React.FC = () => {
                                         <CheckSquare size={14} /> Werkstappen
                                     </h3>
                                     <div className="space-y-2">
-                                        {setup.steps?.sort((a, b) => a.order - b.order).map((step) => {
+                                        {setup?.steps?.sort((a, b) => a.order - b.order).map((step) => {
                                             const isChecked = checkedSteps[step.id];
                                             return (
                                                 <button
@@ -791,7 +805,7 @@ export const ProductionDashboard: React.FC = () => {
                                                 </button>
                                             );
                                         })}
-                                        {(!setup.steps || setup.steps.length === 0) && <div className="text-slate-400 italic text-sm text-center py-4">Geen specifieke stappen.</div>}
+                                        {(!setup?.steps || setup.steps.length === 0) && <div className="text-slate-400 italic text-sm text-center py-4">Geen specifieke stappen.</div>}
                                     </div>
                                 </div>
                             </div>
@@ -841,17 +855,17 @@ export const ProductionDashboard: React.FC = () => {
                                     <div className="space-y-3">
                                         <div className="flex justify-between border-b border-slate-100 pb-2">
                                             <span className="text-sm text-slate-500">Naam</span>
-                                            <span className="text-sm font-bold text-slate-800 text-right">{article.name}</span>
+                                            <span className="text-sm font-bold text-slate-800 text-right">{article?.name || machine.activeJob?.articleName || '—'}</span>
                                         </div>
                                         <div className="flex justify-between border-b border-slate-100 pb-2">
                                             <span className="text-sm text-slate-500">Revisie</span>
-                                            <span className="text-sm font-bold text-slate-800 text-right">{article.revision}</span>
+                                            <span className="text-sm font-bold text-slate-800 text-right">{article?.revision || '—'}</span>
                                         </div>
                                         <div className="flex justify-between border-b border-slate-100 pb-2">
                                             <span className="text-sm text-slate-500">Tekening Nr</span>
-                                            <span className="text-sm font-bold text-slate-800 text-right">{article.drawingNumber}</span>
+                                            <span className="text-sm font-bold text-slate-800 text-right">{article?.drawingNumber || '—'}</span>
                                         </div>
-                                        {article.customer && (
+                                        {article?.customer && (
                                             <div className="flex justify-between border-b border-slate-100 pb-2">
                                                 <span className="text-sm text-slate-500">Klant</span>
                                                 <span className="text-sm font-bold text-slate-800 text-right">{article.customer}</span>
@@ -863,7 +877,7 @@ export const ProductionDashboard: React.FC = () => {
                                 <div>
                                     <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Bestanden</h4>
                                     <div className="space-y-2">
-                                        {article.files?.map((file: ArticleFile) => (
+                                        {article?.files?.map((file: ArticleFile) => (
                                             <button key={file.id} onClick={() => setPreviewFile(file)} className="w-full flex items-center gap-3 p-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl transition-colors text-left group shadow-sm">
                                                 <div className="p-2 bg-blue-50 border border-blue-100 rounded-2xl text-blue-600 transition-colors">
                                                     {file.type === 'application/pdf' ? <FileText size={18} /> : <ImageIcon size={18} />}
@@ -897,7 +911,7 @@ export const ProductionDashboard: React.FC = () => {
 
                             <div>
                                 <h3 className="text-2xl font-black text-slate-800 uppercase italic tracking-tight mb-2">Order Beëindigen?</h3>
-                                <p className="text-slate-500 font-medium">Weet u zeker dat u de huidige order <strong>{article.articleCode}</strong> wilt stoppen?</p>
+                                <p className="text-slate-500 font-medium">Weet u zeker dat u de huidige order <strong>{article?.articleCode || machine.activeJob?.articleCode || 'deze order'}</strong> wilt stoppen?</p>
                             </div>
 
                             <div className="flex gap-4 w-full pt-4">
