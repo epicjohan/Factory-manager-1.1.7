@@ -243,7 +243,7 @@ export const PlanningTvDashboard: React.FC = () => {
         const machNr = parseInt(activeMachine.machineNumber);
         return plnbRecords
             .filter(r => r.rsrc_num === machNr && !r.plnb_gereed) // Gereedgemelde orders verbergen
-            .sort((a, b) => (a.plnb_volgorde || 0) - (b.plnb_volgorde || 0));
+            .sort((a, b) => (a.plnb_dat_start || '').localeCompare(b.plnb_dat_start || ''));
     }, [activeMachine, plnbRecords]);
 
     const achterstandMin = useMemo(() => {
@@ -364,7 +364,7 @@ export const PlanningTvDashboard: React.FC = () => {
                     <table className="w-full">
                         <thead className="sticky top-0 bg-slate-900/95 backdrop-blur z-10">
                             <tr className="border-b border-slate-700/50">
-                                {['ORDER NR', 'ARTIKEL', 'TEKENING', 'OMSCHRIJVING', 'START', 'INSTEL', 'STUKS', 'TIJD/STUK', 'TOTAAL', 'STATUS'].map(h => (
+                                {['STATUS', 'ORDER NR', 'ARTIKEL', 'OMSCHRIJVING', 'START', 'STUKS', 'TOTAAL'].map(h => (
                                     <th key={h} className="px-5 py-4 text-left text-[17px] font-black text-slate-500 uppercase tracking-[0.15em]">{h}</th>
                                 ))}
                             </tr>
@@ -372,7 +372,7 @@ export const PlanningTvDashboard: React.FC = () => {
                         <tbody>
                             {machineRecords.length === 0 ? (
                                 <tr>
-                                    <td colSpan={10} className="text-center py-20 text-slate-600">
+                                    <td colSpan={7} className="text-center py-20 text-slate-600">
                                         <Package size={48} className="mx-auto mb-3 opacity-40" />
                                         <p className="text-2xl font-bold">Geen orders gepland voor deze week</p>
                                     </td>
@@ -383,12 +383,16 @@ export const PlanningTvDashboard: React.FC = () => {
                                     const cfg = STATUS_CONFIG[status];
                                     return (
                                         <tr key={r.id || idx} className={`border-b border-slate-800/50 ${cfg.bg} ${cfg.glow} transition-colors`}>
+                                            <td className="px-5 py-5">
+                                                <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-base font-black uppercase tracking-wider ${cfg.bg} ${cfg.border} border ${cfg.text}`}>
+                                                    <span className={`w-2.5 h-2.5 rounded-full ${cfg.dot}`} />
+                                                    {cfg.label}
+                                                </span>
+                                            </td>
                                             <td className="px-5 py-5 text-2xl font-bold font-mono text-slate-200">{r.prdh_num || '—'}</td>
                                             <td className="px-5 py-5 text-lg font-mono text-slate-400">{r.arti_code || '—'}</td>
-                                            <td className="px-5 py-5 text-lg font-mono text-slate-400">{r.arti_tek_num || '—'}</td>
                                             <td className="px-5 py-5 text-lg text-slate-300 max-w-[400px] truncate">{r.arti_oms1 || '—'}</td>
                                             <td className="px-5 py-5 text-lg font-mono text-slate-400">{formatDate(r.plnb_dat_start)}</td>
-                                            <td className="px-5 py-5 text-lg font-bold text-slate-300">{r.plnb_instel_min ? `${Math.round(r.plnb_instel_min)}m` : '—'}</td>
                                             <td className="px-5 py-5 text-lg font-bold text-slate-200">
                                                 {r.plnb_aantal_grd > 0 ? (
                                                     <span><span className="text-emerald-400">{r.plnb_aantal_grd}</span>/{r.plnb_aantal}</span>
@@ -396,17 +400,8 @@ export const PlanningTvDashboard: React.FC = () => {
                                                     <span>{r.plnb_aantal || '—'}</span>
                                                 )}
                                             </td>
-                                            <td className="px-5 py-5 text-lg font-mono text-slate-400">
-                                                {r.plnb_tijd_per_stuk ? `${(r.plnb_tijd_per_stuk / 60).toFixed(1)}m` : '—'}
-                                            </td>
                                             <td className="px-5 py-5 text-lg font-bold text-slate-200">
                                                 {r.plnb_duur_min ? formatMin(r.plnb_duur_min) : '—'}
-                                            </td>
-                                            <td className="px-5 py-5">
-                                                <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-base font-black uppercase tracking-wider ${cfg.bg} ${cfg.border} border ${cfg.text}`}>
-                                                    <span className={`w-2.5 h-2.5 rounded-full ${cfg.dot}`} />
-                                                    {cfg.label}
-                                                </span>
                                             </td>
                                         </tr>
                                     );
