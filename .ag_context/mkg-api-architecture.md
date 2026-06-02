@@ -223,6 +223,9 @@ const mapNieuwRecord = (raw: any): MkgNieuwRecord => { ... }
 
 ## MKG API referentie
 
+### Officiële documentatie
+🔗 https://www.mkg.eu/nl-NL/mijn-mkg/support/landingspagina/12152
+
 ### Basis URL
 ```
 https://{server}/mkg/web/v3/MKG/Documents/{tabel}/

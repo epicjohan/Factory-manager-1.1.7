@@ -52,6 +52,9 @@ Auth:  https://{server}/mkg/static/auth/j_spring_security_check
 API:   https://{server}/mkg/web/v3/MKG/Documents/{tabel}/
 ```
 
+**Officiële API documentatie:**
+🔗 https://www.mkg.eu/nl-NL/mijn-mkg/support/landingspagina/12152
+
 **Authenticatie flow:**
 1. POST login → ontvang JSESSIONID cookie
 2. Gebruik cookie + `X-customerID` header bij elke API call
@@ -262,13 +265,50 @@ Planning → Selecteer artikel → FETCH_BOM → Preview → Importeren
 | `pages/ProductionDashboard.tsx` | Operator dashboard |
 | `pages/PlanningTvDashboard.tsx` | TV dashboard voor planning |
 
-### Data Dictionary
-| Bestand | Inhoud |
-|---|---|
-| `Data dictionairy/docu.xlsx` | Alle velden van de `docs` tabel |
-| `Data dictionairy/stlr.xlsx` | Alle velden van de `stlr` tabel |
-| `Data dictionairy/stlb.xlsx` | Alle velden van de `stlb` tabel |
-| `Data dictionairy/prdh.xlsx` | Alle velden van de `prdh` tabel |
+### Data Dictionary (MKG velden exports)
+
+Locatie: `Data dictionairy/` (project root)
+
+> **Let op:** mapnaam bevat een typfout (`dictionairy` i.p.v. `dictionary`) — dit is bewust behouden voor backwards compatibility.
+
+| Bestand | MKG Tabel | Inhoud | In gebruik? |
+|---|---|---|---|
+| `docu.xlsx` | `docs` (420) | Alle 47 velden van de documenten tabel | ✅ Discovery |
+| `stlr.xlsx` | `stlr` | Stuklijstregels — velden + sub-collecties (stlr_stlb, stlr_files, etc.) | ✅ BOM import |
+| `stlb.xlsx` | `stlb` | Stuklijst bewerkingen — velden | ✅ BOM import |
+| `prdh.xlsx` | `prdh` | Productieorder headers — velden | ✅ Memo's |
+| `MKG velden Artikel.xlsx` | `arti` (185) | Artikelvelden (originele export) | ✅ Referentie |
+| `artikel velden.xlsx` | `arti` | Artikelvelden (alternatieve export) | ✅ Referentie |
+| `planning dump.xlsx` | `plnb`/`plnc` | Planning velden en voorbeelddata | ✅ Planning sync |
+| `capaciteits overzicht.xlsx` | `plnc` | Capaciteitsplanning velden | ✅ Capaciteit |
+
+**Hoe te gebruiken (agents):**
+```bash
+# Parse een Excel data dictionary naar leesbare tekst:
+python3 -c "
+import zipfile, xml.etree.ElementTree as ET
+z = zipfile.ZipFile('Data dictionairy/stlr.xlsx')
+ss = []
+try:
+    tree = ET.parse(z.open('xl/sharedStrings.xml'))
+    ns = {'s': 'http://schemas.openxmlformats.org/spreadsheetml/2006/main'}
+    for si in tree.findall('.//s:si', ns):
+        texts = si.findall('.//s:t', ns)
+        ss.append(''.join(t.text or '' for t in texts))
+except: pass
+tree = ET.parse(z.open('xl/worksheets/sheet1.xml'))
+ns = {'s': 'http://schemas.openxmlformats.org/spreadsheetml/2006/main'}
+for row in tree.findall('.//s:row', ns):
+    cells = []
+    for c in row.findall('s:c', ns):
+        v = c.find('s:v', ns)
+        val = v.text if v is not None else ''
+        if c.get('t') == 's' and val:
+            val = ss[int(val)] if int(val) < len(ss) else val
+        cells.append(val)
+    print(' | '.join(cells))
+"
+```
 
 ---
 
@@ -297,13 +337,15 @@ Zie ook: [mkg-document-discovery.md](mkg-document-discovery.md)
 
 ---
 
-## 10. Server Configuratie
+## 10. Server Configuratie & Externe Referenties
 
 | Item | Waarde |
 |---|---|
 | PocketBase server | `10.1.111.26:8090` |
 | MKG server | Geconfigureerd via Instellingen → MKG ERP Koppeling |
+| MKG API documentatie | https://www.mkg.eu/nl-NL/mijn-mkg/support/landingspagina/12152 |
 | Bestanden server | `S:\Tekeningen\{klantnaam}\` (gemapte netwerkdrive, AD) |
 | GitHub repo | `epicjohan/Factory-manager-1.1.7` |
 | Branch (dev) | `feature/mkg-api-integration` |
 | Branch (prod) | `main` |
+| Data Dictionary | `Data dictionairy/` (project root, 8 Excel bestanden) |
