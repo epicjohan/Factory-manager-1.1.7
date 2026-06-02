@@ -973,58 +973,98 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
                 }
             }
 
-            // ── Test 4: Directe query op docs tabel ──
+            // ── Test 4: docs tabel ZONDER FieldList (alle velden zichtbaar) ──
             try {
-                var directUrl = cfg.url + MKG_API_BASE
+                var sampleUrl = cfg.url + MKG_API_BASE
                     + "/Documents/docs/"
-                    + "?FieldList=" + encodeURIComponent("docs_key,docs_oms,docs_fysiek_bestand,docs_bestand,dcat_num,t_dcat_oms,t_file_type,docf_key")
-                    + "&Filter=" + encodeURIComponent("docf_key eq '" + body.artiCode + "'")
-                    + "&NumRows=10";
+                    + "?NumRows=3";
 
-                console.log("[MKG Proxy] Discovery test docs tabel direct: " + directUrl);
-                var directRes = $http.send({
-                    url: directUrl, method: "GET",
+                console.log("[MKG Proxy] Discovery test docs (alle velden): " + sampleUrl);
+                var sampleRes = $http.send({
+                    url: sampleUrl, method: "GET",
                     headers: mkgApiHeaders(loginResult.sessionCookie, cfg.apiKey),
                     timeout: 15
                 });
 
-                var directData = extractMkgData(directRes.json, "docs");
+                var sampleData = extractMkgData(sampleRes.json, "docs");
+                // Toon alle veldnamen van eerste record
+                var fieldNames = [];
+                if (Array.isArray(sampleData) && sampleData.length > 0) {
+                    for (var k in sampleData[0]) {
+                        if (sampleData[0].hasOwnProperty(k)) fieldNames.push(k);
+                    }
+                }
                 results.tests.push({
-                    test: "docs_direct_by_artiCode",
-                    success: (directRes.statusCode >= 200 && directRes.statusCode < 300),
-                    statusCode: directRes.statusCode,
-                    recordCount: Array.isArray(directData) ? directData.length : 0,
-                    data: directData || directRes.json || null,
-                    message: "docs/?Filter=docf_key eq '" + body.artiCode + "' → HTTP " + directRes.statusCode
+                    test: "docs_all_fields",
+                    success: (sampleRes.statusCode >= 200 && sampleRes.statusCode < 300),
+                    statusCode: sampleRes.statusCode,
+                    recordCount: Array.isArray(sampleData) ? sampleData.length : 0,
+                    availableFields: fieldNames,
+                    data: sampleData || null,
+                    message: "docs/ (alle velden, eerste 3) → HTTP " + sampleRes.statusCode
                 });
-            } catch (directErr) {
-                results.tests.push({ test: "docs_direct_by_artiCode", success: false, message: String(directErr) });
+            } catch (sampleErr) {
+                results.tests.push({ test: "docs_all_fields", success: false, message: String(sampleErr) });
             }
 
-            // ── Test 5: docs tabel ZONDER filter (eerste 5 records) ──
-            try {
-                var allDocsUrl = cfg.url + MKG_API_BASE
-                    + "/Documents/docs/"
-                    + "?FieldList=" + encodeURIComponent("docs_key,docs_oms,docs_fysiek_bestand,docs_bestand,dcat_num,t_dcat_oms,t_file_type,docf_key")
-                    + "&NumRows=5";
+            // ── Test 5: docs filteren op docs_key met stlh_num ──
+            if (stlhNum) {
+                try {
+                    var keyFilterUrl = cfg.url + MKG_API_BASE
+                        + "/Documents/docs/"
+                        + "?Filter=" + encodeURIComponent("docs_key eq '" + stlhNum + "'")
+                        + "&NumRows=10";
 
-                var allDocsRes = $http.send({
-                    url: allDocsUrl, method: "GET",
+                    var keyFilterRes = $http.send({
+                        url: keyFilterUrl, method: "GET",
+                        headers: mkgApiHeaders(loginResult.sessionCookie, cfg.apiKey),
+                        timeout: 15
+                    });
+
+                    var keyFilterData = extractMkgData(keyFilterRes.json, "docs");
+                    results.tests.push({
+                        test: "docs_by_stlhNum",
+                        success: (keyFilterRes.statusCode >= 200 && keyFilterRes.statusCode < 300),
+                        statusCode: keyFilterRes.statusCode,
+                        recordCount: Array.isArray(keyFilterData) ? keyFilterData.length : 0,
+                        data: keyFilterData || null,
+                        message: "docs/?Filter=docs_key eq '" + stlhNum + "' → HTTP " + keyFilterRes.statusCode
+                    });
+                } catch (keyFilterErr) {
+                    results.tests.push({ test: "docs_by_stlhNum", success: false, message: String(keyFilterErr) });
+                }
+            }
+
+            // ── Test 6: docs tabel — zoek op bestandsnaam met artikelcode patroon ──
+            try {
+                // Probeer te filteren op het tekening-nummer van het artikel
+                var tekeningNum = (results.artikel && results.artikel.arti_tekening) ? results.artikel.arti_tekening : "";
+                var artiCodeClean = body.artiCode.replace(/\s+/g, "");
+
+                // Probeer contains filter op docs_bestand
+                var searchUrl = cfg.url + MKG_API_BASE
+                    + "/Documents/docs/"
+                    + "?Filter=" + encodeURIComponent("docs_bestand contains '" + (tekeningNum || artiCodeClean) + "'")
+                    + "&NumRows=10";
+
+                var searchRes = $http.send({
+                    url: searchUrl, method: "GET",
                     headers: mkgApiHeaders(loginResult.sessionCookie, cfg.apiKey),
                     timeout: 15
                 });
 
-                var allDocsData = extractMkgData(allDocsRes.json, "docs");
+                var searchData = extractMkgData(searchRes.json, "docs");
                 results.tests.push({
-                    test: "docs_sample",
-                    success: (allDocsRes.statusCode >= 200 && allDocsRes.statusCode < 300),
-                    statusCode: allDocsRes.statusCode,
-                    recordCount: Array.isArray(allDocsData) ? allDocsData.length : 0,
-                    data: allDocsData || allDocsRes.json || null,
-                    message: "docs/ (eerste 5 records) → HTTP " + allDocsRes.statusCode
+                    test: "docs_by_filename",
+                    success: (searchRes.statusCode >= 200 && searchRes.statusCode < 300),
+                    statusCode: searchRes.statusCode,
+                    recordCount: Array.isArray(searchData) ? searchData.length : 0,
+                    searchTerm: tekeningNum || artiCodeClean,
+                    data: searchData || null,
+                    message: "docs/?Filter=docs_bestand contains '" + (tekeningNum || artiCodeClean) + "' → HTTP " + searchRes.statusCode
                 });
-            } catch (allDocsErr) {
-                results.tests.push({ test: "docs_sample", success: false, message: String(allDocsErr) });
+            } catch (searchErr) {
+                results.tests.push({ test: "docs_by_filename", success: false, message: String(searchErr) });
             }
 
             console.log("[MKG Proxy] DISCOVER_DOCS klaar: " + results.tests.length + " tests uitgevoerd.");
