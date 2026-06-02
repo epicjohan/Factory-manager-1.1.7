@@ -429,6 +429,23 @@ export const mkgCapaciteitService = {
             return { success: false, message: 'Geen geldige MKG RowKey — record kan niet worden bijgewerkt via de API.' };
         }
 
+        // Als de bewerking al gereed is in MKG, sla de API update over
+        // (MKG geeft 422 bij dubbel gereedmelden)
+        if (record.plnb_gereed && markeerGereed) {
+            console.log(`[MkgPlnb] Bewerking ${record.prdh_num} bwrk ${record.bwrk_num} is al gereedgemeld in MKG — API update overgeslagen.`);
+            // Memo nog wel loggen
+            if (record.prdh_num && gebruikerNaam) {
+                const nu = new Date().toLocaleString('nl-NL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                const memoText = `[${nu}] Gereedgemeld door ${gebruikerNaam} — Bew. ${record.bwrk_num}: ${aantalGereed ?? record.plnb_aantal}/${record.plnb_aantal} stuks (Factory Manager — was al gereed in MKG)`;
+                await mkgCapaciteitService.appendPrdhMemo(pbUrl, record.prdh_num, memoText).catch(() => {});
+            }
+            // Lokale cache bijwerken — verwijder uit cache
+            const allRecords = await loadTable<MkgPlnbRecord[]>(KEYS.MKG_PLNB, []);
+            const updated = allRecords.filter(r => r.id !== rowKey);
+            await saveTable(KEYS.MKG_PLNB, updated);
+            return { success: true, message: 'Bewerking was al gereedgemeld in MKG. Lokale job is gestopt.' };
+        }
+
         const fields: Record<string, any> = {
             plnb_gereed: markeerGereed,
             plnb_aantal_grd: aantalGereed ?? record.plnb_aantal
