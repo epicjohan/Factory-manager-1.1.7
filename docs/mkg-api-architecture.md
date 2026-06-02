@@ -1,6 +1,9 @@
 # MKG API Architectuur — Factory Manager
 
-> Vastgelegd op basis van geleerde lessen tijdens de MKG planning integratie (mei 2026).
+> Vastgelegd op basis van geleerde lessen tijdens de MKG planning integratie (mei–juni 2026).
+> Bijgewerkt: 2 juni 2026 — Document discovery, gereedmelden fix, auto-sync.
+>
+> Zie ook: [session-knowledge-base.md](session-knowledge-base.md) | [mkg-document-discovery.md](mkg-document-discovery.md)
 
 ## Overzicht
 
@@ -141,10 +144,15 @@ const key = `${r.prdh_num}_${r.bwrk_num}_${r.plnb_wk_start}`;
 | Bestand | Rol |
 |---|---|
 | `pb_hooks/mkg_proxy.pb.js` | PocketBase proxy — alle MKG API communicatie |
-| `services/mkg/mkgCapaciteitService.ts` | Frontend service — sync, cache, deduplicatie |
+| `services/mkg/mkgCapaciteitService.ts` | Frontend service — sync, cache, deduplicatie, starten/gereedmelden |
+| `services/mkg/mkgStuklijstService.ts` | Frontend service — BOM import, artikel mapping |
 | `types/system.ts` | TypeScript types voor MKG records |
+| `types/pdm.ts` | Types voor artikelen, bestanden, DMS |
 | `components/machine/MkgPlanningWidget.tsx` | UI widget — planning weergave |
+| `components/machine/MkgActionModal.tsx` | Modal voor starten/gereedmelden |
+| `components/machine/MkgBomImportModal.tsx` | BOM import modal |
 | `services/db/core.ts` | IndexedDB cache layer |
+| `Data dictionairy/*.xlsx` | MKG veldendefinities per tabel |
 
 ---
 
@@ -217,8 +225,10 @@ const mapNieuwRecord = (raw: any): MkgNieuwRecord => { ... }
 
 ### Basis URL
 ```
-{MKG_URL}/api/v1/Documents/{tabel}/
+https://{server}/mkg/web/v3/MKG/Documents/{tabel}/
 ```
+
+> **Let op:** De documentatie vermeldt soms `/api/v1/Documents/` — de werkelijke URL in de code is `/mkg/web/v3/MKG/Documents/`.
 
 ### Parameters
 | Parameter | Beschrijving | Voorbeeld |
@@ -229,19 +239,33 @@ const mapNieuwRecord = (raw: any): MkgNieuwRecord => { ... }
 | `StartRow` | Offset voor paginatie | `0`, `1000`, `2000` |
 
 ### Bekende tabellen
-| Tabel | Document | Omschrijving |
-|---|---|---|
-| `plnb` | 258 | Planning bewerkingen |
-| `plnc` | 259 | Capaciteit resources |
-| `arti` | 185 | Artikelen |
-| `prdh` | - | Productieorder headers |
-| `prdr` | - | Productieorder regels |
-| `rsrc` | - | Resources/machines |
+| Tabel | Document | Omschrijving | Status |
+|---|---|---|---|
+| `plnb` | 258 | Planning bewerkingen | ✅ In gebruik |
+| `plnc` | 259 | Capaciteit resources | ✅ In gebruik |
+| `arti` | 185 | Artikelen | ✅ In gebruik |
+| `prdh` | - | Productieorder headers | ✅ In gebruik |
+| `prdr` | - | Productieorder regels | Niet direct |
+| `rsrc` | - | Resources/machines | Niet direct |
+| `stlr` | - | Stuklijstregels | ✅ In gebruik (BOM) |
+| `stlb` | - | Stuklijst bewerkingen | ✅ Sub-collectie van stlr |
+| `stlm` | - | Stuklijst materialen | ✅ Sub-collectie van stlr |
+| `docs` | 420 | Documenten | 🔍 Discovery fase |
+
+### Sub-collecties (verzamelingen)
+
+Sommige tabellen hebben sub-collecties die via het record-key benaderd worden:
+
+```
+GET /Documents/stlr/{admiNum}+{stlhNum}+{stlrNum}/stlr_stlb  → Bewerkingen
+GET /Documents/stlr/{admiNum}+{stlhNum}+{stlrNum}/stlr_stlm  → Materialen
+GET /Documents/stlr/{admiNum}+{stlhNum}+{stlrNum}/stlr_files → HTTP 426 (type "Documenten", niet "verzameling")
+```
 
 ### Authenticatie
-- **Login:** POST naar `{MKG_URL}/api/v1/Login/` met `Username` + `Password`
-- **Session:** Cookie `sessionId` uit login response
-- **API Key:** Header `api-key` bij elke request
+- **Login:** POST naar `{server}/mkg/static/auth/j_spring_security_check?j_username=...&j_password=...`
+- **Session:** Cookie `JSESSIONID` uit login response
+- **API Key:** Header `X-customerID` bij elke request
 
 ---
 
@@ -251,3 +275,7 @@ const mapNieuwRecord = (raw: any): MkgNieuwRecord => { ... }
 2. **MKG paginatie:** Max 1000 records per request
 3. **MKG boolean filter:** `plnb_gereed = false` werkt onbetrouwbaar — filter client-side
 4. **Resources 2105/2108:** Ontbreken in MKG plnb response bij bulk fetch (>50k records), werken wel bij per-resource fetch
+5. **MKG 422 bij dubbel starten/gereedmelden:** Frontend moet checken vóór API call
+6. **docs tabel:** `docs_fysiek_bestand` altijd leeg via API, `t_*` computed velden niet beschikbaar
+7. **stlr_files:** Type "Documenten" (niet "verzameling") → HTTP 426, niet bereikbaar via standaard sub-collectie URL
+8. **dcat_num filter:** Lijkt niet correct te werken in combinatie met andere filters
