@@ -215,7 +215,14 @@ export const MkgActionModal: React.FC<MkgActionModalProps> = ({
                     {/* Error */}
                     {error && (
                         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-xl px-4 py-3">
-                            <p className="text-xs text-red-600 dark:text-red-400 font-bold">{error}</p>
+                            <p className="text-xs text-red-600 dark:text-red-400 font-bold">
+                                {error.includes('422')
+                                    ? 'MKG meldt dat deze bewerking niet bijgewerkt kan worden (HTTP 422). Mogelijk is de bewerking al gereedgemeld in MKG.'
+                                    : error.includes('<!doctype') || error.includes('<html')
+                                        ? error.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim().substring(0, 200)
+                                        : error
+                                }
+                            </p>
                         </div>
                     )}
                 </div>
