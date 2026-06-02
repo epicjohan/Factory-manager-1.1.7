@@ -1067,6 +1067,65 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
                 results.tests.push({ test: "docs_by_filename", success: false, message: String(searchErr) });
             }
 
+            // ── Test 7: Tekeningen (dcat_num=1) met ALLE velden incl. docs_fysiek_bestand ──
+            if (results.artikel && results.artikel.arti_tekening) {
+                var tekNum = results.artikel.arti_tekening;
+
+                // 7a: Tekeningen (dcat_num=1)
+                try {
+                    var tekUrl = cfg.url + MKG_API_BASE
+                        + "/Documents/docs/"
+                        + "?FieldList=" + encodeURIComponent("docs_key,docs_oms,docs_bestand,docs_fysiek_bestand,docs_submap,docs_proces,docs_type,docs_default_printen,dcat_num,docf_key,rela_num,admi_num")
+                        + "&Filter=" + encodeURIComponent("docs_bestand contains '" + tekNum + "' and dcat_num eq '1'")
+                        + "&NumRows=5";
+
+                    var tekRes = $http.send({
+                        url: tekUrl, method: "GET",
+                        headers: mkgApiHeaders(loginResult.sessionCookie, cfg.apiKey),
+                        timeout: 15
+                    });
+
+                    var tekData = extractMkgData(tekRes.json, "docs");
+                    results.tests.push({
+                        test: "tekeningen_dcat1",
+                        success: (tekRes.statusCode >= 200 && tekRes.statusCode < 300),
+                        statusCode: tekRes.statusCode,
+                        recordCount: Array.isArray(tekData) ? tekData.length : 0,
+                        data: tekData || null,
+                        message: "Tekeningen (dcat_num=1, bestand contains '" + tekNum + "') → HTTP " + tekRes.statusCode
+                    });
+                } catch (tekErr) {
+                    results.tests.push({ test: "tekeningen_dcat1", success: false, message: String(tekErr) });
+                }
+
+                // 7b: Stepfiles (dcat_num=6)
+                try {
+                    var stepUrl = cfg.url + MKG_API_BASE
+                        + "/Documents/docs/"
+                        + "?FieldList=" + encodeURIComponent("docs_key,docs_oms,docs_bestand,docs_fysiek_bestand,docs_submap,docs_proces,docs_type,docs_default_printen,dcat_num,docf_key,rela_num,admi_num")
+                        + "&Filter=" + encodeURIComponent("docs_bestand contains '" + tekNum + "' and dcat_num eq '6'")
+                        + "&NumRows=5";
+
+                    var stepRes = $http.send({
+                        url: stepUrl, method: "GET",
+                        headers: mkgApiHeaders(loginResult.sessionCookie, cfg.apiKey),
+                        timeout: 15
+                    });
+
+                    var stepData = extractMkgData(stepRes.json, "docs");
+                    results.tests.push({
+                        test: "stepfiles_dcat6",
+                        success: (stepRes.statusCode >= 200 && stepRes.statusCode < 300),
+                        statusCode: stepRes.statusCode,
+                        recordCount: Array.isArray(stepData) ? stepData.length : 0,
+                        data: stepData || null,
+                        message: "Stepfiles (dcat_num=6, bestand contains '" + tekNum + "') → HTTP " + stepRes.statusCode
+                    });
+                } catch (stepErr) {
+                    results.tests.push({ test: "stepfiles_dcat6", success: false, message: String(stepErr) });
+                }
+            }
+
             console.log("[MKG Proxy] DISCOVER_DOCS klaar: " + results.tests.length + " tests uitgevoerd.");
             return e.json(200, { success: true, discovery: results });
         }
