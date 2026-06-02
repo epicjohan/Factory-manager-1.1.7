@@ -111,6 +111,40 @@ export const MkgPlanningWidget: React.FC<Props> = ({
 
     useEffect(() => { load(); }, [load]);
 
+    // ── Auto-sync op basis van mkgSyncIntervalMinutes instelling ─────────
+    useEffect(() => {
+        let iv: ReturnType<typeof setInterval> | null = null;
+        let cancelled = false;
+
+        const startAutoSync = async () => {
+            const intervalMin = await db.getMkgSyncInterval();
+            if (intervalMin <= 0 || cancelled) return; // 0 = uitgeschakeld
+
+            const doSync = async () => {
+                if (cancelled) return;
+                try {
+                    const srv = await db.getServerSettings();
+                    const pbUrl = srv.url || window.location.origin;
+                    console.log(`[MkgPlanning] Auto-sync resource ${rsrcNum} (elke ${intervalMin} min)`);
+                    const result = await mkgCapaciteitService.syncPlnbFromMkg(pbUrl, rsrcNum);
+                    if (result.success && !cancelled) {
+                        setLastSync(new Date().toLocaleTimeString('nl-NL'));
+                        await load();
+                    }
+                } catch (err) {
+                    console.error('[MkgPlanning] Auto-sync fout:', err);
+                }
+            };
+
+            // Eerste sync bij mount
+            doSync();
+            iv = setInterval(doSync, intervalMin * 60 * 1000);
+        };
+
+        startAutoSync();
+        return () => { cancelled = true; if (iv) clearInterval(iv); };
+    }, [rsrcNum, load]);
+
     // ── Sync ──────────────────────────────────────────────────────────────
     const handleSync = async () => {
         setSyncing(true);

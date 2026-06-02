@@ -342,6 +342,35 @@ export const ProductionDashboard: React.FC = () => {
         setMkgOrders(open);
     };
 
+    // Auto-sync MKG op ingesteld interval
+    useEffect(() => {
+        let iv: ReturnType<typeof setInterval> | null = null;
+        let cancelled = false;
+
+        const startAutoSync = async () => {
+            const intervalMin = await db.getMkgSyncInterval();
+            if (intervalMin <= 0 || !hasMkgResource || cancelled) return;
+
+            const doSync = async () => {
+                if (cancelled) return;
+                try {
+                    const srv = await db.getServerSettings();
+                    const pbUrl = srv.url || window.location.origin;
+                    await mkgCapaciteitService.syncPlnbFromMkg(pbUrl, rsrcNum);
+                    if (!cancelled) await loadMkgOrders();
+                } catch (err) {
+                    console.error('[ProductionDashboard] Auto-sync fout:', err);
+                }
+            };
+
+            doSync();
+            iv = setInterval(doSync, intervalMin * 60 * 1000);
+        };
+
+        startAutoSync();
+        return () => { cancelled = true; if (iv) clearInterval(iv); };
+    }, [rsrcNum, hasMkgResource]);
+
     const syncMkgOrders = async () => {
         if (!hasMkgResource) return;
         setMkgSyncing(true);
