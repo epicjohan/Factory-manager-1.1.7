@@ -847,10 +847,194 @@ routerAdd("POST", "/api/mkg-proxy", function(e) {
             }
         }
 
+        // ── DISCOVER_DOCS ─────────────────────────────────────────────────
+        // Eenmalige discovery: probeert meerdere methodes om documenten te vinden
+        if (body.action === "DISCOVER_DOCS") {
+            if (!body.artiCode) {
+                return e.json(400, { success: false, message: "artiCode is vereist voor DISCOVER_DOCS." });
+            }
+
+            console.log("[MKG Proxy] DISCOVER_DOCS voor artikel: " + body.artiCode);
+
+            var loginResult = mkgLogin(cfg);
+            if (!loginResult.success) {
+                return e.json(200, { success: false, message: loginResult.error });
+            }
+
+            var admiNum = body.admiNum || "1";
+            var results = {
+                artiCode: body.artiCode,
+                tests: []
+            };
+
+            // ── Test 1: Haal artikel op om stlh_num te vinden ──
+            var stlhNum = "";
+            try {
+                var artiUrl = cfg.url + MKG_API_BASE
+                    + "/Documents/arti/"
+                    + "?FieldList=" + encodeURIComponent("arti_code,arti_oms_1,arti_tekening,arti_stlh_num")
+                    + "&Filter=" + encodeURIComponent("arti_code eq '" + body.artiCode + "'")
+                    + "&NumRows=1";
+
+                var artiRes = $http.send({
+                    url: artiUrl, method: "GET",
+                    headers: mkgApiHeaders(loginResult.sessionCookie, cfg.apiKey),
+                    timeout: 15
+                });
+
+                var artiData = extractMkgData(artiRes.json, "arti");
+                if (Array.isArray(artiData) && artiData.length > 0) {
+                    stlhNum = String(artiData[0].arti_stlh_num || "");
+                    results.artikel = artiData[0];
+                    results.stlhNum = stlhNum;
+                    results.tests.push({ test: "FETCH_ARTI", success: true, message: "Artikel gevonden, stlh_num=" + stlhNum });
+                } else {
+                    results.tests.push({ test: "FETCH_ARTI", success: false, message: "Artikel niet gevonden" });
+                }
+            } catch (artiErr) {
+                results.tests.push({ test: "FETCH_ARTI", success: false, message: String(artiErr) });
+            }
+
+            // ── Test 2: Haal stlr regels op ──
+            var stlrData = [];
+            if (stlhNum) {
+                try {
+                    var stlrUrl = cfg.url + MKG_API_BASE
+                        + "/Documents/stlr/"
+                        + "?FieldList=" + encodeURIComponent("stlr_num,arti_code,stlr_oms_1,stlr_tekening")
+                        + "&Filter=" + encodeURIComponent("stlh_num eq '" + stlhNum + "'")
+                        + "&NumRows=50";
+
+                    var stlrRes = $http.send({
+                        url: stlrUrl, method: "GET",
+                        headers: mkgApiHeaders(loginResult.sessionCookie, cfg.apiKey),
+                        timeout: 15
+                    });
+
+                    stlrData = extractMkgData(stlrRes.json, "stlr") || [];
+                    results.stlrCount = stlrData.length;
+                    results.tests.push({ test: "FETCH_STLR", success: true, message: stlrData.length + " stuklijstregels gevonden" });
+                } catch (stlrErr) {
+                    results.tests.push({ test: "FETCH_STLR", success: false, message: String(stlrErr) });
+                }
+            }
+
+            // ── Test 3: Probeer stlr_files sub-collectie ──
+            if (stlrData.length > 0 && stlhNum) {
+                var firstStlr = stlrData[0];
+                var stlrKey = admiNum + "+" + stlhNum + "+" + firstStlr.stlr_num;
+
+                // Test 3a: stlr_files
+                try {
+                    var filesUrl = cfg.url + MKG_API_BASE
+                        + "/Documents/stlr/" + stlrKey + "/stlr_files"
+                        + "?NumRows=10";
+
+                    console.log("[MKG Proxy] Discovery test stlr_files: " + filesUrl);
+                    var filesRes = $http.send({
+                        url: filesUrl, method: "GET",
+                        headers: mkgApiHeaders(loginResult.sessionCookie, cfg.apiKey),
+                        timeout: 15
+                    });
+
+                    results.tests.push({
+                        test: "stlr_files",
+                        success: (filesRes.statusCode >= 200 && filesRes.statusCode < 300),
+                        statusCode: filesRes.statusCode,
+                        data: filesRes.json || null,
+                        message: "stlr/" + stlrKey + "/stlr_files → HTTP " + filesRes.statusCode
+                    });
+                } catch (filesErr) {
+                    results.tests.push({ test: "stlr_files", success: false, message: String(filesErr) });
+                }
+
+                // Test 3b: stlr_docs
+                try {
+                    var docsUrl = cfg.url + MKG_API_BASE
+                        + "/Documents/stlr/" + stlrKey + "/stlr_docs"
+                        + "?NumRows=10";
+
+                    console.log("[MKG Proxy] Discovery test stlr_docs: " + docsUrl);
+                    var docsRes = $http.send({
+                        url: docsUrl, method: "GET",
+                        headers: mkgApiHeaders(loginResult.sessionCookie, cfg.apiKey),
+                        timeout: 15
+                    });
+
+                    results.tests.push({
+                        test: "stlr_docs",
+                        success: (docsRes.statusCode >= 200 && docsRes.statusCode < 300),
+                        statusCode: docsRes.statusCode,
+                        data: docsRes.json || null,
+                        message: "stlr/" + stlrKey + "/stlr_docs → HTTP " + docsRes.statusCode
+                    });
+                } catch (docsErr) {
+                    results.tests.push({ test: "stlr_docs", success: false, message: String(docsErr) });
+                }
+            }
+
+            // ── Test 4: Directe query op docs tabel ──
+            try {
+                var directUrl = cfg.url + MKG_API_BASE
+                    + "/Documents/docs/"
+                    + "?FieldList=" + encodeURIComponent("docs_key,docs_oms,docs_fysiek_bestand,docs_bestand,dcat_num,t_dcat_oms,t_file_type,docf_key")
+                    + "&Filter=" + encodeURIComponent("docf_key eq '" + body.artiCode + "'")
+                    + "&NumRows=10";
+
+                console.log("[MKG Proxy] Discovery test docs tabel direct: " + directUrl);
+                var directRes = $http.send({
+                    url: directUrl, method: "GET",
+                    headers: mkgApiHeaders(loginResult.sessionCookie, cfg.apiKey),
+                    timeout: 15
+                });
+
+                var directData = extractMkgData(directRes.json, "docs");
+                results.tests.push({
+                    test: "docs_direct_by_artiCode",
+                    success: (directRes.statusCode >= 200 && directRes.statusCode < 300),
+                    statusCode: directRes.statusCode,
+                    recordCount: Array.isArray(directData) ? directData.length : 0,
+                    data: directData || directRes.json || null,
+                    message: "docs/?Filter=docf_key eq '" + body.artiCode + "' → HTTP " + directRes.statusCode
+                });
+            } catch (directErr) {
+                results.tests.push({ test: "docs_direct_by_artiCode", success: false, message: String(directErr) });
+            }
+
+            // ── Test 5: docs tabel ZONDER filter (eerste 5 records) ──
+            try {
+                var allDocsUrl = cfg.url + MKG_API_BASE
+                    + "/Documents/docs/"
+                    + "?FieldList=" + encodeURIComponent("docs_key,docs_oms,docs_fysiek_bestand,docs_bestand,dcat_num,t_dcat_oms,t_file_type,docf_key")
+                    + "&NumRows=5";
+
+                var allDocsRes = $http.send({
+                    url: allDocsUrl, method: "GET",
+                    headers: mkgApiHeaders(loginResult.sessionCookie, cfg.apiKey),
+                    timeout: 15
+                });
+
+                var allDocsData = extractMkgData(allDocsRes.json, "docs");
+                results.tests.push({
+                    test: "docs_sample",
+                    success: (allDocsRes.statusCode >= 200 && allDocsRes.statusCode < 300),
+                    statusCode: allDocsRes.statusCode,
+                    recordCount: Array.isArray(allDocsData) ? allDocsData.length : 0,
+                    data: allDocsData || allDocsRes.json || null,
+                    message: "docs/ (eerste 5 records) → HTTP " + allDocsRes.statusCode
+                });
+            } catch (allDocsErr) {
+                results.tests.push({ test: "docs_sample", success: false, message: String(allDocsErr) });
+            }
+
+            console.log("[MKG Proxy] DISCOVER_DOCS klaar: " + results.tests.length + " tests uitgevoerd.");
+            return e.json(200, { success: true, discovery: results });
+        }
+
         // ── Onbekende actie ───────────────────────────────────────────────
         return e.json(400, {
             success: false,
-            message: "Onbekende actie '" + body.action + "'. Ondersteund: PING, REQUEST, SYNC_PLNC, SYNC_PLNB, UPDATE_PLNB, APPEND_PRDH_MEMO, FETCH_ARTI, FETCH_BOM."
+            message: "Onbekende actie '" + body.action + "'. Ondersteund: PING, REQUEST, SYNC_PLNC, SYNC_PLNB, UPDATE_PLNB, APPEND_PRDH_MEMO, FETCH_ARTI, FETCH_BOM, DISCOVER_DOCS."
         });
 
     } catch (fatalErr) {
