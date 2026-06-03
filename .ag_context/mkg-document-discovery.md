@@ -146,13 +146,49 @@ Het patroon `docs_key = "001;60182681;1"` verwijst naar:
 
 ---
 
-## Bestandsopslag
+## Bestandsopslag — BEVESTIGD door MKG API team (3 juni 2026)
 
-### MKG Document Storage
-- Bestanden worden opgeslagen als **`.lnk` (Windows shortcuts)**
-- Pad: `{MKG_DOC_ROOT}\{docs_submap}\{docs_bestand}`
-- Voorbeeld: `{MKG_DOC_ROOT}\2018\10\25\39563\p07277-0.pdf.lnk`
-- De `.lnk` wijst naar het fysieke bestand op de `S:\` drive
+> **Bron:** Reactie van Wietse van den Berg (MKG Support), 3 juni 2026
+
+### De 3 scenario's voor document-opslag in MKG
+
+| # | Scenario | Pad constructie | Herkenning |
+|---|---|---|---|
+| 1 | Bestand staat in MKG documentenmap | `{MKG_DOCUMENTENMAP}\{docs_submap}\{docs_bestand}` | `docs_submap` begint NIET met `?` |
+| 2 | Snelkoppeling (.lnk) in documentenmap | `{MKG_DOCUMENTENMAP}\{docs_submap}\{docs_bestand}` → .lnk wijst naar echt bestand | `docs_bestand` eindigt op `.lnk` |
+| 3 | Direct pad in MKG | `docs_fysiek_bestand` bevat het volledige pad | `docs_submap` begint met `?` |
+
+### Officiële formule (van MKG)
+
+```
+ALS docs_submap BEGINT MET "?"
+  → gebruik docs_fysiek_bestand  (volledig pad staat direct in het veld)
+ANDERS
+  → pad = MKG_DOCUMENTENMAP + "\" + docs_submap + "\" + docs_bestand
+```
+
+### Waarom `docs_fysiek_bestand` leeg was in onze tests
+
+Het veld is alleen gevuld bij **scenario 3** (directe pad-opslag). In onze discovery was `docs_submap = "2018\10\25\39563"` (begint niet met `?`) → scenario 1/2, dus `docs_fysiek_bestand` is correct leeg.
+
+### Onze test-case
+
+```
+Scenario 2 (snelkoppeling):
+  docs_submap  = "2018\10\25\39563"    (begint NIET met "?")
+  docs_bestand = "p07277-0.pdf.lnk"   (eindigt op .lnk)
+  
+  Pad naar .lnk = {MKG_DOCUMENTENMAP}\2018\10\25\39563\p07277-0.pdf.lnk
+  .lnk target   = S:\Tekeningen\Vanderlande\p07277-0.pdf (moet server-side geresolved worden)
+```
+
+### MKG bevestiging over .lnk bestanden
+
+> "De inhoud van het snelkoppeling bestand is voor de API niet beschikbaar.
+> In de MKG zal de MKG Client lokaal kijken of de .lnk benaderd kan worden
+> en de inhoud in fysiek bestand weergeven."
+
+→ **We moeten de .lnk server-side lezen en parsen** (PocketBase heeft file system toegang)
 
 ### Fysieke Bestanden
 - Locatie: `S:\Tekeningen\{klantnaam}\{bestandsnaam}`
@@ -162,19 +198,27 @@ Het patroon `docs_key = "001;60182681;1"` verwijst naar:
 
 ---
 
-## Open Punten (wacht op MKG API team)
+## Open Punten
 
-1. **Waar slaat MKG de `.lnk` bestanden op?** — De document root map is nodig om het volledige pad te construeren
-2. **Is er een API endpoint om het fysieke pad op te halen?** — `docs_fysiek_bestand` is altijd leeg via de REST API
-3. **Kan `stlr_files` (type "Documenten") benaderd worden via de API?** — HTTP 426 wijst op een ander request-formaat
+### ✅ Opgelost
+- ~~Hoe pad construeren~~ → Formule bevestigd door MKG
+- ~~Waarom `docs_fysiek_bestand` leeg~~ → Alleen gevuld bij scenario 3
 
-### Mogelijke routes om bestanden op te halen
+### ❓ Nog open
+1. **Wat is het `MKG_DOCUMENTENMAP` pad?** — Moet geconfigureerd worden in Factory Manager instellingen
+2. **Draait PocketBase op Windows?** — Nodig voor .lnk resolving (PowerShell `WScript.Shell` of binary parsing)
+3. **dcat_num filter werkt niet correct** — Mogelijk verkeerde filter-syntax, moet opnieuw getest worden
 
-| Route | Aanpak | Complexiteit | Betrouwbaarheid |
-|---|---|---|---|
-| **A: `.lnk` resolven** | Lees `.lnk` van `{DOC_ROOT}\{submap}\{bestand}`, parse target pad | Hoog | Hoog |
-| **B: Direct zoeken** | Strip `.lnk` extensie, zoek op `S:\Tekeningen\` | Medium | Medium |
-| **C: MKG API uitbreiding** | Vraag MKG API team om `docs_fysiek_bestand` te vullen | Laag | Hoog |
+### Implementatieroute (bevestigd)
+
+```
+1. Configuratie: MKG_DOCUMENTENMAP pad toevoegen aan system_config
+2. API: docs tabel queryen op tekeningnummer + dcat_num
+3. Pad construeren: formule toepassen (? → fysiek_bestand, anders → DOCMAP\submap\bestand)
+4. .lnk resolven: server-side het .lnk bestand lezen en target pad extracten
+5. Bestand lezen: het fysieke bestand (PDF/STEP) lezen van S:\ drive
+6. DMS import: bestand als base64 naar documentService.addDocumentFromBase64()
+```
 
 ---
 
